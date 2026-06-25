@@ -107,10 +107,17 @@ AUTH_USER_MODEL = "core.User"
 
 CORS_ALLOWED_ORIGINS = config(
     "CORS_ALLOWED_ORIGINS",
-    default="http://localhost:5173,http://localhost:3000",
+    default="http://localhost:5173,http://localhost:3000,https://fitsphere-omega.vercel.app",
     cast=Csv(),
 )
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://fitsphere-[a-z0-9]+-anshukumarrrs-projects\.vercel\.app$",
+]
 CORS_ALLOW_CREDENTIALS = True
+CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS[:]
+CSRF_TRUSTED_ORIGINS += [
+    "https://fitsphere-d68fdlecx-anshukumarrrs-projects.vercel.app",
+]
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
