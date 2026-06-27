@@ -1,3 +1,6 @@
+import { ParticlesProvider } from "@tsparticles/react";
+import { loadSlim } from "@tsparticles/slim";
+import Box from "@mui/material/Box";
 import { ThemeProvider } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -7,6 +10,7 @@ import { createRoot } from "react-dom/client";
 import { AuthProvider } from "./features/auth/AuthProvider";
 import { routeTree } from "./routeTree";
 import gymTheme from "./theme/gymTheme";
+import AtmosphereLayer from "./components/AtmosphereLayer";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -31,7 +35,12 @@ createRoot(document.getElementById("root")!).render(
       <CssBaseline />
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <RouterProvider router={router} />
+          <ParticlesProvider init={loadSlim}>
+            <AtmosphereLayer />
+            <Box sx={{ position: "relative", zIndex: 1 }}>
+              <RouterProvider router={router} />
+            </Box>
+          </ParticlesProvider>
         </AuthProvider>
       </QueryClientProvider>
     </ThemeProvider>

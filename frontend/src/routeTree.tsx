@@ -9,8 +9,12 @@ import LoginPage from "./features/auth/LoginPage";
 import RegisterPage from "./features/auth/RegisterPage";
 import BillingPlansPage from "./features/billing/BillingPlansPage";
 import LandingPage from "./features/landing/LandingPage";
+import MemberDashboardPage from "./features/member/MemberDashboardPage";
 import MemberListPage from "./features/members/MemberListPage";
 import MembershipPlanListPage from "./features/memberships/MembershipPlanListPage";
+import MyPaymentsPage from "./features/member/MyPaymentsPage";
+import MyProfilePage from "./features/member/MyProfilePage";
+import MySessionsPage from "./features/member/MySessionsPage";
 import NotificationSettingsPage from "./features/notifications/NotificationSettingsPage";
 import PaymentListPage from "./features/payments/PaymentListPage";
 import PTSessionListPage from "./features/personal-training/PTSessionListPage";
@@ -108,6 +112,24 @@ const notificationsRoute = new Route({
   component: NotificationSettingsPage,
 });
 
+const memberProfileRoute = new Route({
+  getParentRoute: () => dashboardLayoutRoute,
+  path: "/profile",
+  component: MyProfilePage,
+});
+
+const memberSessionsRoute = new Route({
+  getParentRoute: () => dashboardLayoutRoute,
+  path: "/my-sessions",
+  component: MySessionsPage,
+});
+
+const memberPaymentsRoute = new Route({
+  getParentRoute: () => dashboardLayoutRoute,
+  path: "/my-payments",
+  component: MyPaymentsPage,
+});
+
 const auditRoute = new Route({
   getParentRoute: () => dashboardLayoutRoute,
   path: "/audit",
@@ -130,6 +152,9 @@ const routeTree = rootRoute.addChildren([
     analyticsRoute,
     billingRoute,
     notificationsRoute,
+    memberProfileRoute,
+    memberSessionsRoute,
+    memberPaymentsRoute,
     auditRoute,
   ]),
 ]);

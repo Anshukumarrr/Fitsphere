@@ -1,6 +1,7 @@
-from rest_framework import generics
+from rest_framework import generics, permissions, serializers
+from rest_framework.response import Response
 
-from ..core.permissions import IsGymOwnerOrAdmin, IsStaff, IsTrainer
+from ..core.permissions import IsGymOwnerOrAdmin, IsMember, IsStaff, IsTrainer
 from .models import PTPackage, PTMembership, PTSession
 from .serializers import (
     PTPackageSerializer,
@@ -65,7 +66,7 @@ class PTMembershipDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 
 class PTSessionListCreateView(generics.ListCreateAPIView):
-    permission_classes = (IsStaff,)
+    permission_classes = (IsStaff | IsMember,)
     filterset_fields = ("trainer", "member", "status", "scheduled_date")
     ordering_fields = ("scheduled_date", "scheduled_time")
 
@@ -80,6 +81,13 @@ class PTSessionListCreateView(generics.ListCreateAPIView):
             return PTSession.objects.select_related(
                 "member", "member__user", "trainer", "trainer__user"
             ).all()
+        if user.role == "member":
+            return PTSession.objects.select_related(
+                "member", "member__user", "trainer", "trainer__user"
+            ).filter(
+                member=user.member_profile,
+                organization=user.organization,
+            )
         qs = PTSession.objects.select_related(
             "member", "member__user", "trainer", "trainer__user"
         ).filter(organization=user.organization)
@@ -100,3 +108,16 @@ class PTSessionDetailView(generics.RetrieveUpdateDestroyAPIView):
         if user.role == "super_admin":
             return PTSession.objects.all()
         return PTSession.objects.filter(organization=user.organization)
+
+
+class BookSessionView(generics.CreateAPIView):
+    permission_classes = (IsMember,)
+    serializer_class = PTSessionCreateSerializer
+
+    def perform_create(self, serializer):
+        member = self.request.user.member_profile
+        serializer.save(
+            member=member,
+            organization=self.request.user.organization,
+            branch=member.branch,
+        )

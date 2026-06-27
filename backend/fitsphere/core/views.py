@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-from .serializers import RegisterSerializer, UserSerializer
+from .serializers import LoginSerializer, RegisterSerializer, UserSerializer
 from .permissions import IsSuperAdmin
 
 User = get_user_model()
@@ -31,7 +31,7 @@ class RegisterView(generics.CreateAPIView):
 
 
 class LoginView(TokenObtainPairView):
-    pass
+    serializer_class = LoginSerializer
 
 
 class CurrentUserView(generics.RetrieveUpdateAPIView):

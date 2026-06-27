@@ -31,10 +31,10 @@ import {
   TrackChanges,
 } from "@mui/icons-material";
 import { useCallback, useState } from "react";
-import { Link, Outlet, useLocation } from "@tanstack/react-router";
+import { Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "../../hooks/useAuth";
 
-const drawerWidth = 270;
+const drawerWidth = 250;
 
 const navItems = [
   { label: "Dashboard", icon: <Dashboard />, path: "/dashboard", roles: ["gym_owner", "super_admin", "receptionist", "trainer"] },
@@ -42,13 +42,17 @@ const navItems = [
   { label: "Members", icon: <People />, path: "/members", roles: ["gym_owner", "super_admin", "receptionist"] },
   { label: "Trainers", icon: <Group />, path: "/trainers", roles: ["gym_owner", "super_admin"] },
   { label: "Membership Plans", icon: <AccountBalance />, path: "/memberships", roles: ["gym_owner", "super_admin"] },
-  { label: "Attendance", icon: <TrackChanges />, path: "/attendance", roles: ["gym_owner", "super_admin", "receptionist", "member"] },
+  { label: "Attendance", icon: <TrackChanges />, path: "/attendance", roles: ["gym_owner", "super_admin", "receptionist"] },
   { label: "PT Sessions", icon: <FitnessCenterIcon />, path: "/pt-sessions", roles: ["gym_owner", "super_admin", "trainer"] },
   { label: "Payments", icon: <MonetizationOn />, path: "/payments", roles: ["gym_owner", "super_admin", "receptionist"] },
   { label: "Analytics", icon: <EventNote />, path: "/analytics", roles: ["gym_owner", "super_admin"] },
   { label: "Notifications", icon: <Notifications />, path: "/notifications", roles: ["gym_owner", "super_admin"] },
   { label: "Billing", icon: <Receipt />, path: "/billing", roles: ["super_admin"] },
   { label: "Audit Logs", icon: <Receipt />, path: "/audit", roles: ["gym_owner", "super_admin"] },
+  { label: "My Dashboard", icon: <Dashboard />, path: "/dashboard", roles: ["member"] },
+  { label: "My Sessions", icon: <FitnessCenterIcon />, path: "/my-sessions", roles: ["member"] },
+  { label: "My Payments", icon: <MonetizationOn />, path: "/my-payments", roles: ["member"] },
+  { label: "My Profile", icon: <People />, path: "/profile", roles: ["member"] },
 ];
 
 export default function DashboardLayout() {
@@ -56,6 +60,7 @@ export default function DashboardLayout() {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const { user, logout } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
 
   const handleDrawerToggle = useCallback(
     () => setMobileOpen((prev) => !prev),
@@ -68,69 +73,105 @@ export default function DashboardLayout() {
 
   const drawer = (
     <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
-      <Toolbar sx={{ display: "flex", alignItems: "center", gap: 1.5, px: 2 }}>
-        <FitnessCenterIcon sx={{ color: "#FF6D00", fontSize: 32 }} />
+      <Toolbar sx={{ display: "flex", alignItems: "center", gap: 1.5, px: 2.5 }}>
+        <FitnessCenterIcon sx={{ color: "#E8E3D8", fontSize: 26 }} />
         <Box>
           <Typography
             variant="h6"
             sx={{
-              fontWeight: 900,
-              letterSpacing: "-0.02em",
+              color: "#E8E3D8",
+              fontFamily: '"Anton", sans-serif',
+              letterSpacing: "0.04em",
               lineHeight: 1.2,
-              background: "linear-gradient(135deg, #FF6D00 0%, #FF9100 100%)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
+              fontSize: "1.05rem",
             }}
           >
             FitSphere
           </Typography>
-          <Typography variant="caption" color="text.secondary" sx={{ fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase" }}>
+          <Typography
+            variant="caption"
+            sx={{
+              fontSize: 9,
+              letterSpacing: "0.1em",
+              textTransform: "uppercase",
+              fontFamily: '"Inter", sans-serif',
+              color: "#6B6F6C",
+            }}
+          >
             Gym Management OS
           </Typography>
         </Box>
       </Toolbar>
-      <Divider sx={{ borderColor: "#2A2A2A" }} />
-      <List sx={{ flex: 1, py: 1 }}>
-        {filteredNav.map((item) => (
-          <ListItem key={item.path} disablePadding sx={{ mb: 0.5 }}>
-            <ListItemButton
-              component={Link}
-              to={item.path}
-              selected={location.pathname.startsWith(item.path)}
-              sx={{
-                "&.Mui-selected": {
-                  borderRight: "3px solid #FF6D00",
-                },
-              }}
-            >
-              <ListItemIcon sx={{ color: location.pathname.startsWith(item.path) ? "#FF6D00" : "#666" }}>
-                {item.icon}
-              </ListItemIcon>
-              <ListItemText
-                primary={item.label}
-                slotProps={{
-                  primary: {
-                    sx: {
-                      fontSize: "0.875rem",
-                      fontWeight: location.pathname.startsWith(item.path) ? 700 : 500,
-                    },
-                  },
+      <Divider sx={{ borderColor: "#2A2D2B" }} />
+      <List sx={{ flex: 1, py: 0.5, px: 1 }}>
+        {filteredNav.map((item) => {
+          const isActive = location.pathname.startsWith(item.path);
+          return (
+            <ListItem key={item.path} disablePadding sx={{ mb: 0.15 }}>
+              <ListItemButton
+                component={Link}
+                to={item.path}
+                selected={isActive}
+                sx={{
+                  borderRadius: 1.5,
+                  py: 0.9,
+                  px: 1.5,
+                  ...(isActive
+                    ? {
+                        bgcolor: "rgba(255,255,255,0.04)",
+                        "&:hover": { bgcolor: "rgba(255,255,255,0.06)" },
+                      }
+                    : {
+                        "&:hover": { bgcolor: "rgba(255,255,255,0.02)" },
+                      }),
                 }}
-              />
-            </ListItemButton>
-          </ListItem>
-        ))}
+              >
+                <ListItemIcon
+                  sx={{
+                    minWidth: 34,
+                    color: isActive ? "#E8E3D8" : "#6B6F6C",
+                    "& .MuiSvgIcon-root": { fontSize: 18 },
+                    transition: "color 120ms ease-out",
+                  }}
+                >
+                  {item.icon}
+                </ListItemIcon>
+                <ListItemText
+                  primary={item.label}
+                  slotProps={{
+                    primary: {
+                      sx: {
+                        fontFamily: '"Inter", sans-serif',
+                        fontSize: "0.82rem",
+                        fontWeight: isActive ? 500 : 400,
+                        color: isActive ? "#E8E3D8" : "#6B6F6C",
+                        transition: "color 120ms ease-out",
+                      },
+                    },
+                  }}
+                />
+              </ListItemButton>
+            </ListItem>
+          );
+        })}
       </List>
-      <Divider sx={{ borderColor: "#2A2A2A" }} />
-      <Box sx={{ p: 2, display: "flex", alignItems: "center", gap: 1.5 }}>
-        <Avatar sx={{ width: 36, height: 36, bgcolor: "#FF6D00", fontWeight: 700, fontSize: 14 }}>
+      <Divider sx={{ borderColor: "#2A2D2B" }} />
+      <Box
+        sx={{
+          p: 2,
+          display: "flex",
+          alignItems: "center",
+          gap: 1.5,
+        }}
+      >
+        <Avatar sx={{ width: 32, height: 32, bgcolor: "#2A2D2B", fontSize: 11, fontWeight: 600, border: "1px solid rgba(107,111,108,0.15)" }}>
           {user?.first_name?.[0]?.toUpperCase() || "U"}
         </Avatar>
-        <Box sx={{ flex: 1 }}>
-          <Typography variant="body2" sx={{ fontWeight: 600, fontSize: "0.8rem" }}>
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Typography variant="body2" sx={{ fontWeight: 500, fontSize: "0.75rem", color: "#E8E3D8", fontFamily: '"Inter", sans-serif', overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
             {user?.first_name} {user?.last_name}
           </Typography>
-          <Typography variant="caption" color="text.secondary" sx={{ fontSize: "0.7rem", textTransform: "capitalize" }}>
+          <Typography variant="caption" sx={{ fontSize: "0.62rem", textTransform: "capitalize", fontFamily: '"Inter", sans-serif', color: "#6B6F6C" }}>
             {user?.role?.replace("_", " ")}
           </Typography>
         </Box>
@@ -145,7 +186,7 @@ export default function DashboardLayout() {
         sx={{
           width: { md: `calc(100% - ${drawerWidth}px)` },
           ml: { md: `${drawerWidth}px` },
-          backgroundColor: "#0F0F0F",
+          backgroundColor: "#0B0D0C",
         }}
       >
         <Toolbar>
@@ -153,7 +194,7 @@ export default function DashboardLayout() {
             color="inherit"
             edge="start"
             onClick={handleDrawerToggle}
-            sx={{ mr: 2, display: { md: "none" } }}
+            sx={{ mr: 2, display: { md: "none" }, color: "#6B6F6C" }}
           >
             <MenuIcon />
           </IconButton>
@@ -163,7 +204,7 @@ export default function DashboardLayout() {
               : ""}
           </Typography>
           <IconButton onClick={(e) => setAnchorEl(e.currentTarget)} size="small">
-            <Avatar sx={{ width: 34, height: 34, bgcolor: "#FF6D00", fontWeight: 700, fontSize: 13 }}>
+            <Avatar sx={{ width: 32, height: 32, bgcolor: "#2A2D2B", fontWeight: 600, fontSize: 11, border: "1px solid rgba(107,111,108,0.15)" }}>
               {user?.first_name?.[0]?.toUpperCase() || "U"}
             </Avatar>
           </IconButton>
@@ -175,8 +216,8 @@ export default function DashboardLayout() {
               paper: {
                 sx: {
                   mt: 1,
-                  border: "1px solid #2A2A2A",
-                  backgroundColor: "#141414",
+                  border: "1px solid #2A2D2B",
+                  backgroundColor: "#1A1D1B",
                 },
               },
             }}
@@ -191,10 +232,10 @@ export default function DashboardLayout() {
                 </Typography>
               </Box>
             </MenuItem>
-            <Divider sx={{ borderColor: "#2A2A2A" }} />
-            <MenuItem onClick={logout} sx={{ color: "#FF1744" }}>
+            <Divider sx={{ borderColor: "#2A2D2B" }} />
+            <MenuItem onClick={() => { logout(); navigate({ to: "/" }); }} sx={{ color: "#FF4B3E" }}>
               <ListItemIcon>
-                <Logout fontSize="small" sx={{ color: "#FF1744" }} />
+                <Logout fontSize="small" sx={{ color: "#FF4B3E" }} />
               </ListItemIcon>
               Logout
             </MenuItem>
@@ -218,7 +259,7 @@ export default function DashboardLayout() {
           variant="permanent"
           sx={{
             display: { xs: "none", md: "block" },
-            "& .MuiDrawer-paper": { boxSizing: "border-box", width: drawerWidth },
+            "& .MuiDrawer-paper": { boxSizing: "border-box", width: drawerWidth, borderRight: "1px solid #2A2D2B", backgroundColor: "#0B0D0C" },
           }}
           open
         >
@@ -232,7 +273,6 @@ export default function DashboardLayout() {
           flexGrow: 1,
           p: 3,
           width: { md: `calc(100% - ${drawerWidth}px)` },
-          backgroundColor: "#0A0A0A",
           minHeight: "100vh",
         }}
       >

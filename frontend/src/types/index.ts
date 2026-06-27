@@ -8,6 +8,9 @@ export interface User {
   photo: string | null;
   role: UserRole;
   is_active: boolean;
+  gym_code: string | null;
+  membership_plan: string | null;
+  membership_expiry: string | null;
 }
 
 export type UserRole =
@@ -62,6 +65,7 @@ export interface Member {
   id: number;
   user: User;
   user_id: number;
+  gym_code: string;
   organization: number;
   organization_name: string;
   branch: number | null;
@@ -207,6 +211,18 @@ export interface DashboardData {
   attendance_today: number;
   expiring_this_month: number;
   branch_breakdown: { branch__name: string; count: number }[];
+}
+
+export interface MemberDashboardData {
+  total_check_ins: number;
+  check_ins_this_month: number;
+  streak: number;
+  upcoming_sessions: {
+    id: number;
+    scheduled_date: string;
+    scheduled_time: string;
+    trainer_name: string;
+  }[];
 }
 
 export interface PaginatedResponse<T> {

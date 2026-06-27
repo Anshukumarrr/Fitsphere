@@ -19,6 +19,7 @@ class MemberSerializer(serializers.ModelSerializer):
             "id",
             "user",
             "user_id",
+            "gym_code",
             "organization",
             "organization_name",
             "branch",
@@ -38,6 +39,7 @@ class MemberSerializer(serializers.ModelSerializer):
         )
         read_only_fields = (
             "id",
+            "gym_code",
             "organization",
             "membership_status",
             "created_at",

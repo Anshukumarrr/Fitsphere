@@ -1,12 +1,12 @@
 from rest_framework import generics
 
-from ..core.permissions import IsGymOwnerOrAdmin, IsStaff
+from ..core.permissions import IsGymOwnerOrAdmin, IsMember, IsStaff
 from .models import Payment
 from .serializers import PaymentCreateSerializer, PaymentSerializer
 
 
 class PaymentListCreateView(generics.ListCreateAPIView):
-    permission_classes = (IsStaff,)
+    permission_classes = (IsStaff | IsMember,)
     filterset_fields = (
         "member",
         "branch",
@@ -26,6 +26,11 @@ class PaymentListCreateView(generics.ListCreateAPIView):
         user = self.request.user
         if user.role == "super_admin":
             return Payment.objects.select_related("member", "member__user", "branch").all()
+        if user.role == "member":
+            return Payment.objects.select_related("member", "member__user", "branch").filter(
+                member__user=user,
+                organization=user.organization,
+            )
         qs = Payment.objects.select_related("member", "member__user", "branch").filter(
             organization=user.organization
         )
@@ -35,13 +40,18 @@ class PaymentListCreateView(generics.ListCreateAPIView):
 
 
 class PaymentDetailView(generics.RetrieveAPIView):
-    permission_classes = (IsStaff,)
+    permission_classes = (IsStaff | IsMember,)
     serializer_class = PaymentSerializer
 
     def get_queryset(self):
         user = self.request.user
         if user.role == "super_admin":
             return Payment.objects.select_related("member", "member__user").all()
+        if user.role == "member":
+            return Payment.objects.select_related("member", "member__user").filter(
+                member__user=user,
+                organization=user.organization,
+            )
         return Payment.objects.select_related("member", "member__user").filter(
             organization=user.organization
         )

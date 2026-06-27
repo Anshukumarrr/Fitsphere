@@ -21,6 +21,18 @@ import {
   Typography,
 } from "@mui/material";
 import { useNavigate } from "@tanstack/react-router";
+import { motion } from "motion/react";
+import { useMagneticHover } from "../../hooks/useMagneticHover";
+import { type ReactNode } from "react";
+
+function MagneticWrap({ children, radius = 6 }: { children: ReactNode; radius?: number }) {
+  const { ref, x, y } = useMagneticHover(radius);
+  return (
+    <Box ref={ref} component={motion.div} style={{ x, y }} sx={{ display: "inline-flex" }}>
+      {children}
+    </Box>
+  );
+}
 
 const features = [
   {
@@ -115,47 +127,48 @@ export default function LandingPage() {
   const navigate = useNavigate();
 
   return (
-    <Box sx={{ backgroundColor: "#0A0A0A", color: "#fff", minHeight: "100vh" }}>
+    <Box sx={{ color: "#fff", minHeight: "100vh" }}>
       {/* ---- NAV ---- */}
       <AppBar
         position="fixed"
         sx={{
-          backgroundColor: "rgba(10,10,10,0.85)",
+          backgroundColor: "rgba(11,13,12,0.85)",
           backdropFilter: "blur(12px)",
-          borderBottom: "1px solid #2A2A2A",
+          borderBottom: "none",
           boxShadow: "none",
         }}
       >
         <Toolbar sx={{ maxWidth: 1200, width: "100%", mx: "auto", px: { xs: 2, md: 0 } }}>
-          <FitnessCenterIcon sx={{ color: "#FF6D00", fontSize: 28, mr: 1 }} />
+          <FitnessCenterIcon sx={{ color: "#E8E3D8", fontSize: 28, mr: 1 }} />
           <Typography
             variant="h6"
             sx={{
-              fontWeight: 900,
-              letterSpacing: "-0.02em",
               flex: 1,
-              background: "linear-gradient(135deg, #FF6D00 0%, #FF9100 100%)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
+              color: "#E8E3D8",
+              fontFamily: '"Anton", sans-serif',
+              letterSpacing: "0.04em",
+              fontSize: "1.3rem",
             }}
           >
             FitSphere
           </Typography>
           <Button
             variant="text"
-            sx={{ color: "#aaa", mr: 1 }}
+            sx={{ color: "#6B6F6C", mr: 1, "&:hover": { color: "#E8E3D8" } }}
             onClick={() => navigate({ to: "/login" })}
           >
             Sign In
           </Button>
-          <Button
-            variant="contained"
-            color="primary"
-            size="small"
-            onClick={() => navigate({ to: "/register" })}
-          >
-            Get Started
-          </Button>
+          <MagneticWrap>
+            <Button
+              variant="contained"
+              color="primary"
+              size="small"
+              onClick={() => navigate({ to: "/register" })}
+            >
+              Get Started
+            </Button>
+          </MagneticWrap>
         </Toolbar>
       </AppBar>
       <Toolbar />
@@ -167,58 +180,32 @@ export default function LandingPage() {
           py: { xs: 10, md: 16 },
           px: 2,
           position: "relative",
-          overflow: "hidden",
-          "&::before": {
-            content: '""',
-            position: "absolute",
-            top: "-30%",
-            left: "50%",
-            transform: "translateX(-50%)",
-            width: "800px",
-            height: "800px",
-            background:
-              "radial-gradient(circle, rgba(255,109,0,0.06) 0%, transparent 70%)",
-            pointerEvents: "none",
-          },
         }}
       >
         <Container maxWidth="md" sx={{ position: "relative" }}>
-          <FitnessCenterIcon
-            sx={{
-              fontSize: 64,
-              color: "#FF6D00",
-              mb: 2,
-              filter: "drop-shadow(0 0 30px rgba(255,109,0,0.3))",
-            }}
-          />
           <Typography
-            variant="h2"
+            variant="h1"
             sx={{
-              fontWeight: 900,
-              fontSize: { xs: "2.5rem", md: "4rem" },
-              letterSpacing: "-0.03em",
-              lineHeight: 1.1,
+              fontSize: { xs: "2.8rem", md: "5rem" },
+              lineHeight: 1.05,
               mb: 2,
-              background:
-                "linear-gradient(135deg, #fff 0%, #FF9E40 50%, #FF6D00 100%)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
+              color: "#E8E3D8",
             }}
           >
-            The Operating System
+            TRACK EVERY REP.
             <br />
-            for Your Gym
+            RUN EVERY ROOM.
           </Typography>
           <Typography
-            variant="h6"
+            variant="body1"
             color="text.secondary"
             sx={{
               maxWidth: 600,
               mx: "auto",
               mb: 5,
-              fontWeight: 400,
-              fontSize: { xs: "1rem", md: "1.2rem" },
+              fontSize: { xs: "1rem", md: "1.15rem" },
               lineHeight: 1.6,
+              fontFamily: '"Inter", sans-serif',
             }}
           >
             Manage members, trainers, branches, memberships, payments, and
@@ -226,25 +213,29 @@ export default function LandingPage() {
             that want to scale without the chaos.
           </Typography>
           <Box sx={{ display: "flex", gap: 2, justifyContent: "center", flexWrap: "wrap" }}>
-            <Button
-              variant="contained"
-              color="primary"
-              size="large"
-              endIcon={<ArrowForwardIcon />}
-              onClick={() => navigate({ to: "/register" })}
-              sx={{ py: 1.5, px: 4, fontSize: "1rem" }}
-            >
-              Start Free Trial
-            </Button>
-            <Button
-              variant="outlined"
-              color="primary"
-              size="large"
-              onClick={() => navigate({ to: "/login" })}
-              sx={{ py: 1.5, px: 4, fontSize: "1rem" }}
-            >
-              Sign In
-            </Button>
+            <MagneticWrap radius={8}>
+              <Button
+                variant="contained"
+                color="primary"
+                size="large"
+                endIcon={<ArrowForwardIcon />}
+                onClick={() => { window.__chalkBurst?.(); navigate({ to: "/register" }); }}
+                sx={{ py: 1.5, px: 4, fontSize: "1rem" }}
+              >
+                Start Free Trial
+              </Button>
+            </MagneticWrap>
+            <MagneticWrap radius={6}>
+              <Button
+                variant="outlined"
+                color="primary"
+                size="large"
+                onClick={() => navigate({ to: "/login" })}
+                sx={{ py: 1.5, px: 4, fontSize: "1rem" }}
+              >
+                Sign In
+              </Button>
+            </MagneticWrap>
           </Box>
         </Container>
       </Box>
@@ -255,10 +246,9 @@ export default function LandingPage() {
           <Typography
             variant="h4"
             sx={{
-              fontWeight: 800,
               textAlign: "center",
               mb: 1,
-              letterSpacing: "-0.02em",
+              color: "#E8E3D8",
             }}
           >
             Everything You Need to Run Your Gym
@@ -266,7 +256,7 @@ export default function LandingPage() {
           <Typography
             variant="body1"
             color="text.secondary"
-            sx={{ textAlign: "center", mb: 6, maxWidth: 600, mx: "auto" }}
+            sx={{ textAlign: "center", mb: 6, maxWidth: 600, mx: "auto", fontFamily: '"Inter", sans-serif' }}
           >
             From check-in to checkout, FitSphere covers every aspect of your
             fitness business operations.
@@ -278,21 +268,19 @@ export default function LandingPage() {
                   sx={{
                     height: "100%",
                     p: 2,
-                    backgroundColor: "#111",
-                    border: "1px solid #2A2A2A",
                     "&:hover": {
-                      borderColor: "#FF6D00",
+                      borderColor: "rgba(232,227,216,0.2)",
                       transform: "translateY(-4px)",
-                      transition: "all 0.3s ease",
+                      transition: "all 0.15s ease-out",
                     },
                   }}
                 >
                   <CardContent>
-                    <Box sx={{ color: "#FF6D00", mb: 2 }}>{f.icon}</Box>
-                    <Typography variant="h6" sx={{ fontWeight: 700, mb: 1, fontSize: "1rem" }}>
+                    <Box sx={{ color: "#E8E3D8", mb: 2 }}>{f.icon}</Box>
+                    <Typography variant="h6" sx={{ mb: 1, fontSize: "1rem", color: "#E8E3D8" }}>
                       {f.title}
                     </Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6 }}>
+                    <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, fontFamily: '"Inter", sans-serif' }}>
                       {f.desc}
                     </Typography>
                   </CardContent>
@@ -304,15 +292,14 @@ export default function LandingPage() {
       </Box>
 
       {/* ---- PRICING ---- */}
-      <Box sx={{ py: { xs: 8, md: 12 }, px: 2, backgroundColor: "#0D0D0D" }}>
+      <Box sx={{ py: { xs: 8, md: 12 }, px: 2 }}>
         <Container maxWidth="lg">
           <Typography
             variant="h4"
             sx={{
-              fontWeight: 800,
               textAlign: "center",
               mb: 1,
-              letterSpacing: "-0.02em",
+              color: "#E8E3D8",
             }}
           >
             Simple, Transparent Pricing
@@ -320,7 +307,7 @@ export default function LandingPage() {
           <Typography
             variant="body1"
             color="text.secondary"
-            sx={{ textAlign: "center", mb: 6, maxWidth: 500, mx: "auto" }}
+            sx={{ textAlign: "center", mb: 6, maxWidth: 500, mx: "auto", fontFamily: '"Inter", sans-serif' }}
           >
             Start with a 14-day free trial. No credit card required.
           </Typography>
@@ -331,11 +318,13 @@ export default function LandingPage() {
                   sx={{
                     height: "100%",
                     p: 2,
-                    backgroundColor: plan.highlighted ? "#181818" : "#111",
-                    border: plan.highlighted
-                      ? "2px solid #FF6D00"
-                      : "1px solid #2A2A2A",
+                    border: "1px solid #2A2D2B",
                     position: "relative",
+                    "&:hover": {
+                      borderColor: "rgba(232,227,216,0.2)",
+                      transform: "translateY(-4px)",
+                      transition: "all 0.15s ease-out",
+                    },
                   }}
                 >
                   {plan.highlighted && (
@@ -344,30 +333,30 @@ export default function LandingPage() {
                         position: "absolute",
                         top: 12,
                         right: 12,
-                        backgroundColor: "#FF6D00",
-                        color: "#000",
+                        backgroundColor: "#2A2D2B",
+                        color: "#0B0D0C",
                         px: 1.5,
                         py: 0.3,
                         borderRadius: 1,
                         fontSize: "0.7rem",
-                        fontWeight: 800,
-                        letterSpacing: "0.05em",
+                        fontWeight: 700,
+                        letterSpacing: "0.06em",
                         textTransform: "uppercase",
+                        fontFamily: '"Inter", sans-serif',
                       }}
                     >
                       Popular
                     </Box>
                   )}
                   <CardContent>
-                    <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>
+                    <Typography variant="h6" sx={{ mb: 0.5, color: "#E8E3D8", fontSize: "1rem" }}>
                       {plan.name}
                     </Typography>
                     <Typography
                       variant="h3"
                       sx={{
-                        fontWeight: 900,
                         mb: 0.5,
-                        color: plan.highlighted ? "#FF6D00" : "#fff",
+                        color: plan.highlighted ? "#E8E3D8" : "#E8E3D8",
                       }}
                     >
                       {plan.price}
@@ -375,12 +364,12 @@ export default function LandingPage() {
                         component="span"
                         variant="body2"
                         color="text.secondary"
-                        sx={{ fontWeight: 400 }}
+                        sx={{ fontWeight: 400, fontFamily: '"Inter", sans-serif' }}
                       >
                         /mo
                       </Typography>
                     </Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 1, fontFamily: '"Inter", sans-serif' }}>
                       {plan.members} members &bull; {plan.branches}
                     </Typography>
                     <Box sx={{ my: 2 }}>
@@ -395,23 +384,25 @@ export default function LandingPage() {
                           }}
                         >
                           <CheckCircleIcon
-                            sx={{ color: "#00E676", fontSize: 18 }}
+                            sx={{ color: "#6B6F6C", fontSize: 18 }}
                           />
-                          <Typography variant="body2" color="text.secondary">
+                          <Typography variant="body2" color="text.secondary" sx={{ fontFamily: '"Inter", sans-serif' }}>
                             {f}
                           </Typography>
                         </Box>
                       ))}
                     </Box>
-                    <Button
-                      fullWidth
-                      variant={plan.highlighted ? "contained" : "outlined"}
-                      color="primary"
-                      sx={{ mt: 1 }}
-                      onClick={() => navigate({ to: "/register" })}
-                    >
-                      Get Started
-                    </Button>
+                    <MagneticWrap radius={6}>
+                      <Button
+                        fullWidth
+                        variant={plan.highlighted ? "contained" : "outlined"}
+                        color="primary"
+                        sx={{ mt: 1 }}
+                        onClick={() => navigate({ to: "/register" })}
+                      >
+                        Get Started
+                      </Button>
+                    </MagneticWrap>
                   </CardContent>
                 </Card>
               </Grid>
@@ -423,30 +414,32 @@ export default function LandingPage() {
       {/* ---- CTA ---- */}
       <Box sx={{ textAlign: "center", py: { xs: 8, md: 10 }, px: 2 }}>
         <Container maxWidth="sm">
-          <Typography variant="h4" sx={{ fontWeight: 800, mb: 2, letterSpacing: "-0.02em" }}>
+          <Typography variant="h3" sx={{ mb: 2, color: "#E8E3D8" }}>
             Ready to Level Up?
           </Typography>
-          <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
+          <Typography variant="body1" color="text.secondary" sx={{ mb: 4, fontFamily: '"Inter", sans-serif' }}>
             Join hundreds of gyms already using FitSphere to streamline their
             operations and grow their business.
           </Typography>
-          <Button
-            variant="contained"
-            color="primary"
-            size="large"
-            endIcon={<ArrowForwardIcon />}
-            onClick={() => navigate({ to: "/register" })}
-            sx={{ py: 1.5, px: 5, fontSize: "1rem" }}
-          >
-            Start Your Free Trial
-          </Button>
+          <MagneticWrap radius={8}>
+            <Button
+              variant="contained"
+              color="primary"
+              size="large"
+              endIcon={<ArrowForwardIcon />}
+              onClick={() => { window.__chalkBurst?.(); navigate({ to: "/register" }); }}
+              sx={{ py: 1.5, px: 5, fontSize: "1rem" }}
+            >
+              Start Your Free Trial
+            </Button>
+          </MagneticWrap>
         </Container>
       </Box>
 
       {/* ---- FOOTER ---- */}
       <Box
         sx={{
-          borderTop: "1px solid #2A2A2A",
+          borderTop: "1px solid #2A2D2B",
           py: 4,
           px: 2,
           textAlign: "center",
@@ -454,20 +447,20 @@ export default function LandingPage() {
       >
         <Container maxWidth="md">
           <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 1, mb: 2 }}>
-            <FitnessCenterIcon sx={{ color: "#FF6D00", fontSize: 22 }} />
+            <FitnessCenterIcon sx={{ color: "#6B6F6C", fontSize: 22 }} />
             <Typography
               variant="h6"
               sx={{
-                fontWeight: 900,
-                background: "linear-gradient(135deg, #FF6D00 0%, #FF9100 100%)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
+                color: "#E8E3D8",
+                fontFamily: '"Anton", sans-serif',
+                letterSpacing: "0.04em",
+                fontSize: "1.1rem",
               }}
             >
               FitSphere
             </Typography>
           </Box>
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2" color="text.secondary" sx={{ fontFamily: '"Inter", sans-serif' }}>
             &copy; {new Date().getFullYear()} FitSphere. All rights reserved.
           </Typography>
         </Container>

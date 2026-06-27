@@ -49,20 +49,7 @@ export default function LoginPage() {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "radial-gradient(ellipse at top, #1A1A1A 0%, #050505 100%)",
         position: "relative",
-        overflow: "hidden",
-        "&::before": {
-          content: '""',
-          position: "absolute",
-          top: "-50%",
-          left: "-50%",
-          width: "200%",
-          height: "200%",
-          background:
-            "radial-gradient(circle at 30% 50%, rgba(255,109,0,0.03) 0%, transparent 50%), radial-gradient(circle at 70% 50%, rgba(0,230,118,0.03) 0%, transparent 50%)",
-          pointerEvents: "none",
-        },
       }}
     >
       <Box
@@ -76,43 +63,34 @@ export default function LoginPage() {
         <Box sx={{ textAlign: "center", mb: 4 }}>
           <FitnessCenterIcon
             sx={{
-              fontSize: 56,
-              color: "#FF6D00",
+              fontSize: 48,
+              color: "#E8E3D8",
               mb: 1,
-              filter: "drop-shadow(0 0 20px rgba(255,109,0,0.3))",
             }}
           />
           <Typography
-            variant="h3"
-            sx={{
-              fontWeight: 900,
-              letterSpacing: "-0.03em",
-              background: "linear-gradient(135deg, #FF6D00 0%, #FF9100 50%, #FF6D00 100%)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              filter: "drop-shadow(0 0 30px rgba(255,109,0,0.2))",
-            }}
+            variant="h1"
+            sx={{ fontSize: "2.5rem", color: "#E8E3D8" }}
           >
             FitSphere
           </Typography>
-          <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 1, fontFamily: '"Inter", sans-serif' }}>
             Your Fitness Empire Starts Here
           </Typography>
         </Box>
 
-        <Box
-          sx={{
-            p: 4,
-            borderRadius: 3,
-            border: "1px solid #2A2A2A",
-            background: "linear-gradient(180deg, rgba(20,20,20,0.9) 0%, rgba(10,10,10,0.95) 100%)",
-            backdropFilter: "blur(20px)",
-          }}
-        >
-          {error && (
+          <Box
+            sx={{
+              p: 4,
+              borderRadius: 2,
+              border: "1px solid #2A2D2B",
+              bgcolor: "#1A1D1B",
+            }}
+          >
+            {error && (
             <Alert
               severity="error"
-              sx={{ mb: 2, backgroundColor: "rgba(255,23,68,0.1)", border: "1px solid rgba(255,23,68,0.3)" }}
+              sx={{ mb: 2, backgroundColor: "rgba(255,75,62,0.1)", border: "1px solid rgba(255,75,62,0.3)", color: "#FF4B3E" }}
             >
               {error}
             </Alert>
@@ -149,9 +127,9 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          <Typography variant="body2" sx={{ textAlign: "center", color: "#666" }}>
+          <Typography variant="body2" sx={{ textAlign: "center", color: "#6B6F6C" }}>
             New to FitSphere?{" "}
-            <Link to="/register" style={{ color: "#FF6D00", fontWeight: 700 }}>
+            <Link to="/register" style={{ color: "#D4FF3F", fontWeight: 700 }}>
               Sign Up
             </Link>
           </Typography>

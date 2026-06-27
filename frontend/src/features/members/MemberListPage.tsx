@@ -58,6 +58,7 @@ export default function MemberListPage() {
           <Table>
             <TableHead>
               <TableRow>
+                <TableCell>Gym Code</TableCell>
                 <TableCell>Name</TableCell>
                 <TableCell>Email</TableCell>
                 <TableCell>Branch</TableCell>
@@ -76,6 +77,9 @@ export default function MemberListPage() {
               ) : (
                 data?.results?.map((member) => (
                   <TableRow key={member.id}>
+                    <TableCell sx={{ fontFamily: '"JetBrains Mono", monospace', fontSize: "0.8rem" }}>
+                      {member.gym_code}
+                    </TableCell>
                     <TableCell>
                       {member.user?.first_name} {member.user?.last_name}
                     </TableCell>

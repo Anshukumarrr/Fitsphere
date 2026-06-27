@@ -41,11 +41,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
     localStorage.setItem("access_token", data.access);
     localStorage.setItem("refresh_token", data.refresh);
-
-    const userRes = await apiClient.get("/auth/me/");
-    setUser(userRes.data);
-    if (userRes.data.organization) {
-      localStorage.setItem("organization_id", String(userRes.data.organization));
+    setUser(data.user);
+    if (data.user?.organization) {
+      localStorage.setItem("organization_id", String(data.user.organization));
     }
   }, []);
 

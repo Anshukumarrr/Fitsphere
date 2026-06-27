@@ -50,6 +50,7 @@ class Member(TenantAwareModel):
         blank=True,
         related_name="assigned_members",
     )
+    gym_code = models.CharField(max_length=10, unique=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -59,6 +60,13 @@ class Member(TenantAwareModel):
             models.Index(fields=["organization", "membership_status"]),
             models.Index(fields=["organization", "branch"]),
         ]
+
+    def save(self, *args, **kwargs):
+        if not self.gym_code:
+            last = Member.objects.order_by("-id").first()
+            seq = (last.id + 1) if last else 1
+            self.gym_code = f"M{seq:06d}"
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.user.get_full_name() or self.user.username} ({self.membership_status})"

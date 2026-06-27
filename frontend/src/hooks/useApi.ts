@@ -7,6 +7,7 @@ import type {
   DashboardData,
   GymOrganization,
   Member,
+  MemberDashboardData,
   MembershipPlan,
   PaginatedResponse,
   Payment,
@@ -58,7 +59,10 @@ export function useCreateMember() {
       const { data } = await apiClient.post("/members/", memberData);
       return data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["members"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["members"] });
+      window.__chalkBurst?.();
+    },
   });
 }
 
@@ -153,7 +157,10 @@ export function useCreatePayment() {
       const { data } = await apiClient.post("/payments/", paymentData);
       return data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["payments"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["payments"] });
+      window.__chalkBurst?.();
+    },
   });
 }
 
@@ -250,7 +257,10 @@ export function useGenerateCode() {
       const { data } = await apiClient.post("/attendance/codes/generate/", payload);
       return data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["active-code"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["active-code"] });
+      window.__chalkBurst?.();
+    },
   });
 }
 
@@ -261,6 +271,72 @@ export function useCodeCheckIn() {
       const { data } = await apiClient.post("/attendance/check-in/code/", body);
       return data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["attendance"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["attendance"] });
+      window.__chalkBurst?.();
+    },
+  });
+}
+
+export function useMemberDashboard() {
+  return useQuery<MemberDashboardData>({
+    queryKey: ["member-dashboard"],
+    queryFn: async () => {
+      const { data } = await apiClient.get("/analytics/member-dashboard/");
+      return data;
+    },
+  });
+}
+
+export function useMySessions() {
+  return useQuery<PaginatedResponse<PTSession>>({
+    queryKey: ["my-sessions"],
+    queryFn: async () => {
+      const { data } = await apiClient.get("/personal-training/sessions/");
+      return data;
+    },
+  });
+}
+
+export function useBookSession() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (sessionData: {
+      trainer: number;
+      scheduled_date: string;
+      scheduled_time: string;
+      duration_minutes?: number;
+    }) => {
+      const { data } = await apiClient.post("/personal-training/sessions/book/", sessionData);
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["my-sessions"] });
+      window.__chalkBurst?.();
+    },
+  });
+}
+
+export function useMyPayments() {
+  return useQuery<PaginatedResponse<Payment>>({
+    queryKey: ["my-payments"],
+    queryFn: async () => {
+      const { data } = await apiClient.get("/payments/");
+      return data;
+    },
+  });
+}
+
+export function useAvailableTrainers(branchId?: number | null) {
+  return useQuery<PaginatedResponse<Trainer>>({
+    queryKey: ["available-trainers", branchId],
+    queryFn: async () => {
+      const url = branchId
+        ? `/trainers/branch/${branchId}/`
+        : "/trainers/";
+      const { data } = await apiClient.get(url);
+      return data;
+    },
+    enabled: !!branchId,
   });
 }

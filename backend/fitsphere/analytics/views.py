@@ -6,11 +6,12 @@ from rest_framework import generics, permissions, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 
-from ..core.permissions import IsGymOwnerOrAdmin
+from ..core.permissions import IsGymOwnerOrAdmin, IsMember
 from ..members.models import Member
 from ..payments.models import Payment
 from ..attendance.models import AttendanceLog
 from ..memberships.models import MemberMembership
+from ..personal_training.models import PTSession
 
 
 def _org_filter(request):
@@ -113,6 +114,58 @@ def revenue_report(request):
         )
 
     return Response(report)
+
+
+@api_view(["GET"])
+@permission_classes([IsMember])
+def member_dashboard(request):
+    member = request.user.member_profile
+    today = date.today()
+    first_of_month = today.replace(day=1)
+
+    total_check_ins = AttendanceLog.objects.filter(member=member).count()
+    check_ins_this_month = AttendanceLog.objects.filter(
+        member=member, check_in_time__date__gte=first_of_month
+    ).count()
+
+    logs = (
+        AttendanceLog.objects.filter(member=member)
+        .dates("check_in_time", "day")
+        .order_by("-check_in_time")
+    )
+    streak = 0
+    check = today
+    for log_date in logs:
+        if log_date == check:
+            streak += 1
+            check -= timedelta(days=1)
+        elif log_date < check:
+            break
+
+    upcoming_sessions = list(
+        PTSession.objects.filter(
+            member=member,
+            scheduled_date__gte=today,
+            status="scheduled",
+        )
+        .order_by("scheduled_date", "scheduled_time")
+        .values("id", "scheduled_date", "scheduled_time", "trainer__user__first_name", "trainer__user__last_name")[:3]
+    )
+
+    return Response({
+        "total_check_ins": total_check_ins,
+        "check_ins_this_month": check_ins_this_month,
+        "streak": streak,
+        "upcoming_sessions": [
+            {
+                "id": s["id"],
+                "scheduled_date": s["scheduled_date"],
+                "scheduled_time": s["scheduled_time"],
+                "trainer_name": f"{s['trainer__user__first_name']} {s['trainer__user__last_name']}",
+            }
+            for s in upcoming_sessions
+        ],
+    })
 
 
 @api_view(["GET"])
