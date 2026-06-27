@@ -9,7 +9,6 @@ import LoginPage from "./features/auth/LoginPage";
 import RegisterPage from "./features/auth/RegisterPage";
 import BillingPlansPage from "./features/billing/BillingPlansPage";
 import LandingPage from "./features/landing/LandingPage";
-import MemberDashboardPage from "./features/member/MemberDashboardPage";
 import MemberListPage from "./features/members/MemberListPage";
 import MembershipPlanListPage from "./features/memberships/MembershipPlanListPage";
 import MyPaymentsPage from "./features/member/MyPaymentsPage";

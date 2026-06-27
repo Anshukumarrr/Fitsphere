@@ -3,12 +3,10 @@ import {
   Box,
   Button,
   Card,
-  CardContent,
   Chip,
   Dialog,
   DialogContent,
   DialogTitle,
-  Grid,
   MenuItem,
   Table,
   TableBody,
@@ -31,13 +29,7 @@ export default function MySessionsPage() {
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
 
-  const member = user as unknown as {
-    member_profile?: { branch: number | null };
-    branch?: number | null;
-  };
-  const memberBranchId = (user as Record<string, unknown>)?.member_profile
-    ? ((user as Record<string, unknown>).member_profile as Record<string, unknown>)?.branch as number | null
-    : null;
+  const memberBranchId = (user as { member_profile?: { branch?: number | null } })?.member_profile?.branch ?? null;
 
   const { data: trainers } = useAvailableTrainers(memberBranchId);
 

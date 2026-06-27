@@ -1,7 +1,6 @@
 import { Box, Card, CardContent, Typography, TextField, Button, Avatar } from "@mui/material";
 import { useAuth } from "../../hooks/useAuth";
 import { useState } from "react";
-import FitnessCenterIcon from "@mui/icons-material/FitnessCenter";
 
 export default function MyProfilePage() {
   const { user } = useAuth();

@@ -10,7 +10,7 @@ export default function SpecularHover({ children, className, sx }: SpecularHover
   const ref = useRef<HTMLDivElement>(null);
 
   const onMove = useCallback((e: React.MouseEvent) => {
-    const el = ref.current ?? e.currentTarget;
+    const el = ref.current ?? (e.currentTarget as HTMLElement);
     const rect = el.getBoundingClientRect();
     const mx = ((e.clientX - rect.left) / rect.width) * 100;
     const my = ((e.clientY - rect.top) / rect.height) * 100;
@@ -19,7 +19,7 @@ export default function SpecularHover({ children, className, sx }: SpecularHover
   }, []);
 
   const onLeave = useCallback((e: React.MouseEvent) => {
-    const el = ref.current ?? e.currentTarget;
+    const el = ref.current ?? (e.currentTarget as HTMLElement);
     el.style.setProperty("--mx", `50%`);
     el.style.setProperty("--my", `50%`);
   }, []);

@@ -51,7 +51,6 @@ export default function PlateGauge({
           fill="#E8E3D8"
           fontFamily='"JetBrains Mono", monospace'
           fontSize="28"
-          fontVariantNumeric="tabular-nums"
         >
           {value}
         </text>
