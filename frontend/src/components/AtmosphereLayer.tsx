@@ -17,7 +17,7 @@ export default function AtmosphereLayer() {
       const cx = x ?? c.canvas.size.width / 2;
       const cy = y ?? c.canvas.size.height / 2;
       for (let i = 0; i < 25; i++) {
-        c.addParticle(cx, cy);
+        c.particles.addParticle({ x: cx, y: cy });
       }
     };
     return () => {

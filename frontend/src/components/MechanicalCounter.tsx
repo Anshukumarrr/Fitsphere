@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { animate, useInView } from "motion/react";
 import Box from "@mui/material/Box";
 
