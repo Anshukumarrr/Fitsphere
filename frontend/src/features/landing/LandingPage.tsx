@@ -23,7 +23,8 @@ import {
 import { useNavigate } from "@tanstack/react-router";
 import { motion } from "motion/react";
 import { useMagneticHover } from "../../hooks/useMagneticHover";
-import { type ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
+import { useAuth } from "../../hooks/useAuth";
 
 function MagneticWrap({ children, radius = 6 }: { children: ReactNode; radius?: number }) {
   const { ref, x, y } = useMagneticHover(radius);
@@ -125,6 +126,15 @@ const plans = [
 
 export default function LandingPage() {
   const navigate = useNavigate();
+  const { isAuthenticated, isLoading } = useAuth();
+
+  useEffect(() => {
+    if (!isLoading && isAuthenticated) {
+      navigate({ to: "/dashboard", replace: true });
+    }
+  }, [isAuthenticated, isLoading, navigate]);
+
+  if (isLoading || isAuthenticated) return null;
 
   return (
     <Box sx={{ color: "#fff", minHeight: "100vh" }}>

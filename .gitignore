@@ -37,3 +37,6 @@ backend/staticfiles/
 .env
 .env.local
 .env.*.local
+
+# Credentials
+CREDENTIALS.md

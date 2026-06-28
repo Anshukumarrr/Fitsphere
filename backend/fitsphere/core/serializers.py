@@ -25,6 +25,7 @@ class UserSerializer(serializers.ModelSerializer):
             "gym_code",
             "membership_plan",
             "membership_expiry",
+            "organization",
         )
         read_only_fields = ("id", "role", "is_active")
 

@@ -1,15 +1,15 @@
-import { RootRoute, Route } from "@tanstack/react-router";
+import { redirect, RootRoute, Route } from "@tanstack/react-router";
 import DashboardLayout from "./components/layout/DashboardLayout";
 import AnalyticsPage from "./features/analytics/AnalyticsPage";
 import DashboardPage from "./features/analytics/DashboardPage";
 import AttendanceListPage from "./features/attendance/AttendanceListPage";
+import AllMembersPage from "./features/members/AllMembersPage";
 import GymListPage from "./features/organizations/GymListPage";
 import AuditLogPage from "./features/audit/AuditLogPage";
 import LoginPage from "./features/auth/LoginPage";
 import RegisterPage from "./features/auth/RegisterPage";
 import BillingPlansPage from "./features/billing/BillingPlansPage";
 import LandingPage from "./features/landing/LandingPage";
-import MemberListPage from "./features/members/MemberListPage";
 import MembershipPlanListPage from "./features/memberships/MembershipPlanListPage";
 import MyPaymentsPage from "./features/member/MyPaymentsPage";
 import MyProfilePage from "./features/member/MyProfilePage";
@@ -42,6 +42,11 @@ const registerRoute = new Route({
 const dashboardLayoutRoute = new Route({
   getParentRoute: () => rootRoute,
   id: "dashboard",
+  beforeLoad: () => {
+    if (!localStorage.getItem("access_token")) {
+      throw redirect({ to: "/login" });
+    }
+  },
   component: DashboardLayout,
 });
 
@@ -54,7 +59,7 @@ const dashboardIndexRoute = new Route({
 const membersRoute = new Route({
   getParentRoute: () => dashboardLayoutRoute,
   path: "/members",
-  component: MemberListPage,
+  component: AllMembersPage,
 });
 
 const trainersRoute = new Route({

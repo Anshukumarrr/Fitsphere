@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import apiClient from "../../api/client";
 import { AuthContext } from "../../hooks/useAuth";
 import type { User } from "../../types";
@@ -30,9 +30,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const fetchUserRef = useRef(fetchUser);
+  fetchUserRef.current = fetchUser;
+
   useEffect(() => {
     fetchUser();
   }, [fetchUser]);
+
+  useEffect(() => {
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === "access_token") {
+        fetchUserRef.current();
+      }
+    };
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
+  }, []);
 
   const login = useCallback(async (username: string, password: string) => {
     const { data } = await apiClient.post("/auth/login/", {
