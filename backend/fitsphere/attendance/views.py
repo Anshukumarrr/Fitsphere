@@ -201,7 +201,7 @@ def code_check_in(request):
 
     log = AttendanceLog.objects.create(
         member=member,
-        branch=code_obj.branch,
+        branch=member.branch,
         organization=member.organization,
         check_in_method="code",
         marked_by=request.user,
