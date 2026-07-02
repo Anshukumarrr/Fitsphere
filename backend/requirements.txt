@@ -13,6 +13,7 @@ python-decouple>=3.8
 drf-spectacular>=0.28
 openpyxl>=3.1
 django_extensions
+django-anymail[sendinblue]>=15.0
 django_celery_results
 django_storages
 django_import_export
