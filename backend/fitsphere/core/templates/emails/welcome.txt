@@ -1,0 +1,15 @@
+🏋️ Welcome to FitSphere!
+
+Hey {{ name }},
+
+Your FitSphere account has been created successfully. You're now part of a platform built to help you manage your fitness journey.
+
+Get started: {{ frontend_url }}/login
+
+- Track your attendance
+- Book personal training sessions
+- View your progress & payments
+
+See you at the gym!
+
+— FitSphere Team

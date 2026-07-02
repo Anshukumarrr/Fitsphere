@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "fitsphere.billing",
     "fitsphere.audit",
     "fitsphere.tickets",
+    "anymail",
 ]
 
 MIDDLEWARE = [
@@ -171,12 +172,8 @@ if config("AWS_ACCESS_KEY_ID", default=None):
     AWS_S3_REGION_NAME = config("AWS_S3_REGION_NAME", default="us-east-1")
     AWS_DEFAULT_ACL = "private"
 
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = config("EMAIL_HOST", default="localhost")
-EMAIL_PORT = config("EMAIL_PORT", default=587, cast=int)
-EMAIL_HOST_USER = config("EMAIL_HOST_USER", default="")
-EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="")
-EMAIL_USE_TLS = True
-DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="noreply@fitsphere.com")
+EMAIL_BACKEND = "anymail.backends.sendinblue.EmailBackend"
+ANYMAIL = {"SENDINBLUE_API_KEY": config("BREVO_API_KEY")}
+DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="FitSphere <onboarding@resend.dev>")
 
 FRONTEND_URL = config("FRONTEND_URL", default="http://localhost:5173")
