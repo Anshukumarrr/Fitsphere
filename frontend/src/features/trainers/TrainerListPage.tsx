@@ -48,6 +48,7 @@ export default function TrainerListPage() {
             <TableHead>
               <TableRow>
                 <TableCell>Name</TableCell>
+                <TableCell>Branch</TableCell>
                 <TableCell>Specialization</TableCell>
                 <TableCell>Experience</TableCell>
                 <TableCell>Rating</TableCell>
@@ -58,12 +59,13 @@ export default function TrainerListPage() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={6} align="center">Loading...</TableCell>
+                    <TableCell colSpan={7} align="center">Loading...</TableCell>
                 </TableRow>
               ) : (
                 data?.results?.map((trainer) => (
-                  <TableRow key={trainer.id}>
+                    <TableRow key={trainer.id}>
                     <TableCell>{trainer.full_name}</TableCell>
+                    <TableCell>{trainer.branch_name || "—"}</TableCell>
                     <TableCell>{trainer.specialization}</TableCell>
                     <TableCell>{trainer.years_of_experience} yrs</TableCell>
                     <TableCell>{trainer.session_rating}</TableCell>

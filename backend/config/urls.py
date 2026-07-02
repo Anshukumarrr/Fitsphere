@@ -16,6 +16,7 @@ api_urlpatterns = [
     path("analytics/", include("fitsphere.analytics.urls")),
     path("billing/", include("fitsphere.billing.urls")),
     path("audit/", include("fitsphere.audit.urls")),
+    path("tickets/", include("fitsphere.tickets.urls")),
 ]
 
 urlpatterns = [

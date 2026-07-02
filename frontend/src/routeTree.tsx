@@ -2,22 +2,21 @@ import { redirect, RootRoute, Route } from "@tanstack/react-router";
 import DashboardLayout from "./components/layout/DashboardLayout";
 import AnalyticsPage from "./features/analytics/AnalyticsPage";
 import DashboardPage from "./features/analytics/DashboardPage";
-import AttendanceListPage from "./features/attendance/AttendanceListPage";
 import AllMembersPage from "./features/members/AllMembersPage";
-import GymListPage from "./features/organizations/GymListPage";
 import AuditLogPage from "./features/audit/AuditLogPage";
 import LoginPage from "./features/auth/LoginPage";
 import RegisterPage from "./features/auth/RegisterPage";
 import BillingPlansPage from "./features/billing/BillingPlansPage";
 import LandingPage from "./features/landing/LandingPage";
-import MembershipPlanListPage from "./features/memberships/MembershipPlanListPage";
 import MyPaymentsPage from "./features/member/MyPaymentsPage";
 import MyProfilePage from "./features/member/MyProfilePage";
 import MySessionsPage from "./features/member/MySessionsPage";
 import NotificationSettingsPage from "./features/notifications/NotificationSettingsPage";
 import PaymentListPage from "./features/payments/PaymentListPage";
-import PTSessionListPage from "./features/personal-training/PTSessionListPage";
 import TrainerListPage from "./features/trainers/TrainerListPage";
+import AttendanceListPage from "./features/attendance/AttendanceListPage";
+import TicketsPage from "./features/tickets/TicketsPage";
+import AttendanceCalendarPage from "./features/attendance/AttendanceCalendarPage";
 
 const rootRoute = new RootRoute();
 
@@ -68,28 +67,22 @@ const trainersRoute = new Route({
   component: TrainerListPage,
 });
 
-const membershipsRoute = new Route({
-  getParentRoute: () => dashboardLayoutRoute,
-  path: "/memberships",
-  component: MembershipPlanListPage,
-});
-
 const attendanceRoute = new Route({
   getParentRoute: () => dashboardLayoutRoute,
   path: "/attendance",
   component: AttendanceListPage,
 });
 
-const gymsRoute = new Route({
+const ticketsRoute = new Route({
   getParentRoute: () => dashboardLayoutRoute,
-  path: "/gyms",
-  component: GymListPage,
+  path: "/tickets",
+  component: TicketsPage,
 });
 
-const ptSessionsRoute = new Route({
+const attendanceCalendarRoute = new Route({
   getParentRoute: () => dashboardLayoutRoute,
-  path: "/pt-sessions",
-  component: PTSessionListPage,
+  path: "/my-attendance",
+  component: AttendanceCalendarPage,
 });
 
 const paymentsRoute = new Route({
@@ -148,10 +141,9 @@ const routeTree = rootRoute.addChildren([
     dashboardIndexRoute,
     membersRoute,
     trainersRoute,
-    gymsRoute,
-    membershipsRoute,
     attendanceRoute,
-    ptSessionsRoute,
+    ticketsRoute,
+    attendanceCalendarRoute,
     paymentsRoute,
     analyticsRoute,
     billingRoute,

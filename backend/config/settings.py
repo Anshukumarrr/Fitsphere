@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     "fitsphere.analytics",
     "fitsphere.billing",
     "fitsphere.audit",
+    "fitsphere.tickets",
 ]
 
 MIDDLEWARE = [

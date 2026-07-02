@@ -7,4 +7,5 @@ urlpatterns = [
     path("member-dashboard/", views.member_dashboard, name="analytics-member-dashboard"),
     path("revenue/", views.revenue_report, name="analytics-revenue"),
     path("attendance/", views.attendance_report, name="analytics-attendance"),
+    path("platform/", views.platform_dashboard, name="analytics-platform"),
 ]

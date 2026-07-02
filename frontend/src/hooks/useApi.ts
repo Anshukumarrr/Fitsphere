@@ -11,9 +11,11 @@ import type {
   MembershipPlan,
   PaginatedResponse,
   Payment,
+  PlatformGymAnalytics,
   PTPackage,
   PTSession,
   SubscriptionPlan,
+  Ticket,
   Trainer,
 } from "../types";
 
@@ -322,6 +324,70 @@ export function useMyPayments() {
     queryKey: ["my-payments"],
     queryFn: async () => {
       const { data } = await apiClient.get("/payments/");
+      return data;
+    },
+  });
+}
+
+// --- Ticket hooks ---
+
+export function useTickets() {
+  return useQuery<PaginatedResponse<Ticket>>({
+    queryKey: ["tickets"],
+    queryFn: async () => {
+      const { data } = await apiClient.get("/tickets/");
+      return data;
+    },
+  });
+}
+
+export function useCreateTicket() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (ticketData: Record<string, unknown>) => {
+      const { data } = await apiClient.post("/tickets/", ticketData);
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["tickets"] });
+      window.__chalkBurst?.();
+    },
+  });
+}
+
+export function useUpdateTicket() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...data }: { id: number } & Record<string, unknown>) => {
+      const { data: res } = await apiClient.patch(`/tickets/${id}/`, data);
+      return res;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["tickets"] });
+      window.__chalkBurst?.();
+    },
+  });
+}
+
+// --- Platform Analytics ---
+
+export function usePlatformAnalytics() {
+  return useQuery<PlatformGymAnalytics[]>({
+    queryKey: ["platform-analytics"],
+    queryFn: async () => {
+      const { data } = await apiClient.get("/analytics/platform/");
+      return data;
+    },
+  });
+}
+
+// --- Member Attendance (for calendar) ---
+
+export function useMyAttendanceLogs() {
+  return useQuery<PaginatedResponse<AttendanceLog>>({
+    queryKey: ["my-attendance-logs"],
+    queryFn: async () => {
+      const { data } = await apiClient.get("/attendance/logs/");
       return data;
     },
   });

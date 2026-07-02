@@ -6,7 +6,7 @@ from rest_framework import generics, permissions, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 
-from ..core.permissions import IsGymOwnerOrAdmin, IsMember
+from ..core.permissions import IsGymOwnerOrAdmin, IsMember, IsSuperAdmin
 from ..members.models import Member
 from ..payments.models import Payment
 from ..attendance.models import AttendanceLog
@@ -186,3 +186,67 @@ def attendance_report(request):
     )
 
     return Response(list(report))
+
+
+@api_view(["GET"])
+@permission_classes([IsSuperAdmin])
+def platform_dashboard(request):
+    from django.db.models.functions import TruncMonth
+    from ..organizations.models import GymOrganization
+    today = date.today()
+    first_of_month = today.replace(day=1)
+    last_month_end = first_of_month - timedelta(days=1)
+    last_month_start = last_month_end.replace(day=1)
+
+    data = []
+    for org in GymOrganization.objects.filter(is_active=True):
+        org_filter = {"organization": org}
+
+        members_qs = org.users.filter(role="member")
+        total_members = members_qs.count()
+        new_members = members_qs.filter(
+            date_joined__month=today.month, date_joined__year=today.year
+        ).count()
+        members_last_month = members_qs.filter(
+            date_joined__lte=last_month_end
+        ).count()
+
+        revenue_qs = org.users.filter(
+            role="member",
+            member_profile__payments__status="completed",
+            member_profile__payments__paid_at__month=today.month,
+            member_profile__payments__paid_at__year=today.year,
+        )
+        revenue_this_month = (
+            revenue_qs.aggregate(total=Sum("member_profile__payments__amount"))["total"]
+            or 0
+        )
+
+        revenue_last_month_qs = org.users.filter(
+            role="member",
+            member_profile__payments__status="completed",
+            member_profile__payments__paid_at__month=last_month_start.month,
+            member_profile__payments__paid_at__year=last_month_start.year,
+        )
+        revenue_last_month = (
+            revenue_last_month_qs.aggregate(total=Sum("member_profile__payments__amount"))["total"]
+            or 0
+        )
+
+        data.append({
+            "gym_id": org.id,
+            "gym_name": org.name,
+            "total_members": total_members,
+            "new_members_this_month": new_members,
+            "members_last_month": members_last_month,
+            "member_growth": round(
+                ((total_members - members_last_month) / max(members_last_month, 1)) * 100, 1
+            ),
+            "revenue_this_month": float(revenue_this_month),
+            "revenue_last_month": float(revenue_last_month),
+            "revenue_growth": round(
+                ((revenue_this_month - revenue_last_month) / max(revenue_last_month, 1)) * 100, 1
+            ),
+        })
+
+    return Response(data)

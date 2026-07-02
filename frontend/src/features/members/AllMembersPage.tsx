@@ -120,16 +120,17 @@ export default function AllMembersPage() {
                             <TableContainer>
                               <Table size="small">
                                 <TableHead>
-                                  <TableRow>
-                                    <TableCell sx={{ fontWeight: 600 }}>Gym Code</TableCell>
-                                    <TableCell sx={{ fontWeight: 600 }}>Name</TableCell>
-                                    <TableCell sx={{ fontWeight: 600 }}>Email</TableCell>
-                                    <TableCell sx={{ fontWeight: 600 }}>Phone</TableCell>
-                                    <TableCell sx={{ fontWeight: 600 }}>Gender</TableCell>
-                                    <TableCell sx={{ fontWeight: 600 }}>Status</TableCell>
-                                    <TableCell sx={{ fontWeight: 600 }}>End Date</TableCell>
-                                    <TableCell sx={{ fontWeight: 600 }}>Emergency Contact</TableCell>
-                                  </TableRow>
+                                    <TableRow>
+                                      <TableCell sx={{ fontWeight: 600 }}>Gym Code</TableCell>
+                                      <TableCell sx={{ fontWeight: 600 }}>Name</TableCell>
+                                      <TableCell sx={{ fontWeight: 600 }}>Email</TableCell>
+                                      <TableCell sx={{ fontWeight: 600 }}>Phone</TableCell>
+                                      <TableCell sx={{ fontWeight: 600 }}>Plan</TableCell>
+                                      <TableCell sx={{ fontWeight: 600 }}>Gender</TableCell>
+                                      <TableCell sx={{ fontWeight: 600 }}>Status</TableCell>
+                                      <TableCell sx={{ fontWeight: 600 }}>End Date</TableCell>
+                                      <TableCell sx={{ fontWeight: 600 }}>Emergency Contact</TableCell>
+                                    </TableRow>
                                 </TableHead>
                                 <TableBody>
                                   {branchMembers.map((m) => (
@@ -142,6 +143,7 @@ export default function AllMembersPage() {
                                       </TableCell>
                                       <TableCell>{m.user?.email}</TableCell>
                                       <TableCell>{m.user?.phone || "-"}</TableCell>
+                                      <TableCell>{m.user?.membership_plan || "-"}</TableCell>
                                       <TableCell sx={{ textTransform: "capitalize" }}>{m.gender || "-"}</TableCell>
                                       <TableCell>
                                         <Chip

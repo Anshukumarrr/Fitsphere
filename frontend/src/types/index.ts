@@ -91,6 +91,7 @@ export interface Trainer {
   full_name: string;
   organization: number;
   branch: number | null;
+  branch_name: string | null;
   specialization: string;
   bio: string;
   qualifications: string;
@@ -256,6 +257,41 @@ export interface AttendanceCode {
   generated_at: string;
   expires_at: string;
   is_active: boolean;
+}
+
+export interface Ticket {
+  id: number;
+  organization: number | null;
+  organization_name: string | null;
+  raised_by: number;
+  raised_by_name: string;
+  raised_by_role: UserRole;
+  title: string;
+  description: string;
+  category: "general" | "billing" | "membership" | "equipment" | "other";
+  priority: "low" | "medium" | "high" | "urgent";
+  status: "open" | "in_progress" | "resolved" | "closed";
+  assigned_to: number | null;
+  assigned_to_name: string | null;
+  resolved_by: number | null;
+  resolved_by_name: string | null;
+  resolution_notes: string;
+  can_resolve: boolean;
+  created_at: string;
+  updated_at: string;
+  resolved_at: string | null;
+}
+
+export interface PlatformGymAnalytics {
+  gym_id: number;
+  gym_name: string;
+  total_members: number;
+  new_members_this_month: number;
+  members_last_month: number;
+  member_growth: number;
+  revenue_this_month: number;
+  revenue_last_month: number;
+  revenue_growth: number;
 }
 
 export interface AuditLogEntry {

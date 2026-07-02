@@ -16,11 +16,11 @@ import {
   Toolbar,
   Typography,
 } from "@mui/material";
-import BusinessIcon from "@mui/icons-material/Business";
 import {
-  AccountBalance,
+  Assessment,
+  BugReport,
+  CalendarMonth,
   Dashboard,
-  EventNote,
   Group,
   Logout,
   Menu as MenuIcon,
@@ -28,7 +28,6 @@ import {
   Notifications,
   People,
   Receipt,
-  TrackChanges,
 } from "@mui/icons-material";
 import { useCallback, useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
@@ -38,19 +37,18 @@ const drawerWidth = 250;
 
 const navItems = [
   { label: "Dashboard", icon: <Dashboard />, path: "/dashboard", roles: ["gym_owner", "super_admin", "receptionist", "trainer"] },
-  { label: "Branches", icon: <BusinessIcon />, path: "/gyms", roles: ["gym_owner", "super_admin", "receptionist"] },
   { label: "Members", icon: <People />, path: "/members", roles: ["gym_owner", "super_admin", "receptionist"] },
   { label: "Trainers", icon: <Group />, path: "/trainers", roles: ["gym_owner", "super_admin"] },
-  { label: "Membership Plans", icon: <AccountBalance />, path: "/memberships", roles: ["gym_owner", "super_admin"] },
-  { label: "Attendance", icon: <TrackChanges />, path: "/attendance", roles: ["gym_owner", "super_admin", "receptionist"] },
-  { label: "PT Sessions", icon: <FitnessCenterIcon />, path: "/pt-sessions", roles: ["gym_owner", "super_admin", "trainer"] },
   { label: "Payments", icon: <MonetizationOn />, path: "/payments", roles: ["gym_owner", "super_admin", "receptionist"] },
-  { label: "Analytics", icon: <EventNote />, path: "/analytics", roles: ["gym_owner", "super_admin"] },
+  { label: "Attendance", icon: <CalendarMonth />, path: "/attendance", roles: ["gym_owner", "super_admin", "receptionist"] },
+  { label: "Analytics", icon: <Assessment />, path: "/analytics", roles: ["gym_owner", "super_admin"] },
+  { label: "Tickets", icon: <BugReport />, path: "/tickets", roles: ["gym_owner", "super_admin", "trainer", "member"] },
   { label: "Notifications", icon: <Notifications />, path: "/notifications", roles: ["gym_owner", "super_admin"] },
   { label: "Billing", icon: <Receipt />, path: "/billing", roles: ["super_admin"] },
   { label: "Audit Logs", icon: <Receipt />, path: "/audit", roles: ["gym_owner", "super_admin"] },
   { label: "My Dashboard", icon: <Dashboard />, path: "/dashboard", roles: ["member"] },
-  { label: "My Sessions", icon: <FitnessCenterIcon />, path: "/my-sessions", roles: ["member"] },
+  { label: "My Attendance", icon: <CalendarMonth />, path: "/my-attendance", roles: ["member"] },
+  { label: "My Sessions", icon: <Group />, path: "/my-sessions", roles: ["member"] },
   { label: "My Payments", icon: <MonetizationOn />, path: "/my-payments", roles: ["member"] },
   { label: "My Profile", icon: <People />, path: "/profile", roles: ["member"] },
 ];

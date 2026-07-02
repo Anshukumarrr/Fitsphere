@@ -11,6 +11,7 @@ class TrainerSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
     user_id = serializers.IntegerField(write_only=True)
     full_name = serializers.SerializerMethodField()
+    branch_name = serializers.SerializerMethodField()
     active_member_count = serializers.SerializerMethodField()
 
     class Meta:
@@ -22,6 +23,7 @@ class TrainerSerializer(serializers.ModelSerializer):
             "full_name",
             "organization",
             "branch",
+            "branch_name",
             "specialization",
             "bio",
             "qualifications",
@@ -46,6 +48,9 @@ class TrainerSerializer(serializers.ModelSerializer):
 
     def get_full_name(self, obj):
         return obj.user.get_full_name()
+
+    def get_branch_name(self, obj):
+        return obj.branch.name if obj.branch else None
 
     def get_active_member_count(self, obj):
         return obj.assigned_members.filter(
