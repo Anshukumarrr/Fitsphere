@@ -13,7 +13,7 @@ import { useMyAttendanceLogs } from "../../hooks/useApi";
 
 export default function AttendanceCalendarPage() {
   const [currentMonth, setCurrentMonth] = useState(() => dayjs().startOf("month"));
-  const { data, isLoading } = useMyAttendanceLogs();
+  const { data } = useMyAttendanceLogs();
 
   const logs = data?.results ?? [];
 
