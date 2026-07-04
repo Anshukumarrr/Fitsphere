@@ -40,14 +40,32 @@ class AttendanceLogListView(generics.ListAPIView):
         ).all()
         if user.role == "super_admin":
             return qs
-        if user.role == "member":
+        if user.role in ("member",):
             return qs.filter(member__user=user)
-        if user.role == "receptionist":
+        if user.role in ("security", "cleaner", "maintenance"):
+            return AttendanceLog.objects.none()
+        if user.role in ("receptionist", "trainer", "manager", "instructor"):
+            branch = self._get_branch_for_user(user)
             return qs.filter(
                 organization=user.organization,
-                branch=user.receptionist_profile.branch,
+                branch=branch,
             )
         return qs.filter(organization=user.organization)
+
+    def _get_branch_for_user(self, user):
+        profile_map = {
+            "receptionist": "receptionist_profile",
+            "trainer": "trainer_profile",
+            "manager": "manager_profile",
+            "instructor": "instructor_profile",
+        }
+        attr = profile_map.get(user.role)
+        if attr:
+            try:
+                return getattr(user, attr).branch
+            except Exception:
+                return None
+        return None
 
 
 @api_view(["POST"])
@@ -100,9 +118,18 @@ def manual_check_in(request):
             {"error": "Member not found"}, status=status.HTTP_404_NOT_FOUND
         )
 
+    from ..core.models import ReceptionistProfile
+    try:
+        branch = request.user.receptionist_profile.branch
+    except ReceptionistProfile.DoesNotExist:
+        return Response(
+            {"error": "Receptionist profile not found"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
     log = AttendanceLog.objects.create(
         member=member,
-        branch=request.user.receptionist_profile.branch,
+        branch=branch,
         organization=member.organization,
         check_in_method="manual",
         marked_by=request.user,
@@ -136,7 +163,11 @@ def generate_code(request):
     branch_id = request.data.get("branch")
     branch = None
     if request.user.role == "receptionist":
-        branch = request.user.receptionist_profile.branch
+        from ..core.models import ReceptionistProfile
+        try:
+            branch = request.user.receptionist_profile.branch
+        except ReceptionistProfile.DoesNotExist:
+            pass
     elif branch_id:
         from ..organizations.models import Branch
         try:

@@ -4,26 +4,46 @@ import {
   AccordionDetails,
   AccordionSummary,
   Box,
+  Button,
   Card,
   Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  IconButton,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import {
+  Block,
+  DeleteForever,
+  Edit,
   ExpandMore,
   FitnessCenter,
+  PersonAdd,
   Store,
 } from "@mui/icons-material";
-import { useGyms, useMembers, useOrganization } from "../../hooks/useApi";
+import { useDeleteMember, useGyms, useHardDeleteMember, useMembers, useOrganization } from "../../hooks/useApi";
 import { useAuth } from "../../hooks/useAuth";
+import MemberCreateDialog from "./MemberCreateDialog";
+import MemberEditDialog from "./MemberEditDialog";
+import type { Member } from "../../types";
 
 export default function AllMembersPage() {
   const { user } = useAuth();
+  const [dialogBranch, setDialogBranch] = useState<number | null>(null);
+  const [editMember, setEditMember] = useState<Member | null>(null);
+  const [confirmTarget, setConfirmTarget] = useState<{ member: Member; action: "deactivate" | "delete" } | null>(null);
+  const deleteMember = useDeleteMember();
+  const hardDeleteMember = useHardDeleteMember();
   const isSuperAdmin = user?.role === "super_admin";
   const { data: gymsData, isLoading: gymsLoading } = useGyms({ enabled: isSuperAdmin });
   const { data: orgData, isLoading: orgLoading } = useOrganization({ enabled: !isSuperAdmin });
@@ -112,6 +132,16 @@ export default function AllMembersPage() {
                           </Box>
                         </AccordionSummary>
                         <AccordionDetails sx={{ px: 0, pb: 0 }}>
+                          <Box sx={{ display: "flex", justifyContent: "flex-end", px: 2, py: 1 }}>
+                            <Button
+                              variant="contained"
+                              size="small"
+                              startIcon={<PersonAdd />}
+                              onClick={() => setDialogBranch(branch.id)}
+                            >
+                              Add Member
+                            </Button>
+                          </Box>
                           {branchMembers.length === 0 ? (
                             <Typography color="text.secondary" sx={{ px: 2, py: 2 }}>
                               No members in this branch
@@ -130,6 +160,7 @@ export default function AllMembersPage() {
                                       <TableCell sx={{ fontWeight: 600 }}>Status</TableCell>
                                       <TableCell sx={{ fontWeight: 600 }}>End Date</TableCell>
                                       <TableCell sx={{ fontWeight: 600 }}>Emergency Contact</TableCell>
+                                      <TableCell sx={{ fontWeight: 600 }}>Actions</TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
@@ -164,6 +195,23 @@ export default function AllMembersPage() {
                                           </>
                                         ) : "-"}
                                       </TableCell>
+                                      <TableCell sx={{ whiteSpace: "nowrap" }}>
+                                        <Tooltip title="Edit">
+                                          <IconButton size="small" onClick={() => setEditMember(m)}>
+                                            <Edit fontSize="small" />
+                                          </IconButton>
+                                        </Tooltip>
+                                        <Tooltip title="Deactivate">
+                                          <IconButton size="small" color="warning" onClick={() => setConfirmTarget({ member: m, action: "deactivate" })}>
+                                            <Block fontSize="small" />
+                                          </IconButton>
+                                        </Tooltip>
+                                        <Tooltip title="Delete permanently">
+                                          <IconButton size="small" color="error" onClick={() => setConfirmTarget({ member: m, action: "delete" })}>
+                                            <DeleteForever fontSize="small" />
+                                          </IconButton>
+                                        </Tooltip>
+                                      </TableCell>
                                     </TableRow>
                                   ))}
                                 </TableBody>
@@ -180,6 +228,58 @@ export default function AllMembersPage() {
           );
         })
       )}
+
+      <MemberCreateDialog
+        open={!!dialogBranch}
+        branchId={dialogBranch}
+        onClose={() => setDialogBranch(null)}
+      />
+
+      <MemberEditDialog
+        open={!!editMember}
+        member={editMember}
+        onClose={() => setEditMember(null)}
+      />
+
+      <Dialog open={!!confirmTarget} onClose={() => setConfirmTarget(null)}>
+        <DialogTitle>
+          {confirmTarget?.action === "delete" ? "Permanently Delete Member" : "Deactivate Member"}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            {confirmTarget?.action === "delete" ? (
+              <>
+                Are you sure you want to permanently delete <strong>{confirmTarget?.member?.user?.first_name} {confirmTarget?.member?.user?.last_name}</strong>?
+                This will remove them from the database entirely. This action cannot be undone.
+              </>
+            ) : (
+              <>
+                Are you sure you want to deactivate <strong>{confirmTarget?.member?.user?.first_name} {confirmTarget?.member?.user?.last_name}</strong>?
+                Their account will be suspended but their data will be preserved.
+              </>
+            )}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConfirmTarget(null)}>Cancel</Button>
+          <Button
+            color={confirmTarget?.action === "delete" ? "error" : "warning"}
+            variant="contained"
+            onClick={() => {
+              if (confirmTarget) {
+                if (confirmTarget.action === "delete") {
+                  hardDeleteMember.mutate(confirmTarget.member.id);
+                } else {
+                  deleteMember.mutate(confirmTarget.member.id);
+                }
+                setConfirmTarget(null);
+              }
+            }}
+          >
+            {confirmTarget?.action === "delete" ? "Permanently Delete" : "Deactivate"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

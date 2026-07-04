@@ -9,7 +9,7 @@ import {
 } from "@mui/material";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { z } from "zod";
 import { useAuth } from "../../hooks/useAuth";
 
@@ -20,9 +20,18 @@ const loginSchema = z.object({
 
 type LoginForm = z.infer<typeof loginSchema>;
 
+const VERIFIED_MESSAGES: Record<string, { text: string; severity: "success" | "error" }> = {
+  true: { text: "Email verified successfully! You can now log in.", severity: "success" },
+  expired: { text: "Verification link has expired. Please register again.", severity: "error" },
+  invalid: { text: "Invalid verification link.", severity: "error" },
+};
+
 export default function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const search = useSearch({ from: "/login" });
+  const verified = search.verified as string | undefined;
+  const verifiedMsg = verified ? VERIFIED_MESSAGES[verified] : null;
   const [error, setError] = useState("");
   const {
     register,
@@ -87,6 +96,19 @@ export default function LoginPage() {
               bgcolor: "#1A1D1B",
             }}
           >
+            {verifiedMsg && (
+            <Alert
+              severity={verifiedMsg.severity}
+              sx={{
+                mb: 2,
+                backgroundColor: verifiedMsg.severity === "success" ? "rgba(212,255,63,0.1)" : "rgba(255,75,62,0.1)",
+                border: verifiedMsg.severity === "success" ? "1px solid rgba(212,255,63,0.3)" : "1px solid rgba(255,75,62,0.3)",
+                color: verifiedMsg.severity === "success" ? "#D4FF3F" : "#FF4B3E",
+              }}
+            >
+              {verifiedMsg.text}
+            </Alert>
+          )}
             {error && (
             <Alert
               severity="error"

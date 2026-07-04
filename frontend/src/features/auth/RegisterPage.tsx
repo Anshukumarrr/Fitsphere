@@ -4,6 +4,7 @@ import {
   Alert,
   Box,
   Button,
+  Divider,
   TextField,
   Typography,
 } from "@mui/material";
@@ -21,6 +22,12 @@ const registerSchema = z
     last_name: z.string().min(1, "Last name is required"),
     password: z.string().min(8, "Password must be at least 8 characters"),
     confirm_password: z.string().min(1, "Please confirm your password"),
+    gym_name: z.string().min(1, "Gym name is required"),
+    gym_city: z.string().optional(),
+    gym_state: z.string().optional(),
+    gym_address: z.string().optional(),
+    branch_name: z.string().min(1, "Branch name is required"),
+    branch_city: z.string().optional(),
   })
   .refine((data) => data.password === data.confirm_password, {
     message: "Passwords do not match",
@@ -33,6 +40,8 @@ export default function RegisterPage() {
   const { register: registerUser } = useAuth();
   const navigate = useNavigate();
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState("");
   const {
     register,
     handleSubmit,
@@ -44,18 +53,97 @@ export default function RegisterPage() {
   const onSubmit = async (data: RegisterForm) => {
     try {
       setError("");
-      await registerUser({
+      const result = await registerUser({
         username: data.username,
         email: data.email,
         first_name: data.first_name,
         last_name: data.last_name,
         password: data.password,
+        gym_name: data.gym_name,
+        gym_city: data.gym_city || "",
+        gym_state: data.gym_state || "",
+        gym_address: data.gym_address || "",
+        branch_name: data.branch_name,
+        branch_city: data.branch_city || "",
       });
-      navigate({ to: "/dashboard" });
+      setRegisteredEmail(result?.email || data.email);
+      setSuccess(true);
     } catch {
       setError("Registration failed. Please try again.");
     }
   };
+
+  if (success) {
+    return (
+      <Box
+        sx={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          position: "relative",
+        }}
+      >
+        <Box
+          sx={{
+            width: "100%",
+            maxWidth: 460,
+            mx: 2,
+          }}
+        >
+          <Box sx={{ textAlign: "center", mb: 4 }}>
+            <Box
+              sx={{
+                fontSize: 48,
+                color: "#E8E3D8",
+                mb: 1,
+              }}
+            >
+              &#9993;
+            </Box>
+            <Typography
+              variant="h1"
+              sx={{ fontSize: "2.5rem", color: "#E8E3D8" }}
+            >
+              Check Your Email
+            </Typography>
+          </Box>
+
+          <Box
+            sx={{
+              p: 4,
+              borderRadius: 2,
+              border: "1px solid #2A2D2B",
+              bgcolor: "#1A1D1B",
+            }}
+          >
+            <Typography
+              variant="body1"
+              sx={{ color: "#B0ACA3", mb: 2, textAlign: "center", fontFamily: '"Inter", sans-serif' }}
+            >
+              We sent a verification link to <strong style={{ color: "#E8E3D8" }}>{registeredEmail}</strong>.
+            </Typography>
+            <Typography
+              variant="body2"
+              sx={{ color: "#6B6F6C", mb: 3, textAlign: "center", fontFamily: '"Inter", sans-serif' }}
+            >
+              Click the link in the email to activate your account. The link expires in 24 hours.
+            </Typography>
+            <Button
+              fullWidth
+              variant="contained"
+              color="primary"
+              size="large"
+              onClick={() => navigate({ to: "/login" })}
+              sx={{ py: 1.5 }}
+            >
+              Go to Login
+            </Button>
+          </Box>
+        </Box>
+      </Box>
+    );
+  }
 
   return (
     <Box
@@ -165,6 +253,71 @@ export default function RegisterPage() {
               error={!!errors.confirm_password}
               helperText={errors.confirm_password?.message}
             />
+
+            <Divider sx={{ my: 3, borderColor: "#2A2D2B" }} />
+
+            <Typography variant="subtitle2" sx={{ color: "#E8E3D8", mb: 1, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", fontSize: "0.75rem" }}>
+              Gym Details
+            </Typography>
+            <TextField
+              fullWidth
+              label="Gym Name *"
+              margin="normal"
+              {...register("gym_name")}
+              error={!!errors.gym_name}
+              helperText={errors.gym_name?.message}
+            />
+            <Box sx={{ display: "flex", gap: 2 }}>
+              <TextField
+                fullWidth
+                label="City"
+                margin="normal"
+                {...register("gym_city")}
+                error={!!errors.gym_city}
+                helperText={errors.gym_city?.message}
+              />
+              <TextField
+                fullWidth
+                label="State"
+                margin="normal"
+                {...register("gym_state")}
+                error={!!errors.gym_state}
+                helperText={errors.gym_state?.message}
+              />
+            </Box>
+            <TextField
+              fullWidth
+              label="Address"
+              margin="normal"
+              {...register("gym_address")}
+              error={!!errors.gym_address}
+              helperText={errors.gym_address?.message}
+            />
+
+            <Divider sx={{ my: 3, borderColor: "#2A2D2B" }} />
+
+            <Typography variant="subtitle2" sx={{ color: "#E8E3D8", mb: 1, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", fontSize: "0.75rem" }}>
+              First Branch
+            </Typography>
+            <Box sx={{ display: "flex", gap: 2 }}>
+              <TextField
+                fullWidth
+                label="Branch Name *"
+                margin="normal"
+                {...register("branch_name")}
+                error={!!errors.branch_name}
+                helperText={errors.branch_name?.message}
+              />
+              <TextField
+                fullWidth
+                label="City"
+                margin="normal"
+                {...register("branch_city")}
+                error={!!errors.branch_city}
+                helperText={errors.branch_city?.message}
+              />
+            </Box>
+
             <Button
               fullWidth
               type="submit"

@@ -14,6 +14,7 @@ import type {
   PlatformGymAnalytics,
   PTPackage,
   PTSession,
+  Staff,
   SubscriptionPlan,
   Ticket,
   Trainer,
@@ -68,6 +69,43 @@ export function useCreateMember() {
   });
 }
 
+export function useUpdateMember() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...data }: { id: number } & Record<string, unknown>) => {
+      const { data: res } = await apiClient.patch(`/members/${id}/`, data);
+      return res;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["members"] });
+    },
+  });
+}
+
+export function useDeleteMember() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: number) => {
+      await apiClient.delete(`/members/${id}/`);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["members"] });
+    },
+  });
+}
+
+export function useHardDeleteMember() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: number) => {
+      await apiClient.delete(`/members/${id}/`, { params: { hard: "true" } });
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["members"] });
+    },
+  });
+}
+
 export function useMembershipPlans() {
   return useQuery<PaginatedResponse<MembershipPlan>>({
     queryKey: ["membership-plans", orgId()],
@@ -107,6 +145,42 @@ export function useCreateTrainer() {
       return data;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["trainers"] }),
+  });
+}
+
+export function useStaff() {
+  return useQuery<PaginatedResponse<Staff>>({
+    queryKey: ["staff"],
+    queryFn: async () => {
+      const { data } = await apiClient.get("/staff/");
+      return data;
+    },
+  });
+}
+
+export function useCreateStaff() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (staffData: Record<string, unknown>) => {
+      const { data } = await apiClient.post("/staff/", staffData);
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["staff"] });
+      window.__chalkBurst?.();
+    },
+  });
+}
+
+export function useDeleteStaff() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: number) => {
+      await apiClient.delete(`/staff/${id}/`);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["staff"] });
+    },
   });
 }
 

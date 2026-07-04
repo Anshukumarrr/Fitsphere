@@ -3,7 +3,7 @@ from rest_framework import generics, permissions, status
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 
-from ..core.permissions import HasRole
+from ..core.permissions import HasRole, TICKET_ELIGIBLE_ROLES
 from .models import Ticket
 from .serializers import (
     TicketCreateSerializer,
@@ -22,7 +22,7 @@ class TicketListCreateView(generics.ListCreateAPIView):
 
     def get_permissions(self):
         if self.request.method == "POST":
-            return [permissions.IsAuthenticated(), HasRole("gym_owner", "super_admin", "trainer", "member")]
+            return [permissions.IsAuthenticated(), HasRole(*TICKET_ELIGIBLE_ROLES)]
         return [permissions.IsAuthenticated()]
 
     def get_queryset(self):
@@ -39,13 +39,13 @@ class TicketListCreateView(generics.ListCreateAPIView):
                 raised_by__organization_id=user.organization_id
             ) | qs.filter(raised_by=user)
 
-        if user.role == "trainer":
+        if user.role in ("trainer", "manager"):
             return qs.filter(
                 raised_by__organization_id=user.organization_id,
                 raised_by__role="member",
             ) | qs.filter(raised_by=user)
 
-        if user.role == "member":
+        if user.role in ("member", "instructor", "security", "cleaner", "maintenance"):
             return qs.filter(raised_by=user)
 
         return qs.none()
@@ -91,6 +91,10 @@ class TicketDetailView(generics.RetrieveUpdateAPIView):
             )
         if user.role == "trainer":
             return ticket.raised_by.role == "member" and (
+                not ticket.organization or ticket.organization_id == user.organization_id
+            )
+        if user.role == "manager":
+            return ticket.raised_by.role in ("member", "trainer") and (
                 not ticket.organization or ticket.organization_id == user.organization_id
             )
         return False

@@ -5,6 +5,21 @@ from .models import Payment
 from .serializers import PaymentCreateSerializer, PaymentSerializer
 
 
+def _payment_branch_for_user(user):
+    profile_map = {
+        "receptionist": "receptionist_profile",
+        "trainer": "trainer_profile",
+        "manager": "manager_profile",
+    }
+    attr = profile_map.get(user.role)
+    if attr:
+        try:
+            return getattr(user, attr).branch
+        except Exception:
+            return None
+    return None
+
+
 class PaymentListCreateView(generics.ListCreateAPIView):
     permission_classes = (IsStaff | IsMember,)
     filterset_fields = (
@@ -34,8 +49,10 @@ class PaymentListCreateView(generics.ListCreateAPIView):
         qs = Payment.objects.select_related("member", "member__user", "branch").filter(
             organization=user.organization
         )
-        if user.role == "receptionist":
-            qs = qs.filter(branch=user.receptionist_profile.branch)
+        if user.role in ("receptionist", "trainer", "manager"):
+            branch = _payment_branch_for_user(user)
+            if branch:
+                qs = qs.filter(branch=branch)
         return qs
 
 
@@ -52,6 +69,11 @@ class PaymentDetailView(generics.RetrieveAPIView):
                 member__user=user,
                 organization=user.organization,
             )
-        return Payment.objects.select_related("member", "member__user").filter(
+        qs = Payment.objects.select_related("member", "member__user").filter(
             organization=user.organization
         )
+        if user.role in ("receptionist", "trainer", "manager"):
+            branch = _payment_branch_for_user(user)
+            if branch:
+                qs = qs.filter(branch=branch)
+        return qs

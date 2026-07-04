@@ -2,6 +2,8 @@ from rest_framework import generics, permissions, serializers
 from rest_framework.response import Response
 
 from ..core.permissions import IsGymOwnerOrAdmin, IsMember, IsStaff, IsTrainer
+from ..members.models import Member
+from ..trainers.models import Trainer
 from .models import PTPackage, PTMembership, PTSession
 from .serializers import (
     PTPackageSerializer,
@@ -82,17 +84,32 @@ class PTSessionListCreateView(generics.ListCreateAPIView):
                 "member", "member__user", "trainer", "trainer__user"
             ).all()
         if user.role == "member":
+            try:
+                member = user.member_profile
+            except Member.DoesNotExist:
+                return PTSession.objects.none()
             return PTSession.objects.select_related(
                 "member", "member__user", "trainer", "trainer__user"
             ).filter(
-                member=user.member_profile,
+                member=member,
                 organization=user.organization,
             )
         qs = PTSession.objects.select_related(
             "member", "member__user", "trainer", "trainer__user"
         ).filter(organization=user.organization)
         if user.role == "trainer":
-            qs = qs.filter(trainer=user.trainer_profile)
+            try:
+                trainer = user.trainer_profile
+            except Trainer.DoesNotExist:
+                return PTSession.objects.none()
+            qs = qs.filter(trainer=trainer)
+        if user.role == "manager":
+            try:
+                branch = user.manager_profile.branch
+            except Exception:
+                branch = None
+            if branch:
+                qs = qs.filter(trainer__branch=branch)
         return qs
 
     def perform_create(self, serializer):
@@ -107,7 +124,15 @@ class PTSessionDetailView(generics.RetrieveUpdateDestroyAPIView):
         user = self.request.user
         if user.role == "super_admin":
             return PTSession.objects.all()
-        return PTSession.objects.filter(organization=user.organization)
+        qs = PTSession.objects.filter(organization=user.organization)
+        if user.role == "manager":
+            try:
+                branch = user.manager_profile.branch
+            except Exception:
+                branch = None
+            if branch:
+                qs = qs.filter(trainer__branch=branch)
+        return qs
 
 
 class BookSessionView(generics.CreateAPIView):
@@ -115,7 +140,12 @@ class BookSessionView(generics.CreateAPIView):
     serializer_class = PTSessionCreateSerializer
 
     def perform_create(self, serializer):
-        member = self.request.user.member_profile
+        try:
+            member = self.request.user.member_profile
+        except Member.DoesNotExist:
+            raise serializers.ValidationError(
+                {"error": "Member profile not found."}
+            )
         serializer.save(
             member=member,
             organization=self.request.user.organization,

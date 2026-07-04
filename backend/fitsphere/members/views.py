@@ -1,14 +1,33 @@
+from django.conf import settings
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
 from rest_framework import generics, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from ..core.permissions import IsGymOwnerOrAdmin, IsReceptionist, IsStaff
+from ..core.permissions import IsGymOwnerOrAdmin, IsReceptionist, IsStaffOrReadOnlyInstructor
 from .models import Member
 from .serializers import MemberCreateSerializer, MemberSerializer, MemberStatusUpdateSerializer
 
 
+def _branch_for_user(user):
+    branch_map = {
+        "receptionist": "receptionist_profile",
+        "trainer": "trainer_profile",
+        "manager": "manager_profile",
+        "instructor": "instructor_profile",
+    }
+    profile_attr = branch_map.get(user.role)
+    if profile_attr:
+        try:
+            return getattr(user, profile_attr).branch
+        except Exception:
+            return None
+    return None
+
+
 class MemberListCreateView(generics.ListCreateAPIView):
-    permission_classes = (IsStaff,)
+    permission_classes = (IsStaffOrReadOnlyInstructor,)
     search_fields = (
         "user__first_name",
         "user__last_name",
@@ -26,6 +45,7 @@ class MemberListCreateView(generics.ListCreateAPIView):
     def get_serializer_context(self):
         context = super().get_serializer_context()
         context["organization"] = getattr(self.request.user, "organization", None)
+        context["created_by"] = self.request.user
         return context
 
     def get_queryset(self):
@@ -33,17 +53,43 @@ class MemberListCreateView(generics.ListCreateAPIView):
         if user.role == "super_admin":
             return Member.objects.select_related("user", "branch").all()
         org = user.organization
-        if user.role == "receptionist":
+        branch_scoped_roles = ("receptionist", "trainer", "manager", "instructor")
+        if user.role in branch_scoped_roles:
+            branch = _branch_for_user(user)
             return Member.objects.select_related("user", "branch").filter(
-                organization=org, branch=user.receptionist_profile.branch
+                organization=org, branch=branch
             )
         return Member.objects.select_related("user", "branch").filter(
             organization=org
         )
 
+    def perform_create(self, serializer):
+        member = serializer.save()
+        self._send_credentials_email(member)
+
+    def _send_credentials_email(self, member):
+        user = member.user
+        try:
+            html_body = render_to_string("emails/member_credentials.html", {
+                "name": user.first_name or user.username,
+                "username": user.username,
+                "password": self.request.data.get("password", ""),
+                "frontend_url": settings.FRONTEND_URL,
+            })
+            msg = EmailMultiAlternatives(
+                subject="Your FitSphere Member Account",
+                body=f"Username: {user.username}\nPassword: {self.request.data.get('password', '')}",
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                to=[user.email],
+            )
+            msg.attach_alternative(html_body, "text/html")
+            msg.send(fail_silently=False)
+        except Exception:
+            pass
+
 
 class MemberDetailView(generics.RetrieveUpdateDestroyAPIView):
-    permission_classes = (IsStaff,)
+    permission_classes = (IsStaffOrReadOnlyInstructor,)
     serializer_class = MemberSerializer
 
     def get_queryset(self):
@@ -51,15 +97,24 @@ class MemberDetailView(generics.RetrieveUpdateDestroyAPIView):
         if user.role == "super_admin":
             return Member.objects.select_related("user", "branch").all()
         org = user.organization
+        branch_scoped_roles = ("receptionist", "trainer", "manager", "instructor")
+        if user.role in branch_scoped_roles:
+            branch = _branch_for_user(user)
+            return Member.objects.select_related("user", "branch").filter(
+                organization=org, branch=branch
+            )
         return Member.objects.select_related("user", "branch").filter(
             organization=org
         )
 
     def perform_destroy(self, instance):
-        instance.user.is_active = False
-        instance.user.save()
-        instance.is_active = False
-        instance.save()
+        if self.request.query_params.get("hard") == "true":
+            instance.user.delete()
+        else:
+            instance.user.is_active = False
+            instance.user.save()
+            instance.is_active = False
+            instance.save()
 
 
 class MemberStatusChangeView(generics.UpdateAPIView):
@@ -70,7 +125,11 @@ class MemberStatusChangeView(generics.UpdateAPIView):
         user = self.request.user
         if user.role == "super_admin":
             return Member.objects.all()
-        return Member.objects.filter(organization=user.organization)
+        org = user.organization
+        if user.role == "manager":
+            branch = _branch_for_user(user)
+            return Member.objects.filter(organization=org, branch=branch)
+        return Member.objects.filter(organization=org)
 
     def update(self, request, *args, **kwargs):
         member = self.get_object()

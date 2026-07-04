@@ -67,11 +67,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       password: string;
       first_name: string;
       last_name: string;
+      gym_name: string;
+      gym_city?: string;
+      gym_state?: string;
+      gym_address?: string;
+      branch_name: string;
+      branch_city?: string;
     }) => {
       const { data } = await apiClient.post("/auth/register/", userData);
-      localStorage.setItem("access_token", data.access);
-      localStorage.setItem("refresh_token", data.refresh);
-      setUser(data.user);
+      return data;
     },
     []
   );
@@ -84,6 +88,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     qc.clear();
   }, [qc]);
 
+  const refetchUser = useCallback(async () => {
+    await fetchUser();
+  }, [fetchUser]);
+
   const value = useMemo(
     () => ({
       user,
@@ -92,8 +100,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       login,
       register,
       logout,
+      refetchUser,
     }),
-    [user, isLoading, login, register, logout]
+    [user, isLoading, login, register, logout, refetchUser]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

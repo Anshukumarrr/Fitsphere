@@ -6,8 +6,13 @@ from .serializers import MembershipPlanSerializer, MemberMembershipSerializer
 
 
 class MembershipPlanListCreateView(generics.ListCreateAPIView):
-    permission_classes = (IsGymOwnerOrAdmin,)
+    permission_classes = (IsStaff,)
     serializer_class = MembershipPlanSerializer
+
+    def get_permissions(self):
+        if self.request.method == "POST":
+            return [permission() for permission in (IsGymOwnerOrAdmin,)]
+        return [permission() for permission in self.permission_classes]
 
     def get_queryset(self):
         user = self.request.user
@@ -20,8 +25,13 @@ class MembershipPlanListCreateView(generics.ListCreateAPIView):
 
 
 class MembershipPlanDetailView(generics.RetrieveUpdateDestroyAPIView):
-    permission_classes = (IsGymOwnerOrAdmin,)
+    permission_classes = (IsStaff,)
     serializer_class = MembershipPlanSerializer
+
+    def get_permissions(self):
+        if self.request.method in ("PUT", "PATCH", "DELETE"):
+            return [permission() for permission in (IsGymOwnerOrAdmin,)]
+        return [permission() for permission in self.permission_classes]
 
     def get_queryset(self):
         user = self.request.user

@@ -22,6 +22,13 @@ class Trainer(TenantAwareModel):
     qualifications = models.TextField(blank=True)
     years_of_experience = models.PositiveIntegerField(default=0)
     is_active = models.BooleanField(default=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="created_trainers",
+    )
     hourly_rate = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
     max_members = models.PositiveIntegerField(default=50)
     session_rating = models.DecimalField(

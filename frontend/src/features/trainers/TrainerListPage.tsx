@@ -6,6 +6,7 @@ import {
   Dialog,
   DialogContent,
   DialogTitle,
+  MenuItem,
   Table,
   TableBody,
   TableCell,
@@ -17,16 +18,50 @@ import {
 } from "@mui/material";
 import { Add } from "@mui/icons-material";
 import { useForm } from "react-hook-form";
-import { useCreateTrainer, useTrainers } from "../../hooks/useApi";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useBranches, useCreateTrainer, useTrainers } from "../../hooks/useApi";
+
+const trainerSchema = z.object({
+  username: z.string().min(3, "Username must be at least 3 characters"),
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+  first_name: z.string().min(1, "First name is required"),
+  last_name: z.string().min(1, "Last name is required"),
+  phone: z.string().optional(),
+  branch: z.string().optional(),
+  specialization: z.string().optional(),
+  bio: z.string().optional(),
+  qualifications: z.string().optional(),
+  years_of_experience: z.string().optional(),
+  hourly_rate: z.string().optional(),
+  max_members: z.string().optional(),
+});
+
+type TrainerForm = z.infer<typeof trainerSchema>;
 
 export default function TrainerListPage() {
   const [open, setOpen] = useState(false);
   const { data, isLoading } = useTrainers();
   const createTrainer = useCreateTrainer();
-  const { register, handleSubmit, reset } = useForm();
+  const { data: branches } = useBranches();
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<TrainerForm>({
+    resolver: zodResolver(trainerSchema),
+  });
 
-  const onSubmit = async (formData: Record<string, unknown>) => {
-    await createTrainer.mutateAsync(formData);
+  const onSubmit = async (formData: TrainerForm) => {
+    const payload: Record<string, unknown> = { ...formData };
+    if (payload.branch) payload.branch = Number(payload.branch);
+    else delete payload.branch;
+    if (payload.years_of_experience) payload.years_of_experience = Number(payload.years_of_experience);
+    if (payload.hourly_rate) payload.hourly_rate = Number(payload.hourly_rate);
+    if (payload.max_members) payload.max_members = Number(payload.max_members);
+    await createTrainer.mutateAsync(payload);
     reset();
     setOpen(false);
   };
@@ -83,11 +118,37 @@ export default function TrainerListPage() {
         <DialogTitle>Add Trainer</DialogTitle>
         <DialogContent>
           <form onSubmit={handleSubmit(onSubmit)}>
-            <TextField fullWidth label="User ID" margin="normal" type="number" {...register("user_id")} />
-            <TextField fullWidth label="Specialization" margin="normal" {...register("specialization")} />
-            <TextField fullWidth label="Bio" margin="normal" multiline rows={2} {...register("bio")} />
-            <TextField fullWidth label="Qualifications" margin="normal" multiline rows={2} {...register("qualifications")} />
-            <TextField fullWidth label="Years of Experience" margin="normal" type="number" {...register("years_of_experience")} />
+            <Typography variant="subtitle2" sx={{ color: "#E8E3D8", mt: 1, mb: 0.5, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", fontSize: "0.75rem" }}>
+              Account Details
+            </Typography>
+            <Box sx={{ display: "flex", gap: 2 }}>
+              <TextField fullWidth label="Username *" margin="normal" {...register("username")} error={!!errors.username} helperText={errors.username?.message} />
+              <TextField fullWidth label="Email *" type="email" margin="normal" {...register("email")} error={!!errors.email} helperText={errors.email?.message} />
+            </Box>
+            <Box sx={{ display: "flex", gap: 2 }}>
+              <TextField fullWidth label="First Name *" margin="normal" {...register("first_name")} error={!!errors.first_name} helperText={errors.first_name?.message} />
+              <TextField fullWidth label="Last Name *" margin="normal" {...register("last_name")} error={!!errors.last_name} helperText={errors.last_name?.message} />
+            </Box>
+            <Box sx={{ display: "flex", gap: 2 }}>
+              <TextField fullWidth label="Password *" type="password" margin="normal" {...register("password")} error={!!errors.password} helperText={errors.password?.message} />
+              <TextField fullWidth label="Phone" margin="normal" {...register("phone")} error={!!errors.phone} helperText={errors.phone?.message} />
+            </Box>
+
+            <Typography variant="subtitle2" sx={{ color: "#E8E3D8", mt: 2, mb: 0.5, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", fontSize: "0.75rem" }}>
+              Trainer Details
+            </Typography>
+            <TextField select fullWidth label="Branch" margin="normal" defaultValue="" {...register("branch")} error={!!errors.branch} helperText={errors.branch?.message}>
+              <MenuItem value="">None</MenuItem>
+              {branches?.results?.map((b) => (
+                <MenuItem key={b.id} value={b.id}>{b.name}</MenuItem>
+              ))}
+            </TextField>
+            <Box sx={{ display: "flex", gap: 2 }}>
+              <TextField fullWidth label="Specialization" margin="normal" {...register("specialization")} error={!!errors.specialization} helperText={errors.specialization?.message} />
+              <TextField fullWidth label="Years of Experience" margin="normal" {...register("years_of_experience")} error={!!errors.years_of_experience} helperText={errors.years_of_experience?.message} />
+            </Box>
+            <TextField fullWidth label="Bio" margin="normal" multiline rows={2} {...register("bio")} error={!!errors.bio} helperText={errors.bio?.message} />
+            <TextField fullWidth label="Qualifications" margin="normal" multiline rows={2} {...register("qualifications")} error={!!errors.qualifications} helperText={errors.qualifications?.message} />
             <Button type="submit" variant="contained" fullWidth sx={{ mt: 2 }}>
               Create Trainer
             </Button>

@@ -1,4 +1,10 @@
-from rest_framework.permissions import BasePermission
+from rest_framework.permissions import BasePermission, SAFE_METHODS
+
+
+TICKET_ELIGIBLE_ROLES = (
+    "gym_owner", "super_admin", "trainer", "member",
+    "manager", "instructor", "security", "cleaner", "maintenance",
+)
 
 
 class IsSuperAdmin(BasePermission):
@@ -15,7 +21,7 @@ class IsGymOwnerOrAdmin(BasePermission):
     def has_permission(self, request, view):
         if not request.user.is_authenticated:
             return False
-        return request.user.role in ("gym_owner", "super_admin")
+        return request.user.role in ("gym_owner", "super_admin", "manager")
 
 
 class IsReceptionist(BasePermission):
@@ -37,7 +43,18 @@ class IsStaff(BasePermission):
     def has_permission(self, request, view):
         if not request.user.is_authenticated:
             return False
-        return request.user.role in ("super_admin", "gym_owner", "receptionist", "trainer")
+        return request.user.role in ("super_admin", "gym_owner", "receptionist", "trainer", "manager")
+
+
+class IsStaffOrReadOnlyInstructor(BasePermission):
+    def has_permission(self, request, view):
+        if not request.user.is_authenticated:
+            return False
+        if request.user.role in ("super_admin", "gym_owner", "receptionist", "trainer", "manager"):
+            return True
+        if request.user.role == "instructor" and request.method in SAFE_METHODS:
+            return True
+        return False
 
 
 class HasRole(BasePermission):

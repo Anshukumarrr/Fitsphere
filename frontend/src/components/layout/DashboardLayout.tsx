@@ -29,25 +29,26 @@ import {
   People,
   Receipt,
 } from "@mui/icons-material";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "../../hooks/useAuth";
 
 const drawerWidth = 250;
 
 const navItems = [
-  { label: "Dashboard", icon: <Dashboard />, path: "/dashboard", roles: ["gym_owner", "super_admin", "receptionist", "trainer"] },
-  { label: "Members", icon: <People />, path: "/members", roles: ["gym_owner", "super_admin", "receptionist"] },
-  { label: "Trainers", icon: <Group />, path: "/trainers", roles: ["gym_owner", "super_admin"] },
-  { label: "Payments", icon: <MonetizationOn />, path: "/payments", roles: ["gym_owner", "super_admin", "receptionist"] },
-  { label: "Attendance", icon: <CalendarMonth />, path: "/attendance", roles: ["gym_owner", "super_admin", "receptionist"] },
-  { label: "Analytics", icon: <Assessment />, path: "/analytics", roles: ["gym_owner", "super_admin"] },
-  { label: "Tickets", icon: <BugReport />, path: "/tickets", roles: ["gym_owner", "super_admin", "trainer", "member"] },
-  { label: "Notifications", icon: <Notifications />, path: "/notifications", roles: ["gym_owner", "super_admin"] },
+  { label: "Dashboard", icon: <Dashboard />, path: "/dashboard", roles: ["gym_owner", "super_admin", "receptionist", "trainer", "manager", "instructor"] },
+  { label: "Members", icon: <People />, path: "/members", roles: ["gym_owner", "super_admin", "receptionist", "trainer", "manager", "instructor"] },
+  { label: "Staff", icon: <Group />, path: "/staff", roles: ["gym_owner", "super_admin", "manager"] },
+  { label: "Payments", icon: <MonetizationOn />, path: "/payments", roles: ["gym_owner", "super_admin", "receptionist", "manager"] },
+  { label: "PT Sessions", icon: <Group />, path: "/pt-sessions", roles: ["gym_owner", "super_admin", "trainer", "manager"] },
+  { label: "Attendance", icon: <CalendarMonth />, path: "/attendance", roles: ["gym_owner", "super_admin", "receptionist", "trainer", "manager", "instructor"] },
+  { label: "Analytics", icon: <Assessment />, path: "/analytics", roles: ["gym_owner", "super_admin", "manager"] },
+  { label: "Tickets", icon: <BugReport />, path: "/tickets", roles: ["gym_owner", "super_admin", "trainer", "member", "manager", "instructor", "security", "cleaner", "maintenance"] },
+  { label: "Notifications", icon: <Notifications />, path: "/notifications", roles: ["gym_owner", "super_admin", "manager"] },
   { label: "Billing", icon: <Receipt />, path: "/billing", roles: ["super_admin"] },
   { label: "Audit Logs", icon: <Receipt />, path: "/audit", roles: ["gym_owner", "super_admin"] },
   { label: "My Dashboard", icon: <Dashboard />, path: "/dashboard", roles: ["member"] },
-  { label: "My Attendance", icon: <CalendarMonth />, path: "/my-attendance", roles: ["member"] },
+  { label: "My Attendance", icon: <CalendarMonth />, path: "/my-attendance", roles: ["member", "security", "cleaner", "maintenance"] },
   { label: "My Sessions", icon: <Group />, path: "/my-sessions", roles: ["member"] },
   { label: "My Payments", icon: <MonetizationOn />, path: "/my-payments", roles: ["member"] },
   { label: "My Profile", icon: <People />, path: "/profile", roles: ["member"] },
@@ -56,9 +57,15 @@ const navItems = [
 export default function DashboardLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const { user, logout } = useAuth();
+  const { user, logout, refetchUser } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!user && localStorage.getItem("access_token")) {
+      refetchUser();
+    }
+  }, []);
 
   const handleDrawerToggle = useCallback(
     () => setMobileOpen((prev) => !prev),

@@ -13,7 +13,8 @@ import MyProfilePage from "./features/member/MyProfilePage";
 import MySessionsPage from "./features/member/MySessionsPage";
 import NotificationSettingsPage from "./features/notifications/NotificationSettingsPage";
 import PaymentListPage from "./features/payments/PaymentListPage";
-import TrainerListPage from "./features/trainers/TrainerListPage";
+import PTSessionListPage from "./features/personal-training/PTSessionListPage";
+import StaffPage from "./features/staff/StaffPage";
 import AttendanceListPage from "./features/attendance/AttendanceListPage";
 import TicketsPage from "./features/tickets/TicketsPage";
 import AttendanceCalendarPage from "./features/attendance/AttendanceCalendarPage";
@@ -30,6 +31,9 @@ const loginRoute = new Route({
   getParentRoute: () => rootRoute,
   path: "/login",
   component: LoginPage,
+  validateSearch: (search: Record<string, string>) => ({
+    verified: search.verified || undefined,
+  }),
 });
 
 const registerRoute = new Route({
@@ -42,6 +46,14 @@ const dashboardLayoutRoute = new Route({
   getParentRoute: () => rootRoute,
   id: "dashboard",
   beforeLoad: () => {
+    const params = new URLSearchParams(window.location.search);
+    const access = params.get("access");
+    const refresh = params.get("refresh");
+    if (access && refresh) {
+      localStorage.setItem("access_token", access);
+      localStorage.setItem("refresh_token", refresh);
+      window.history.replaceState({}, "", window.location.pathname);
+    }
     if (!localStorage.getItem("access_token")) {
       throw redirect({ to: "/login" });
     }
@@ -61,10 +73,10 @@ const membersRoute = new Route({
   component: AllMembersPage,
 });
 
-const trainersRoute = new Route({
+const staffRoute = new Route({
   getParentRoute: () => dashboardLayoutRoute,
-  path: "/trainers",
-  component: TrainerListPage,
+  path: "/staff",
+  component: StaffPage,
 });
 
 const attendanceRoute = new Route({
@@ -89,6 +101,12 @@ const paymentsRoute = new Route({
   getParentRoute: () => dashboardLayoutRoute,
   path: "/payments",
   component: PaymentListPage,
+});
+
+const ptSessionsRoute = new Route({
+  getParentRoute: () => dashboardLayoutRoute,
+  path: "/pt-sessions",
+  component: PTSessionListPage,
 });
 
 const analyticsRoute = new Route({
@@ -140,7 +158,8 @@ const routeTree = rootRoute.addChildren([
   dashboardLayoutRoute.addChildren([
     dashboardIndexRoute,
     membersRoute,
-    trainersRoute,
+    staffRoute,
+    ptSessionsRoute,
     attendanceRoute,
     ticketsRoute,
     attendanceCalendarRoute,

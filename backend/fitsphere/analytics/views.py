@@ -17,7 +17,15 @@ from ..personal_training.models import PTSession
 def _org_filter(request):
     if request.user.role == "super_admin":
         return {}
-    return {"organization": request.user.organization}
+    filters = {"organization": request.user.organization}
+    if request.user.role == "manager":
+        try:
+            branch = request.user.manager_profile.branch
+            if branch:
+                filters["branch"] = branch
+        except Exception:
+            pass
+    return filters
 
 
 @api_view(["GET"])
@@ -119,7 +127,13 @@ def revenue_report(request):
 @api_view(["GET"])
 @permission_classes([IsMember])
 def member_dashboard(request):
-    member = request.user.member_profile
+    try:
+        member = request.user.member_profile
+    except Member.DoesNotExist:
+        return Response(
+            {"error": "Member profile not found."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
     today = date.today()
     first_of_month = today.replace(day=1)
 

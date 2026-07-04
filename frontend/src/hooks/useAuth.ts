@@ -12,8 +12,15 @@ export interface AuthContextType {
     password: string;
     first_name: string;
     last_name: string;
-  }) => Promise<void>;
+    gym_name: string;
+    gym_city?: string;
+    gym_state?: string;
+    gym_address?: string;
+    branch_name: string;
+    branch_city?: string;
+  }) => Promise<{ detail: string; email: string }>;
   logout: () => void;
+  refetchUser: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType | null>(null);

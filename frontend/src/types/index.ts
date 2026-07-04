@@ -8,6 +8,7 @@ export interface User {
   photo: string | null;
   role: UserRole;
   is_active: boolean;
+  organization: number | null;
   gym_code: string | null;
   membership_plan: string | null;
   membership_expiry: string | null;
@@ -18,6 +19,11 @@ export type UserRole =
   | "gym_owner"
   | "receptionist"
   | "trainer"
+  | "cleaner"
+  | "manager"
+  | "security"
+  | "instructor"
+  | "maintenance"
   | "member";
 
 export interface GymOrganization {
@@ -104,6 +110,28 @@ export interface Trainer {
   total_sessions: number;
   created_at: string;
   updated_at: string;
+}
+
+export interface Staff {
+  id: number;
+  user: User;
+  full_name: string;
+  role: UserRole;
+  branch: number | null;
+  branch_name: string | null;
+  branch_details: Branch | null;
+  is_active: boolean;
+  profile_id: number;
+  created_at: string;
+  specialization: string | null;
+  years_of_experience: number | null;
+  hourly_rate: number | null;
+  max_members: number | null;
+  session_rating: number | null;
+  total_sessions: number | null;
+  active_member_count: number | null;
+  bio: string | null;
+  qualifications: string | null;
 }
 
 export interface MembershipPlan {

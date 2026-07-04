@@ -1,13 +1,16 @@
+from django.conf import settings
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
 from rest_framework import generics
+from rest_framework.response import Response
 
 from ..core.permissions import IsGymOwnerOrAdmin, IsStaff
 from .models import Trainer
-from .serializers import TrainerSerializer
+from .serializers import TrainerCreateSerializer, TrainerSerializer
 
 
 class TrainerListCreateView(generics.ListCreateAPIView):
     permission_classes = (IsGymOwnerOrAdmin,)
-    serializer_class = TrainerSerializer
     search_fields = (
         "user__first_name",
         "user__last_name",
@@ -15,6 +18,17 @@ class TrainerListCreateView(generics.ListCreateAPIView):
         "specialization",
     )
     filterset_fields = ("branch", "is_active", "specialization")
+
+    def get_serializer_class(self):
+        if self.request.method == "POST":
+            return TrainerCreateSerializer
+        return TrainerSerializer
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context["organization"] = getattr(self.request.user, "organization", None)
+        context["created_by"] = self.request.user
+        return context
 
     def get_queryset(self):
         user = self.request.user
@@ -25,7 +39,29 @@ class TrainerListCreateView(generics.ListCreateAPIView):
         )
 
     def perform_create(self, serializer):
-        serializer.save(organization=self.request.user.organization)
+        trainer = serializer.save()
+        self._send_credentials_email(trainer)
+
+    def _send_credentials_email(self, trainer):
+        user = trainer.user
+        try:
+            html_body = render_to_string("emails/staff_credentials.html", {
+                "name": user.first_name or user.username,
+                "username": user.username,
+                "password": self.request.data.get("password", ""),
+                "role": "Trainer",
+                "frontend_url": settings.FRONTEND_URL,
+            })
+            msg = EmailMultiAlternatives(
+                subject="Your FitSphere Trainer Account",
+                body=f"Username: {user.username}\nPassword: {self.request.data.get('password', '')}",
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                to=[user.email],
+            )
+            msg.attach_alternative(html_body, "text/html")
+            msg.send(fail_silently=False)
+        except Exception:
+            pass
 
 
 class TrainerDetailView(generics.RetrieveUpdateDestroyAPIView):
