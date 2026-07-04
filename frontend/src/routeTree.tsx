@@ -31,9 +31,6 @@ const loginRoute = new Route({
   getParentRoute: () => rootRoute,
   path: "/login",
   component: LoginPage,
-  validateSearch: (search: Record<string, string>) => ({
-    verified: search.verified || undefined,
-  }),
 });
 
 const registerRoute = new Route({

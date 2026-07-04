@@ -9,7 +9,7 @@ import {
 } from "@mui/material";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { Link, useNavigate, useSearch } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
 import { useAuth } from "../../hooks/useAuth";
 
@@ -29,8 +29,7 @@ const VERIFIED_MESSAGES: Record<string, { text: string; severity: "success" | "e
 export default function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
-  const search = useSearch({ from: "/login" });
-  const verified = search.verified as string | undefined;
+  const verified = new URLSearchParams(window.location.search).get("verified") || undefined;
   const verifiedMsg = verified ? VERIFIED_MESSAGES[verified] : null;
   const [error, setError] = useState("");
   const {
