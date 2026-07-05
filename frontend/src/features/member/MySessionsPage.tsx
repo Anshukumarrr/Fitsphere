@@ -29,7 +29,7 @@ export default function MySessionsPage() {
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
 
-  const memberBranchId = (user as { member_profile?: { branch?: number | null } })?.member_profile?.branch ?? null;
+  const memberBranchId = user?.member_branch_id ?? null;
 
   const { data: trainers } = useAvailableTrainers(memberBranchId);
 

@@ -366,7 +366,7 @@ export default function LandingPage() {
                       variant="h3"
                       sx={{
                         mb: 0.5,
-                        color: plan.highlighted ? "#E8E3D8" : "#E8E3D8",
+                        color: "#E8E3D8",
                       }}
                     >
                       {plan.price}

@@ -29,7 +29,7 @@ import {
   People,
   Receipt,
 } from "@mui/icons-material";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "../../hooks/useAuth";
 
@@ -65,15 +65,16 @@ export default function DashboardLayout() {
     if (!user && localStorage.getItem("access_token")) {
       refetchUser();
     }
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleDrawerToggle = useCallback(
     () => setMobileOpen((prev) => !prev),
     []
   );
 
-  const filteredNav = navItems.filter(
-    (item) => user && item.roles.includes(user.role)
+  const filteredNav = useMemo(
+    () => navItems.filter((item) => user && item.roles.includes(user.role)),
+    [user]
   );
 
   const drawer = (

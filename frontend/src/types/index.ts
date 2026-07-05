@@ -12,6 +12,7 @@ export interface User {
   gym_code: string | null;
   membership_plan: string | null;
   membership_expiry: string | null;
+  member_branch_id: number | null;
 }
 
 export type UserRole =

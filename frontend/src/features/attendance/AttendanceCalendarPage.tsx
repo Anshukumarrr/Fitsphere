@@ -11,45 +11,49 @@ import { ChevronLeft, ChevronRight } from "@mui/icons-material";
 import dayjs from "dayjs";
 import { useMyAttendanceLogs } from "../../hooks/useApi";
 
+const today = dayjs().format("YYYY-MM-DD");
+
 export default function AttendanceCalendarPage() {
   const [currentMonth, setCurrentMonth] = useState(() => dayjs().startOf("month"));
   const { data } = useMyAttendanceLogs();
-
-  const logs = data?.results ?? [];
+  const [todayDate] = useState(today);
 
   const checkedInDays = useMemo(() => {
     const days = new Set<string>();
-    for (const log of logs) {
+    for (const log of data?.results ?? []) {
       const d = dayjs(log.check_in_time).format("YYYY-MM-DD");
       days.add(d);
     }
     return days;
-  }, [logs]);
+  }, [data?.results]);
 
   const daysInMonth = currentMonth.daysInMonth();
   const startDayOfWeek = currentMonth.day();
   const monthLabel = currentMonth.format("MMMM YYYY");
 
-  const today = dayjs().format("YYYY-MM-DD");
   const currentMonthStr = currentMonth.format("YYYY-MM");
 
   const monthCheckIns = useMemo(
-    () => logs.filter((l) => dayjs(l.check_in_time).format("YYYY-MM") === currentMonthStr).length,
-    [logs, currentMonthStr]
+    () => (data?.results ?? []).filter((l) => dayjs(l.check_in_time).format("YYYY-MM") === currentMonthStr).length,
+    [data?.results, currentMonthStr]
   );
 
-  const totalCheckIns = logs.length;
+  const totalCheckIns = data?.results?.length ?? 0;
 
-  const calendarDays: (number | null)[] = [];
-  for (let i = 0; i < startDayOfWeek; i++) {
-    calendarDays.push(null);
-  }
-  for (let d = 1; d <= daysInMonth; d++) {
-    calendarDays.push(d);
-  }
+  const calendarDays = useMemo(() => {
+    const days: (number | null)[] = [];
+    for (let i = 0; i < startDayOfWeek; i++) {
+      days.push(null);
+    }
+    for (let d = 1; d <= daysInMonth; d++) {
+      days.push(d);
+    }
+    return days;
+  }, [startDayOfWeek, daysInMonth]);
 
   const prevMonth = () => setCurrentMonth((m) => m.subtract(1, "month"));
   const nextMonth = () => setCurrentMonth((m) => m.add(1, "month"));
+  const isCheckedInToday = checkedInDays.has(todayDate);
 
   return (
     <Box>
@@ -85,8 +89,8 @@ export default function AttendanceCalendarPage() {
         <Grid size={{ xs: 12, sm: 4 }}>
           <Card>
             <CardContent sx={{ textAlign: "center", py: 3 }}>
-              <Typography variant="h3" sx={{ fontFamily: '"JetBrains Mono", monospace', color: checkedInDays.has(today) ? "#D4FF3F" : "#6B6F6C" }}>
-                {checkedInDays.has(today) ? "Yes" : "No"}
+              <Typography variant="h3" sx={{ fontFamily: '"JetBrains Mono", monospace', color: isCheckedInToday ? "#D4FF3F" : "#6B6F6C" }}>
+                {isCheckedInToday ? "Yes" : "No"}
               </Typography>
               <Typography variant="body2" color="text.secondary">
                 Checked In Today
@@ -127,7 +131,7 @@ export default function AttendanceCalendarPage() {
               }
               const dateStr = currentMonth.date(d).format("YYYY-MM-DD");
               const isCheckedIn = checkedInDays.has(dateStr);
-              const isToday = dateStr === today;
+              const isToday = dateStr === todayDate;
               return (
                 <Grid key={dateStr} size={{ xs: 12 / 7 }}>
                   <Box

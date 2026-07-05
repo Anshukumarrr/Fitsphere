@@ -30,7 +30,7 @@ export default function BillingPlansPage() {
                   transition: "all 0.3s ease",
                   "&:hover": {
                     transform: "translateY(-6px)",
-                    boxShadow: "0 0 30px rgba(255,109,0,0.3)",
+                    boxShadow: "0 0 30px rgba(212,255,63,0.3)",
                   },
                 }}
               >

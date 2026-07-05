@@ -1,3 +1,4 @@
+from django.db.models import Q
 from django.utils import timezone
 from rest_framework import generics, permissions, status
 from rest_framework.exceptions import PermissionDenied
@@ -36,14 +37,13 @@ class TicketListCreateView(generics.ListCreateAPIView):
 
         if user.role == "gym_owner":
             return qs.filter(
-                raised_by__organization_id=user.organization_id
-            ) | qs.filter(raised_by=user)
+                Q(raised_by__organization_id=user.organization_id) | Q(raised_by=user)
+            ).distinct()
 
         if user.role in ("trainer", "manager"):
             return qs.filter(
-                raised_by__organization_id=user.organization_id,
-                raised_by__role="member",
-            ) | qs.filter(raised_by=user)
+                Q(raised_by__organization_id=user.organization_id, raised_by__role="member") | Q(raised_by=user)
+            ).distinct()
 
         if user.role in ("member", "instructor", "security", "cleaner", "maintenance"):
             return qs.filter(raised_by=user)
@@ -52,13 +52,19 @@ class TicketListCreateView(generics.ListCreateAPIView):
 
 
 class TicketDetailView(generics.RetrieveUpdateAPIView):
-    queryset = Ticket.objects.select_related(
-        "raised_by", "assigned_to", "resolved_by", "organization"
-    )
     serializer_class = TicketSerializer
 
     def get_permissions(self):
         return [permissions.IsAuthenticated()]
+
+    def get_queryset(self):
+        qs = Ticket.objects.select_related(
+            "raised_by", "assigned_to", "resolved_by", "organization"
+        )
+        user = self.request.user
+        if user.role == "super_admin":
+            return qs.all()
+        return qs.filter(raised_by__organization_id=user.organization_id)
 
     def get_serializer_class(self):
         if self.request.method in ("PATCH", "PUT"):

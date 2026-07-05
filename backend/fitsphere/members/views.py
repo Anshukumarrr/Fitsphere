@@ -85,7 +85,8 @@ class MemberListCreateView(generics.ListCreateAPIView):
             msg.attach_alternative(html_body, "text/html")
             msg.send(fail_silently=False)
         except Exception:
-            pass
+            import logging
+            logging.getLogger(__name__).exception("Failed to send member credentials email")
 
 
 class MemberDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -113,7 +114,7 @@ class MemberDetailView(generics.RetrieveUpdateDestroyAPIView):
         else:
             instance.user.is_active = False
             instance.user.save()
-            instance.is_active = False
+            instance.membership_status = "cancelled"
             instance.save()
 
 

@@ -74,7 +74,14 @@ class ActiveMembershipByMemberView(generics.ListAPIView):
     permission_classes = (permissions.IsAuthenticated,)
 
     def get_queryset(self):
+        user = self.request.user
+        if user.role == "super_admin":
+            return MemberMembership.objects.filter(
+                member_id=self.kwargs["member_id"],
+                is_active=True,
+            )
         return MemberMembership.objects.filter(
             member_id=self.kwargs["member_id"],
             is_active=True,
+            organization=user.organization,
         )

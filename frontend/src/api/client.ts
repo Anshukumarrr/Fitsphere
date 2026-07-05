@@ -10,6 +10,10 @@ const apiClient = axios.create({
 });
 
 let isRefreshing = false;
+let pendingQueue: Array<{
+  resolve: (token: string) => void;
+  reject: (error: unknown) => void;
+}> = [];
 
 apiClient.interceptors.request.use((config) => {
   const token = localStorage.getItem("access_token");
@@ -20,28 +24,42 @@ apiClient.interceptors.request.use((config) => {
 });
 
 apiClient.interceptors.response.use(
-  (response) => response,
+  undefined,
   async (error) => {
     const originalRequest = error.config;
     if (error.response?.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
-        return Promise.reject(error);
+        return new Promise((resolve, reject) => {
+          pendingQueue.push({ resolve, reject });
+        }).then((token) => {
+          originalRequest.headers.Authorization = `Bearer ${token}`;
+          return apiClient(originalRequest);
+        });
       }
+
       isRefreshing = true;
       originalRequest._retry = true;
+
       try {
         const refresh = localStorage.getItem("refresh_token");
         if (!refresh) throw new Error("No refresh token");
         const { data } = await axios.post(`${API_BASE_URL}/auth/refresh/`, {
           refresh,
         });
-        localStorage.setItem("access_token", data.access);
+        const newToken = data.access;
+        localStorage.setItem("access_token", newToken);
         if (data.refresh) {
           localStorage.setItem("refresh_token", data.refresh);
         }
-        originalRequest.headers.Authorization = `Bearer ${data.access}`;
+
+        pendingQueue.forEach((p) => p.resolve(newToken));
+        pendingQueue = [];
+
+        originalRequest.headers.Authorization = `Bearer ${newToken}`;
         return apiClient(originalRequest);
-      } catch {
+      } catch (err) {
+        pendingQueue.forEach((p) => p.reject(err));
+        pendingQueue = [];
         localStorage.removeItem("access_token");
         localStorage.removeItem("refresh_token");
         window.location.href = "/login";

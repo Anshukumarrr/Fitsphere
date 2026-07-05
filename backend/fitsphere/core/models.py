@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.utils import timezone
 
 
 class User(AbstractUser):
@@ -240,14 +241,5 @@ class EmailVerificationToken(models.Model):
         db_table = "email_verification_tokens"
 
     def is_expired(self):
-        from django.utils import timezone
         expiry = self.created_at + timezone.timedelta(hours=24)
         return timezone.now() > expiry
-
-
-class BaseManager(models.Manager):
-    def get_queryset(self):
-        return super().get_queryset()
-
-    def for_tenant(self, tenant_id):
-        return self.get_queryset().filter(organization_id=tenant_id)

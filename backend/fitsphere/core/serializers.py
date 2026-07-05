@@ -11,11 +11,11 @@ from ..organizations.serializers import BranchSerializer as OrgBranchSerializer
 
 User = get_user_model()
 
-
 class UserSerializer(serializers.ModelSerializer):
     gym_code = serializers.SerializerMethodField()
     membership_plan = serializers.SerializerMethodField()
     membership_expiry = serializers.SerializerMethodField()
+    member_branch_id = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -32,9 +32,11 @@ class UserSerializer(serializers.ModelSerializer):
             "gym_code",
             "membership_plan",
             "membership_expiry",
+            "member_branch_id",
             "organization",
         )
         read_only_fields = ("id", "role", "is_active")
+
 
     def get_gym_code(self, obj):
         profile = getattr(obj, "member_profile", None)
@@ -50,6 +52,10 @@ class UserSerializer(serializers.ModelSerializer):
     def get_membership_expiry(self, obj):
         profile = getattr(obj, "member_profile", None)
         return profile.membership_end_date if profile else None
+
+    def get_member_branch_id(self, obj):
+        profile = getattr(obj, "member_profile", None)
+        return profile.branch_id if profile else None
 
 
 class GymOrganizationSerializer(serializers.Serializer):

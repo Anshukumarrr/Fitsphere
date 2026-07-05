@@ -1,9 +1,12 @@
+import logging
+
 import secrets
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.mail import EmailMultiAlternatives
-from django.shortcuts import get_object_or_404, redirect
+from django.db.models import Count, Q
+from django.shortcuts import redirect
 from django.template.loader import render_to_string
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
@@ -24,6 +27,7 @@ from .serializers import (
 from .permissions import IsGymOwnerOrAdmin, IsSuperAdmin
 
 User = get_user_model()
+logger = logging.getLogger(__name__)
 
 
 class RegisterThrottle(AnonRateThrottle):
@@ -72,7 +76,7 @@ class RegisterView(generics.CreateAPIView):
             msg.attach_alternative(html_body, "text/html")
             msg.send(fail_silently=False)
         except Exception:
-            pass
+            logger.exception("Failed to send verification email")
 
         return Response(
             {
@@ -135,7 +139,7 @@ class CurrentUserView(generics.RetrieveUpdateAPIView):
 
 
 class UserListView(generics.ListAPIView):
-    queryset = User.objects.all()
+    queryset = User.objects.select_related("member_profile", "organization").all()
     serializer_class = UserSerializer
     permission_classes = (IsSuperAdmin,)
     filterset_fields = ("role", "is_active")
@@ -205,7 +209,7 @@ class ReceptionistListCreateView(generics.ListCreateAPIView):
             msg.attach_alternative(html_body, "text/html")
             msg.send(fail_silently=False)
         except Exception:
-            pass
+            logger.exception("Failed to send credentials email")
 
 
 def _build_staff_record(profile, role_name, extra_fields=None):
@@ -281,7 +285,9 @@ class StaffListCreateView(generics.ListCreateAPIView):
             branch_filter = {}
 
         combined_filter = {**org_filter, **branch_filter}
-        trainers = Trainer.objects.select_related("user", "branch").filter(**combined_filter)
+        trainers = Trainer.objects.select_related("user", "branch").filter(**combined_filter).annotate(
+            _active_member_count=Count("assigned_members", filter=Q(assigned_members__membership_status="active"))
+        )
         receptionists = ReceptionistProfile.objects.select_related("user", "branch").filter(**combined_filter)
         cleaners = CleanerProfile.objects.select_related("user", "branch").filter(**combined_filter)
         managers = ManagerProfile.objects.select_related("user", "branch").filter(**combined_filter)
@@ -299,7 +305,7 @@ class StaffListCreateView(generics.ListCreateAPIView):
                 "max_members": t.max_members,
                 "session_rating": t.session_rating,
                 "total_sessions": t.total_sessions,
-                "active_member_count": t.assigned_members.filter(membership_status="active").count(),
+                "active_member_count": t._active_member_count,
                 "bio": t.bio,
                 "qualifications": t.qualifications,
             }))
@@ -367,7 +373,7 @@ class StaffListCreateView(generics.ListCreateAPIView):
             msg.attach_alternative(html_body, "text/html")
             msg.send(fail_silently=False)
         except Exception:
-            pass
+            logger.exception("Failed to send staff credentials email")
 
 
 class StaffDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -389,10 +395,16 @@ class StaffDetailView(generics.RetrieveUpdateDestroyAPIView):
         role = self.request.query_params.get("role")
 
         user = self.request.user
-        if user.role == "super_admin":
-            org_filter = {}
-        else:
+        org_filter = {}
+        if user.role != "super_admin":
             org_filter = {"user__organization": user.organization}
+            if user.role == "manager":
+                try:
+                    branch = user.manager_profile.branch
+                    if branch:
+                        org_filter["branch"] = branch
+                except Exception:
+                    pass
 
         profile = None
         actual_role = role
@@ -439,7 +451,7 @@ class StaffDetailView(generics.RetrieveUpdateDestroyAPIView):
                 "max_members": profile.max_members,
                 "session_rating": profile.session_rating,
                 "total_sessions": profile.total_sessions,
-                "active_member_count": profile.assigned_members.filter(membership_status="active").count(),
+                "active_member_count": getattr(profile, "_active_member_count", profile.assigned_members.filter(membership_status="active").count()),
                 "bio": profile.bio,
                 "qualifications": profile.qualifications,
             }

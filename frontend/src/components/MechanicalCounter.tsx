@@ -143,7 +143,7 @@ export default function MechanicalCounter({
     >
       {isNegative && <Box component="span" sx={{ mr: "0.05em" }}>-</Box>}
       {digits.map((d, i) => (
-        <ReelDigit key={`${value}-${i}`} target={d} delay={i * STAGGER_MS} play={play} />
+        <ReelDigit key={`digit-${i}`} target={d} delay={i * STAGGER_MS} play={play} />
       ))}
     </Box>
   );

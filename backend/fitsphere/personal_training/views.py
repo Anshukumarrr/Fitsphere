@@ -1,7 +1,7 @@
 from rest_framework import generics, permissions, serializers
 from rest_framework.response import Response
 
-from ..core.permissions import IsGymOwnerOrAdmin, IsMember, IsStaff, IsTrainer
+from ..core.permissions import IsGymOwnerOrAdmin, IsMember, IsStaff
 from ..members.models import Member
 from ..trainers.models import Trainer
 from .models import PTPackage, PTMembership, PTSession

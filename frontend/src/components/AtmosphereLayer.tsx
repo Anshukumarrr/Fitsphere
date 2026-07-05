@@ -1,6 +1,6 @@
 import { type Container, type ISourceOptions } from "@tsparticles/engine";
 import Particles from "@tsparticles/react";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 
 export default function AtmosphereLayer() {
   const containerRef = useRef<Container | null>(null);
@@ -30,7 +30,7 @@ export default function AtmosphereLayer() {
       window.matchMedia("(prefers-reduced-motion: reduce)").matches
   ).current;
 
-  const options: ISourceOptions = {
+  const options = useMemo<ISourceOptions>(() => ({
     fpsLimit: 60,
     particles: {
         number: {
@@ -79,7 +79,7 @@ export default function AtmosphereLayer() {
     },
     detectRetina: true,
     background: { opacity: 0 },
-  };
+  }), [prefersReduced]);
 
   return (
     <div

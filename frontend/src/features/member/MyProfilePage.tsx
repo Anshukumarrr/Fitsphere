@@ -1,13 +1,21 @@
 import { Box, Card, CardContent, Typography, TextField, Button, Avatar } from "@mui/material";
 import { useAuth } from "../../hooks/useAuth";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function MyProfilePage() {
   const { user } = useAuth();
   const [editing, setEditing] = useState(false);
-  const [firstName, setFirstName] = useState(user?.first_name ?? "");
-  const [lastName, setLastName] = useState(user?.last_name ?? "");
-  const [phone, setPhone] = useState(user?.phone ?? "");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [phone, setPhone] = useState("");
+
+  useEffect(() => {
+    if (user) {
+      setFirstName(user.first_name ?? "");
+      setLastName(user.last_name ?? "");
+      setPhone(user.phone ?? "");
+    }
+  }, [user]);
 
   if (!user) return null;
 

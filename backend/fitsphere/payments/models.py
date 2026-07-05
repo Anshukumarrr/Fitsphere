@@ -1,5 +1,6 @@
 from django.conf import settings
-from django.db import models
+from django.db import models, transaction
+from django.utils import timezone
 
 from ..core.models import TenantAwareModel
 
@@ -74,13 +75,13 @@ class Payment(TenantAwareModel):
 
     def save(self, *args, **kwargs):
         if not self.invoice_number:
-            from datetime import datetime
             prefix = "INV"
-            date_part = datetime.now().strftime("%Y%m%d")
-            last = Payment.objects.filter(
-                invoice_number__startswith=f"{prefix}{date_part}"
-            ).count()
-            self.invoice_number = f"{prefix}{date_part}-{last + 1:04d}"
+            date_part = timezone.now().strftime("%Y%m%d")
+            with transaction.atomic():
+                last = Payment.objects.select_for_update().filter(
+                    invoice_number__startswith=f"{prefix}{date_part}"
+                ).count()
+                self.invoice_number = f"{prefix}{date_part}-{last + 1:04d}"
         super().save(*args, **kwargs)
 
     def __str__(self):

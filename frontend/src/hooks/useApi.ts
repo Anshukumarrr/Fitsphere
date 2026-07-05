@@ -12,7 +12,6 @@ import type {
   PaginatedResponse,
   Payment,
   PlatformGymAnalytics,
-  PTPackage,
   PTSession,
   Staff,
   SubscriptionPlan,
@@ -25,13 +24,14 @@ const orgId = () => {
   return org ? Number(org) : undefined;
 };
 
-export function useDashboard() {
+export function useDashboard(enabled = true) {
   return useQuery<DashboardData>({
     queryKey: ["dashboard", orgId()],
     queryFn: async () => {
       const { data } = await apiClient.get("/analytics/dashboard/");
       return data;
     },
+    enabled,
   });
 }
 
@@ -172,33 +172,11 @@ export function useCreateStaff() {
   });
 }
 
-export function useDeleteStaff() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: async (id: number) => {
-      await apiClient.delete(`/staff/${id}/`);
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["staff"] });
-    },
-  });
-}
-
 export function useAttendanceLogs(params?: Record<string, string>) {
   return useQuery<PaginatedResponse<AttendanceLog>>({
     queryKey: ["attendance", params],
     queryFn: async () => {
       const { data } = await apiClient.get("/attendance/logs/", { params });
-      return data;
-    },
-  });
-}
-
-export function usePTPackages() {
-  return useQuery<PaginatedResponse<PTPackage>>({
-    queryKey: ["pt-packages", orgId()],
-    queryFn: async () => {
-      const { data } = await apiClient.get("/personal-training/packages/");
       return data;
     },
   });

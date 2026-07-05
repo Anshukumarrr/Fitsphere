@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.db import models
+from django.db import models, transaction
 
 from ..core.models import TenantAwareModel
 
@@ -70,9 +70,10 @@ class Member(TenantAwareModel):
 
     def save(self, *args, **kwargs):
         if not self.gym_code:
-            last = Member.objects.order_by("-id").first()
-            seq = (last.id + 1) if last else 1
-            self.gym_code = f"M{seq:06d}"
+            with transaction.atomic():
+                last = Member.objects.select_for_update().order_by("-id").first()
+                seq = (last.id + 1) if last else 1
+                self.gym_code = f"M{seq:06d}"
         super().save(*args, **kwargs)
 
     def __str__(self):

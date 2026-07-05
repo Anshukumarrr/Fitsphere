@@ -1,5 +1,5 @@
 from django.contrib.auth import get_user_model
-from django.db import transaction
+from django.db import models, transaction
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
@@ -55,9 +55,9 @@ class TrainerSerializer(serializers.ModelSerializer):
         return obj.branch.name if obj.branch else None
 
     def get_active_member_count(self, obj):
-        return obj.assigned_members.filter(
-            membership_status="active"
-        ).count()
+        if hasattr(obj, "active_member_count") and obj.active_member_count is not None:
+            return obj.active_member_count
+        return obj.assigned_members.filter(membership_status="active").count()
 
 
 class TrainerCreateSerializer(serializers.ModelSerializer):

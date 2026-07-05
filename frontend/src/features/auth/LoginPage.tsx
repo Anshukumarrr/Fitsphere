@@ -21,7 +21,6 @@ const loginSchema = z.object({
 type LoginForm = z.infer<typeof loginSchema>;
 
 const VERIFIED_MESSAGES: Record<string, { text: string; severity: "success" | "error" }> = {
-  true: { text: "Email verified successfully! You can now log in.", severity: "success" },
   expired: { text: "Verification link has expired. Please register again.", severity: "error" },
   invalid: { text: "Invalid verification link.", severity: "error" },
 };

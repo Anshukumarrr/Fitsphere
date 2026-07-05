@@ -1,6 +1,7 @@
 from datetime import date, timedelta
 
 from django.db.models import Count, Sum
+from django.db.models.functions import TruncDate, TruncMonth
 from django.utils import timezone
 from rest_framework import generics, permissions, status
 from rest_framework.decorators import api_view, permission_classes
@@ -14,7 +15,7 @@ from ..memberships.models import MemberMembership
 from ..personal_training.models import PTSession
 
 
-def _org_filter(request):
+def _org_filter(request, for_membership=False):
     if request.user.role == "super_admin":
         return {}
     filters = {"organization": request.user.organization}
@@ -22,7 +23,10 @@ def _org_filter(request):
         try:
             branch = request.user.manager_profile.branch
             if branch:
-                filters["branch"] = branch
+                if for_membership:
+                    filters["member__branch"] = branch
+                else:
+                    filters["branch"] = branch
         except Exception:
             pass
     return filters
@@ -66,8 +70,9 @@ def organization_dashboard(request):
         **org_filter, check_in_time__date=today
     ).count()
 
+    membership_filter = _org_filter(request, for_membership=True)
     expiring_this_month = MemberMembership.objects.filter(
-        **org_filter,
+        **membership_filter,
         is_active=True,
         end_date__gte=today,
         end_date__lte=first_of_month + timedelta(days=30),
@@ -101,7 +106,6 @@ def revenue_report(request):
     qs = Payment.objects.filter(**org_filter, status="completed")
 
     if period == "daily":
-        from django.db.models.functions import TruncDate
         report = (
             qs.annotate(date=TruncDate("paid_at"))
             .values("date")
@@ -109,7 +113,6 @@ def revenue_report(request):
             .order_by("-date")[:30]
         )
     elif period == "monthly":
-        from django.db.models.functions import TruncMonth
         report = (
             qs.annotate(month=TruncMonth("paid_at"))
             .values("month")
@@ -193,7 +196,7 @@ def attendance_report(request):
         AttendanceLog.objects.filter(
             **org_filter, check_in_time__gte=since
         )
-        .extra({"date": "date(check_in_time)"})
+        .annotate(date=TruncDate("check_in_time"))
         .values("date")
         .annotate(count=Count("id"))
         .order_by("date")

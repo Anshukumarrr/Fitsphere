@@ -180,7 +180,7 @@ if config("AWS_ACCESS_KEY_ID", default=None):
     AWS_DEFAULT_ACL = "private"
 
 EMAIL_BACKEND = "anymail.backends.sendinblue.EmailBackend"
-ANYMAIL = {"SENDINBLUE_API_KEY": config("BREVO_API_KEY")}
+ANYMAIL = {"SENDINBLUE_API_KEY": config("BREVO_API_KEY", default="")}
 DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="FitSphere <onboarding@resend.dev>")
 
 FRONTEND_URL = config("FRONTEND_URL", default="http://localhost:5173")

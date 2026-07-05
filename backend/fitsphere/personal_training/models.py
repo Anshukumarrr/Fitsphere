@@ -64,6 +64,8 @@ class PTSession(TenantAwareModel):
     pt_membership = models.ForeignKey(
         PTMembership,
         on_delete=models.CASCADE,
+        null=True,
+        blank=True,
         related_name="sessions",
     )
     member = models.ForeignKey(

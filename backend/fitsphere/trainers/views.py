@@ -1,10 +1,11 @@
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
+from django.db.models import Count, Q
 from rest_framework import generics
 from rest_framework.response import Response
 
-from ..core.permissions import IsGymOwnerOrAdmin, IsStaff
+from ..core.permissions import IsGymOwnerOrAdmin, IsMember, IsStaff
 from .models import Trainer
 from .serializers import TrainerCreateSerializer, TrainerSerializer
 
@@ -32,11 +33,12 @@ class TrainerListCreateView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        if user.role == "super_admin":
-            return Trainer.objects.select_related("user").all()
-        return Trainer.objects.select_related("user").filter(
-            organization=user.organization
+        qs = Trainer.objects.select_related("user").annotate(
+            active_member_count=Count("assigned_members", filter=Q(assigned_members__membership_status="active"))
         )
+        if user.role == "super_admin":
+            return qs.all()
+        return qs.filter(organization=user.organization)
 
     def perform_create(self, serializer):
         trainer = serializer.save()
@@ -70,18 +72,25 @@ class TrainerDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        if user.role == "super_admin":
-            return Trainer.objects.select_related("user").all()
-        return Trainer.objects.select_related("user").filter(
-            organization=user.organization
+        qs = Trainer.objects.select_related("user").annotate(
+            active_member_count=Count("assigned_members", filter=Q(assigned_members__membership_status="active"))
         )
+        if user.role == "super_admin":
+            return qs.all()
+        return qs.filter(organization=user.organization)
 
 
 class TrainerByBranchView(generics.ListAPIView):
     serializer_class = TrainerSerializer
-    permission_classes = (IsStaff,)
+    permission_classes = (IsStaff | IsMember,)
 
     def get_queryset(self):
-        return Trainer.objects.filter(
+        user = self.request.user
+        qs = Trainer.objects.select_related("user").annotate(
+            active_member_count=Count("assigned_members", filter=Q(assigned_members__membership_status="active"))
+        ).filter(
             branch_id=self.kwargs["branch_id"]
         )
+        if user.role != "super_admin":
+            qs = qs.filter(organization=user.organization)
+        return qs

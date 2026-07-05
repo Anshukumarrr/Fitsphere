@@ -6,10 +6,12 @@ import {
   Skeleton,
   Typography,
 } from "@mui/material";
+import { useAuth } from "../../hooks/useAuth";
 import { useDashboard } from "../../hooks/useApi";
 import PlateGauge from "../../components/PlateGauge";
 import MechanicalCounter from "../../components/MechanicalCounter";
 import SpecularHover from "../../components/SpecularHover";
+import MemberDashboardPage from "../member/MemberDashboardPage";
 
 function StatCard({
   label,
@@ -87,7 +89,7 @@ function StatCard({
               fontSize: "0.7rem",
               textTransform: "uppercase",
               letterSpacing: "0.08em",
-              color: isEmpty ? "#6B6F6C" : "#6B6F6C",
+              color: "#6B6F6C",
               textAlign: "center",
             }}
           >
@@ -112,16 +114,13 @@ function StatCard({
   );
 }
 
-import MemberDashboardPage from "../member/MemberDashboardPage";
-import { useAuth } from "../../hooks/useAuth";
-
 export default function DashboardPage() {
   const { user } = useAuth();
+  const { data, isLoading } = useDashboard(user?.role !== "member");
 
   if (user?.role === "member") {
     return <MemberDashboardPage />;
   }
-  const { data, isLoading } = useDashboard();
 
   if (isLoading) {
     return (

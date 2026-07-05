@@ -1,11 +1,11 @@
-import json
-
 from django.http import HttpResponse
-from django.utils.deprecation import MiddlewareMixin
 
 
-class TenantMiddleware(MiddlewareMixin):
-    def process_request(self, request):
+class TenantMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
         tenant_id = None
         if request.user.is_authenticated and hasattr(request.user, "organization_id"):
             tenant_id = request.user.organization_id
@@ -17,3 +17,5 @@ class TenantMiddleware(MiddlewareMixin):
                 except (ValueError, TypeError):
                     pass
         request.tenant_id = tenant_id
+        response = self.get_response(request)
+        return response

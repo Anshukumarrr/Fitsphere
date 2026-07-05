@@ -1,11 +1,8 @@
-import { useState } from "react";
 import {
-  Alert,
   Box,
   Button,
   Card,
   Chip,
-  TextField,
   Table,
   TableBody,
   TableCell,
@@ -15,8 +12,9 @@ import {
   Typography,
 } from "@mui/material";
 import { Refresh } from "@mui/icons-material";
-import { useAttendanceLogs, useActiveCode, useGenerateCode, useCodeCheckIn } from "../../hooks/useApi";
+import { useAttendanceLogs, useActiveCode, useGenerateCode } from "../../hooks/useApi";
 import { useAuth } from "../../hooks/useAuth";
+import MemberCheckInPanel from "./MemberCheckInPanel";
 
 function StaffCodePanel() {
   const { data: activeCode, isLoading: codeLoading } = useActiveCode();
@@ -69,75 +67,9 @@ function StaffCodePanel() {
   );
 }
 
-function MemberCheckInPanel() {
-  const [codeInput, setCodeInput] = useState("");
-  const [success, setSuccess] = useState(false);
-  const codeCheckIn = useCodeCheckIn();
-
-  const handleSubmit = async () => {
-    setSuccess(false);
-    try {
-      await codeCheckIn.mutateAsync({ code: codeInput.toUpperCase() });
-      setSuccess(true);
-      setCodeInput("");
-    } catch {
-      // error handled by mutation state
-    }
-  };
-
-  return (
-    <Card sx={{ p: 4, mb: 3, textAlign: "center" }}>
-      <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-        Mark Your Attendance
-      </Typography>
-      {success && (
-        <Alert severity="success" sx={{ mb: 2 }}>
-          Check-in successful!
-        </Alert>
-      )}
-      {codeCheckIn.isError && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {(codeCheckIn.error as { response?: { data?: { error?: string } } })?.response?.data?.error || "Check-in failed"}
-        </Alert>
-      )}
-      <Box sx={{ display: "flex", gap: 2, justifyContent: "center", alignItems: "center" }}>
-        <TextField
-          placeholder="Enter 5-digit code"
-          value={codeInput}
-          onChange={(e) => setCodeInput(e.target.value.toUpperCase())}
-          slotProps={{
-            htmlInput: {
-              sx: {
-                textAlign: "center",
-                fontFamily: "monospace",
-                fontSize: "1.5rem",
-                letterSpacing: "0.3em",
-                textTransform: "uppercase",
-                maxLength: 5,
-                width: 200,
-              },
-            },
-          }}
-        />
-        <Button
-          variant="contained"
-          size="large"
-          onClick={handleSubmit}
-          disabled={codeInput.length !== 5 || codeCheckIn.isPending}
-          sx={{ height: 56 }}
-        >
-          {codeCheckIn.isPending ? "Checking In..." : "Check In"}
-        </Button>
-      </Box>
-    </Card>
-  );
-}
-
 export default function AttendanceListPage() {
   const { user } = useAuth();
   const { data, isLoading } = useAttendanceLogs();
-  const isStaff = user?.role && ["gym_owner", "super_admin", "receptionist"].includes(user.role);
-  const isMember = user?.role === "member";
 
   return (
     <Box>
@@ -145,8 +77,8 @@ export default function AttendanceListPage() {
         Attendance
       </Typography>
 
-      {isStaff && <StaffCodePanel />}
-      {isMember && <MemberCheckInPanel />}
+      {user?.role === "member" && <MemberCheckInPanel />}
+      {user?.role && ["gym_owner", "super_admin", "receptionist"].includes(user.role) && <StaffCodePanel />}
 
       <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
         Attendance Logs

@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from ..members.models import Member
 from .models import PTPackage, PTMembership, PTSession
 
 
@@ -91,6 +92,13 @@ class PTSessionSerializer(serializers.ModelSerializer):
 
 
 class PTSessionCreateSerializer(serializers.ModelSerializer):
+    pt_membership = serializers.PrimaryKeyRelatedField(
+        queryset=PTMembership.objects.all(), required=False, allow_null=True
+    )
+    member = serializers.PrimaryKeyRelatedField(
+        queryset=Member.objects.all(), required=False
+    )
+
     class Meta:
         model = PTSession
         fields = (

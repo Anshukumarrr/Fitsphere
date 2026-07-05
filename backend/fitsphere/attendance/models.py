@@ -5,7 +5,7 @@ import uuid
 from datetime import timedelta
 
 from django.conf import settings
-from django.db import models
+from django.db import models, transaction
 from django.utils import timezone
 
 from ..core.models import TenantAwareModel
@@ -24,6 +24,9 @@ class QRCode(models.Model):
 
     class Meta:
         db_table = "qr_codes"
+        indexes = [
+            models.Index(fields=["expires_at"]),
+        ]
 
     def __str__(self):
         return f"QR for {self.branch.name} - {self.code}"
@@ -105,24 +108,25 @@ class AttendanceCode(TenantAwareModel):
 
     @classmethod
     def generate(cls, organization, branch, user):
-        cls.objects.filter(
-            organization=organization, branch=branch, is_active=True
-        ).update(is_active=False)
-        code = "".join(random.choices(string.ascii_uppercase + string.digits, k=5))
-        now = timezone.now()
-        tomorrow = now.date() + timedelta(days=1)
-        expires_at = timezone.make_aware(
-            timezone.datetime(tomorrow.year, tomorrow.month, tomorrow.day, 0, 1)
-        )
-        return cls.objects.create(
-            organization=organization,
-            branch=branch,
-            code=code,
-            generated_by=user,
-            generated_at=now,
-            expires_at=expires_at,
-            is_active=True,
-        )
+        with transaction.atomic():
+            cls.objects.filter(
+                organization=organization, branch=branch, is_active=True
+            ).update(is_active=False)
+            code = "".join(random.choices(string.ascii_uppercase + string.digits, k=5))
+            now = timezone.now()
+            tomorrow = now.date() + timedelta(days=1)
+            expires_at = timezone.make_aware(
+                timezone.datetime(tomorrow.year, tomorrow.month, tomorrow.day, 0, 1)
+            )
+            return cls.objects.create(
+                organization=organization,
+                branch=branch,
+                code=code,
+                generated_by=user,
+                generated_at=now,
+                expires_at=expires_at,
+                is_active=True,
+            )
 
     def is_valid(self):
         return self.is_active and self.expires_at > timezone.now()
