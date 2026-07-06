@@ -35,13 +35,14 @@ export function useDashboard(enabled = true) {
   });
 }
 
-export function useMembers(params?: Record<string, string>) {
+export function useMembers(params?: Record<string, string>, options?: { enabled?: boolean }) {
   return useQuery<PaginatedResponse<Member>>({
     queryKey: ["members", params],
     queryFn: async () => {
       const { data } = await apiClient.get("/members/", { params });
       return data;
     },
+    ...options,
   });
 }
 
@@ -106,11 +107,11 @@ export function useHardDeleteMember() {
   });
 }
 
-export function useMembershipPlans() {
+export function useMembershipPlans(params?: Record<string, string>) {
   return useQuery<PaginatedResponse<MembershipPlan>>({
-    queryKey: ["membership-plans", orgId()],
+    queryKey: ["membership-plans", params],
     queryFn: async () => {
-      const { data } = await apiClient.get("/memberships/plans/");
+      const { data } = await apiClient.get("/memberships/plans/", { params });
       return data;
     },
   });
@@ -148,11 +149,11 @@ export function useCreateTrainer() {
   });
 }
 
-export function useStaff() {
+export function useStaff(params?: Record<string, string>) {
   return useQuery<PaginatedResponse<Staff>>({
-    queryKey: ["staff"],
+    queryKey: ["staff", params],
     queryFn: async () => {
-      const { data } = await apiClient.get("/staff/");
+      const { data } = await apiClient.get("/staff/", { params });
       return data;
     },
   });
@@ -218,11 +219,11 @@ export function useCreatePayment() {
   });
 }
 
-export function useGyms(options?: { enabled?: boolean }) {
+export function useGyms(params?: Record<string, string>, options?: { enabled?: boolean }) {
   return useQuery<PaginatedResponse<GymOrganization>>({
-    queryKey: ["gyms"],
+    queryKey: ["gyms", params],
     queryFn: async () => {
-      const { data } = await apiClient.get("/organizations/");
+      const { data } = await apiClient.get("/organizations/", { params });
       return data;
     },
     ...options,
@@ -251,11 +252,11 @@ export function useBranches() {
   });
 }
 
-export function useSubscriptionPlans() {
+export function useSubscriptionPlans(params?: Record<string, string>) {
   return useQuery<PaginatedResponse<SubscriptionPlan>>({
-    queryKey: ["subscription-plans"],
+    queryKey: ["subscription-plans", params],
     queryFn: async () => {
-      const { data } = await apiClient.get("/billing/plans/");
+      const { data } = await apiClient.get("/billing/plans/", { params });
       return data;
     },
   });
@@ -342,11 +343,11 @@ export function useMemberDashboard() {
   });
 }
 
-export function useMySessions() {
+export function useMySessions(params?: Record<string, string>) {
   return useQuery<PaginatedResponse<PTSession>>({
-    queryKey: ["my-sessions"],
+    queryKey: ["my-sessions", params],
     queryFn: async () => {
-      const { data } = await apiClient.get("/personal-training/sessions/");
+      const { data } = await apiClient.get("/personal-training/sessions/", { params });
       return data;
     },
   });
@@ -371,11 +372,11 @@ export function useBookSession() {
   });
 }
 
-export function useMyPayments() {
+export function useMyPayments(params?: Record<string, string>) {
   return useQuery<PaginatedResponse<Payment>>({
-    queryKey: ["my-payments"],
+    queryKey: ["my-payments", params],
     queryFn: async () => {
-      const { data } = await apiClient.get("/payments/");
+      const { data } = await apiClient.get("/payments/", { params });
       return data;
     },
   });
@@ -383,11 +384,11 @@ export function useMyPayments() {
 
 // --- Ticket hooks ---
 
-export function useTickets() {
+export function useTickets(params?: Record<string, string>) {
   return useQuery<PaginatedResponse<Ticket>>({
-    queryKey: ["tickets"],
+    queryKey: ["tickets", params],
     queryFn: async () => {
-      const { data } = await apiClient.get("/tickets/");
+      const { data } = await apiClient.get("/tickets/", { params });
       return data;
     },
   });

@@ -1,30 +1,21 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import {
-  Accordion,
-  AccordionDetails,
-  AccordionSummary,
   Box,
   Button,
-  Chip,
   Dialog,
   DialogContent,
   DialogTitle,
   MenuItem,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   TextField,
   Typography,
 } from "@mui/material";
-import { Add, ExpandMore } from "@mui/icons-material";
+import { Add } from "@mui/icons-material";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useBranches, useCreateStaff, useStaff } from "../../hooks/useApi";
-import type { Staff } from "../../types";
+import { useAuth } from "../../hooks/useAuth";
+import { useBranches, useCreateStaff } from "../../hooks/useApi";
+import StaffRoleAccordion from "./StaffRoleAccordion";
 
 const ROLE_LABELS: Record<string, string> = {
   manager: "Managers",
@@ -67,11 +58,24 @@ const staffSchema = z.object({
 
 type StaffForm = z.infer<typeof staffSchema>;
 
+const roleColor = (role: string) => {
+  const colors: Record<string, string> = {
+    manager: "#FF9800",
+    trainer: "#4CAF50",
+    receptionist: "#2196F3",
+    instructor: "#9C27B0",
+    security: "#F44336",
+    cleaner: "#00BCD4",
+    maintenance: "#607D8B",
+  };
+  return colors[role] || "#6B6F6C";
+};
+
 export default function StaffPage() {
   const [open, setOpen] = useState(false);
-  const { data, isLoading } = useStaff();
   const createStaff = useCreateStaff();
   const { data: branches } = useBranches();
+  const { user } = useAuth();
 
   const {
     register,
@@ -84,20 +88,6 @@ export default function StaffPage() {
   });
 
   const watchedRole = watch("role");
-
-  const groupedStaff = useMemo(() => {
-    if (!data?.results) return {};
-    const groups: Record<string, Staff[]> = {};
-    for (const s of data.results) {
-      const role = s.role;
-      if (!groups[role]) groups[role] = [];
-      groups[role].push(s);
-    }
-    for (const role of ROLE_ORDER) {
-      if (!groups[role]) groups[role] = [];
-    }
-    return groups;
-  }, [data]);
 
   const onSubmit = async (formData: StaffForm) => {
     const payload: Record<string, unknown> = { ...formData } as Record<string, unknown>;
@@ -116,157 +106,43 @@ export default function StaffPage() {
     setOpen(true);
   };
 
-  const roleColor = (role: string) => {
-    const colors: Record<string, string> = {
-      manager: "#FF9800",
-      trainer: "#4CAF50",
-      receptionist: "#2196F3",
-      instructor: "#9C27B0",
-      security: "#F44336",
-      cleaner: "#00BCD4",
-      maintenance: "#607D8B",
-    };
-    return colors[role] || "#6B6F6C";
-  };
-
   return (
     <Box>
       <Box sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}>
         <Typography variant="h5" sx={{ fontWeight: 600 }}>
           Staff
         </Typography>
-        <Box sx={{ display: "flex", gap: 1 }}>
-          {ROLE_ORDER.map((role) => (
-            <Button
-              key={role}
-              variant="outlined"
-              size="small"
-              startIcon={<Add />}
-              onClick={() => handleOpen(role)}
-              sx={{
-                borderColor: `${roleColor(role)}44`,
-                color: roleColor(role),
-                "&:hover": { borderColor: roleColor(role), bgcolor: `${roleColor(role)}11` },
-                textTransform: "capitalize",
-              }}
-            >
-              {ROLE_SINGULAR[role]}
-            </Button>
-          ))}
-        </Box>
+        {user?.role !== "super_admin" && (
+          <Box sx={{ display: "flex", gap: 1 }}>
+            {ROLE_ORDER.map((role) => (
+              <Button
+                key={role}
+                variant="outlined"
+                size="small"
+                startIcon={<Add />}
+                onClick={() => handleOpen(role)}
+                sx={{
+                  borderColor: `${roleColor(role)}44`,
+                  color: roleColor(role),
+                  "&:hover": { borderColor: roleColor(role), bgcolor: `${roleColor(role)}11` },
+                  textTransform: "capitalize",
+                }}
+              >
+                {ROLE_SINGULAR[role]}
+              </Button>
+            ))}
+          </Box>
+        )}
       </Box>
 
-      {isLoading ? (
-        <Typography color="text.secondary">Loading...</Typography>
-      ) : (
-        ROLE_ORDER.map((role) => {
-          const staffList = groupedStaff[role] || [];
-          return (
-            <Accordion
-              key={role}
-              sx={{
-                mb: 1,
-                bgcolor: "#1A1D1B",
-                border: "1px solid #2A2D2B",
-                borderRadius: "8px !important",
-                "&:before": { display: "none" },
-              }}
-            >
-              <AccordionSummary expandIcon={<ExpandMore sx={{ color: "#6B6F6C" }} />}>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 600, textTransform: "capitalize" }}>
-                    {ROLE_LABELS[role]}
-                  </Typography>
-                  <Chip
-                    label={staffList.length}
-                    size="small"
-                    sx={{
-                      bgcolor: `${roleColor(role)}22`,
-                      color: roleColor(role),
-                      fontWeight: 600,
-                      fontSize: "0.75rem",
-                    }}
-                  />
-                </Box>
-              </AccordionSummary>
-              <AccordionDetails sx={{ p: 0 }}>
-                {staffList.length === 0 ? (
-                  <Typography sx={{ p: 2, color: "#6B6F6C" }}>
-                    No {ROLE_LABELS[role].toLowerCase()} yet.
-                  </Typography>
-                ) : (
-                  <TableContainer>
-                    <Table size="small">
-                      <TableHead>
-                        <TableRow>
-                          <TableCell>Name</TableCell>
-                          <TableCell>Email</TableCell>
-                          <TableCell>Phone</TableCell>
-                          <TableCell>Branch</TableCell>
-                          <TableCell>Branch Details</TableCell>
-                          {role === "trainer" && <TableCell>Specialization</TableCell>}
-                          {role === "trainer" && <TableCell>Experience</TableCell>}
-                          <TableCell>Status</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {staffList.map((s) => (
-                          <TableRow key={`${s.role}-${s.id}`}>
-                            <TableCell>{s.full_name}</TableCell>
-                            <TableCell>{s.user?.email || "-"}</TableCell>
-                            <TableCell>{s.user?.phone || "-"}</TableCell>
-                            <TableCell>{s.branch_name || "-"}</TableCell>
-                            <TableCell sx={{ maxWidth: 200, fontSize: "0.8rem", whiteSpace: "normal", wordBreak: "break-word" }}>
-                              {s.branch_details ? (
-                                <>
-                                  {s.branch_details.address_line1 && <>{s.branch_details.address_line1}, </>}
-                                  {s.branch_details.city && <>{s.branch_details.city}, </>}
-                                  {s.branch_details.state && <>{s.branch_details.state}</>}
-                                  {s.branch_details.contact_phone && <><br />{s.branch_details.contact_phone}</>}
-                                </>
-                              ) : "-"}
-                            </TableCell>
-                            {role === "trainer" && <TableCell>{s.specialization || "-"}</TableCell>}
-                            {role === "trainer" && <TableCell>{s.years_of_experience ? `${s.years_of_experience} yrs` : "-"}</TableCell>}
-                            <TableCell>
-                              <Chip
-                                label={s.is_active ? "Active" : "Inactive"}
-                                size="small"
-                                color={s.is_active ? "success" : "default"}
-                              />
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-                )}
-              </AccordionDetails>
-            </Accordion>
-          );
-        })
-      )}
+      {ROLE_ORDER.map((role) => (
+        <StaffRoleAccordion key={role} role={role} label={ROLE_LABELS[role]} color={roleColor(role)} />
+      ))}
 
       <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Add Staff</DialogTitle>
+        <DialogTitle>Add {watchedRole ? ROLE_SINGULAR[watchedRole] || "Staff" : "Staff"}</DialogTitle>
         <DialogContent>
           <form onSubmit={handleSubmit(onSubmit)}>
-            <TextField
-              select
-              fullWidth
-              label="Role"
-              margin="normal"
-              {...register("role")}
-              error={!!errors.role}
-              helperText={errors.role?.message}
-            >
-              {ROLE_ORDER.map((r) => (
-                <MenuItem key={r} value={r}>
-                  {ROLE_SINGULAR[r]}
-                </MenuItem>
-              ))}
-            </TextField>
-
             <Typography variant="subtitle2" sx={{ color: "#E8E3D8", mt: 1, mb: 0.5, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", fontSize: "0.75rem" }}>
               Account Details
             </Typography>
@@ -298,6 +174,10 @@ export default function StaffPage() {
                 <Box sx={{ display: "flex", gap: 2 }}>
                   <TextField fullWidth label="Specialization" margin="normal" {...register("specialization")} error={!!errors.specialization} helperText={errors.specialization?.message} />
                   <TextField fullWidth label="Years of Experience" margin="normal" {...register("years_of_experience")} error={!!errors.years_of_experience} helperText={errors.years_of_experience?.message} />
+                </Box>
+                <Box sx={{ display: "flex", gap: 2 }}>
+                  <TextField fullWidth label="Hourly Rate" margin="normal" {...register("hourly_rate")} error={!!errors.hourly_rate} helperText={errors.hourly_rate?.message} />
+                  <TextField fullWidth label="Max Members" margin="normal" {...register("max_members")} error={!!errors.max_members} helperText={errors.max_members?.message} />
                 </Box>
                 <TextField fullWidth label="Bio" margin="normal" multiline rows={2} {...register("bio")} error={!!errors.bio} helperText={errors.bio?.message} />
                 <TextField fullWidth label="Qualifications" margin="normal" multiline rows={2} {...register("qualifications")} error={!!errors.qualifications} helperText={errors.qualifications?.message} />

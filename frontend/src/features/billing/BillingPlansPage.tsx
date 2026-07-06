@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Box,
   Card,
@@ -6,9 +7,13 @@ import {
   Typography,
 } from "@mui/material";
 import { useSubscriptionPlans } from "../../hooks/useApi";
+import PaginationBar from "../../components/common/PaginationBar";
 
 export default function BillingPlansPage() {
-  const { data, isLoading } = useSubscriptionPlans();
+  const [page, setPage] = useState(1);
+  const params: Record<string, string> = {};
+  if (page > 1) params.page = String(page);
+  const { data, isLoading } = useSubscriptionPlans(params);
 
   return (
     <Box>
@@ -64,6 +69,7 @@ export default function BillingPlansPage() {
           ))}
         </Grid>
       )}
+      {data && <PaginationBar count={data.count} page={page} onChange={(_, v) => setPage(v)} />}
     </Box>
   );
 }

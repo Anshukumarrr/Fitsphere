@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Box,
   Button,
@@ -15,6 +16,7 @@ import { Refresh } from "@mui/icons-material";
 import { useAttendanceLogs, useActiveCode, useGenerateCode } from "../../hooks/useApi";
 import { useAuth } from "../../hooks/useAuth";
 import MemberCheckInPanel from "./MemberCheckInPanel";
+import PaginationBar from "../../components/common/PaginationBar";
 
 function StaffCodePanel() {
   const { data: activeCode, isLoading: codeLoading } = useActiveCode();
@@ -69,7 +71,10 @@ function StaffCodePanel() {
 
 export default function AttendanceListPage() {
   const { user } = useAuth();
-  const { data, isLoading } = useAttendanceLogs();
+  const [page, setPage] = useState(1);
+  const params: Record<string, string> = {};
+  if (page > 1) params.page = String(page);
+  const { data, isLoading } = useAttendanceLogs(params);
 
   return (
     <Box>
@@ -121,6 +126,7 @@ export default function AttendanceListPage() {
             </TableBody>
           </Table>
         </TableContainer>
+        {data && <PaginationBar count={data.count} page={page} onChange={(_, v) => setPage(v)} />}
       </Card>
     </Box>
   );

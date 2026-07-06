@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Box,
   Card,
@@ -11,9 +12,13 @@ import {
   Typography,
 } from "@mui/material";
 import { usePTSessions } from "../../hooks/useApi";
+import PaginationBar from "../../components/common/PaginationBar";
 
 export default function PTSessionListPage() {
-  const { data, isLoading } = usePTSessions();
+  const [page, setPage] = useState(1);
+  const params: Record<string, string> = {};
+  if (page > 1) params.page = String(page);
+  const { data, isLoading } = usePTSessions(params);
 
   const statusColor = (status: string) => {
     switch (status) {
@@ -73,6 +78,7 @@ export default function PTSessionListPage() {
             </TableBody>
           </Table>
         </TableContainer>
+        {data && <PaginationBar count={data.count} page={page} onChange={(_, v) => setPage(v)} />}
       </Card>
     </Box>
   );

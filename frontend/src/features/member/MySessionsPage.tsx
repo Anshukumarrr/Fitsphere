@@ -19,10 +19,14 @@ import {
 } from "@mui/material";
 import { useAuth } from "../../hooks/useAuth";
 import { useMySessions, useBookSession, useAvailableTrainers } from "../../hooks/useApi";
+import PaginationBar from "../../components/common/PaginationBar";
 
 export default function MySessionsPage() {
   const { user } = useAuth();
-  const { data, isLoading } = useMySessions();
+  const [page, setPage] = useState(1);
+  const params: Record<string, string> = {};
+  if (page > 1) params.page = String(page);
+  const { data, isLoading } = useMySessions(params);
   const bookSession = useBookSession();
   const [open, setOpen] = useState(false);
   const [trainerId, setTrainerId] = useState("");
@@ -112,6 +116,7 @@ export default function MySessionsPage() {
             </TableBody>
           </Table>
         </TableContainer>
+        {data && <PaginationBar count={data.count} page={page} onChange={(_, v) => setPage(v)} />}
       </Card>
 
       <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>

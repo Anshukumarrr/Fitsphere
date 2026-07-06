@@ -20,10 +20,17 @@ import {
 import { Add } from "@mui/icons-material";
 import { useForm } from "react-hook-form";
 import { useCreatePayment, usePayments } from "../../hooks/useApi";
+import PaginationBar from "../../components/common/PaginationBar";
+import SearchInput from "../../components/common/SearchInput";
 
 export default function PaymentListPage() {
   const [open, setOpen] = useState(false);
-  const { data, isLoading } = usePayments();
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
+  const params: Record<string, string> = {};
+  if (page > 1) params.page = String(page);
+  if (search) params.search = search;
+  const { data, isLoading } = usePayments(params);
   const createPayment = useCreatePayment();
   const { register, handleSubmit, reset } = useForm();
 
@@ -50,13 +57,16 @@ export default function PaymentListPage() {
 
   return (
     <Box>
-      <Box sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}>
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
         <Typography variant="h5" sx={{ fontWeight: 600 }}>
           Payments
         </Typography>
-        <Button variant="contained" startIcon={<Add />} onClick={() => setOpen(true)}>
-          Record Payment
-        </Button>
+        <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+          <SearchInput value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder="Search payments..." />
+          <Button variant="contained" startIcon={<Add />} onClick={() => setOpen(true)}>
+            Record Payment
+          </Button>
+        </Box>
       </Box>
 
       <Card>
@@ -96,6 +106,7 @@ export default function PaymentListPage() {
             </TableBody>
           </Table>
         </TableContainer>
+        {data && <PaginationBar count={data.count} page={page} onChange={(_, v) => setPage(v)} />}
       </Card>
 
       <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>

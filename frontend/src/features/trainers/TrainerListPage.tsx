@@ -21,6 +21,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useBranches, useCreateTrainer, useTrainers } from "../../hooks/useApi";
+import PaginationBar from "../../components/common/PaginationBar";
+import SearchInput from "../../components/common/SearchInput";
 
 const trainerSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
@@ -42,7 +44,12 @@ type TrainerForm = z.infer<typeof trainerSchema>;
 
 export default function TrainerListPage() {
   const [open, setOpen] = useState(false);
-  const { data, isLoading } = useTrainers();
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
+  const params: Record<string, string> = {};
+  if (page > 1) params.page = String(page);
+  if (search) params.search = search;
+  const { data, isLoading } = useTrainers(params);
   const createTrainer = useCreateTrainer();
   const { data: branches } = useBranches();
   const {
@@ -68,13 +75,16 @@ export default function TrainerListPage() {
 
   return (
     <Box>
-      <Box sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}>
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
         <Typography variant="h5" sx={{ fontWeight: 600 }}>
           Trainers
         </Typography>
-        <Button variant="contained" startIcon={<Add />} onClick={() => setOpen(true)}>
-          Add Trainer
-        </Button>
+        <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+          <SearchInput value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder="Search trainers..." />
+          <Button variant="contained" startIcon={<Add />} onClick={() => setOpen(true)}>
+            Add Trainer
+          </Button>
+        </Box>
       </Box>
 
       <Card>
@@ -112,6 +122,7 @@ export default function TrainerListPage() {
             </TableBody>
           </Table>
         </TableContainer>
+        {data && <PaginationBar count={data.count} page={page} onChange={(_, v) => setPage(v)} />}
       </Card>
 
       <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>

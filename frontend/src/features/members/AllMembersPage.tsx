@@ -4,69 +4,25 @@ import {
   AccordionDetails,
   AccordionSummary,
   Box,
-  Button,
   Card,
   Chip,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  IconButton,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Tooltip,
   Typography,
 } from "@mui/material";
-import {
-  Block,
-  DeleteForever,
-  Edit,
-  ExpandMore,
-  FitnessCenter,
-  PersonAdd,
-  Store,
-} from "@mui/icons-material";
-import { useDeleteMember, useGyms, useHardDeleteMember, useMembers, useOrganization } from "../../hooks/useApi";
+import { ExpandMore, FitnessCenter, Store } from "@mui/icons-material";
+import { useGyms, useOrganization } from "../../hooks/useApi";
 import { useAuth } from "../../hooks/useAuth";
-import MemberCreateDialog from "./MemberCreateDialog";
-import MemberEditDialog from "./MemberEditDialog";
-import type { Member } from "../../types";
+import BranchMemberTable from "./BranchMemberTable";
 
 export default function AllMembersPage() {
   const { user } = useAuth();
-  const [dialogBranch, setDialogBranch] = useState<number | null>(null);
-  const [editMember, setEditMember] = useState<Member | null>(null);
-  const [confirmTarget, setConfirmTarget] = useState<{ member: Member; action: "deactivate" | "delete" } | null>(null);
-  const deleteMember = useDeleteMember();
-  const hardDeleteMember = useHardDeleteMember();
   const isSuperAdmin = user?.role === "super_admin";
-  const { data: gymsData, isLoading: gymsLoading } = useGyms({ enabled: isSuperAdmin });
+  const { data: gymsData, isLoading: gymsLoading } = useGyms(undefined, { enabled: isSuperAdmin });
   const { data: orgData, isLoading: orgLoading } = useOrganization({ enabled: !isSuperAdmin });
-  const { data: membersData, isLoading: membersLoading } = useMembers({ page_size: "1000" });
   const [expandedOrg, setExpandedOrg] = useState<string | false>(false);
   const [expandedBranch, setExpandedBranch] = useState<string | false>(false);
 
   const orgs = isSuperAdmin ? (gymsData?.results ?? []) : (orgData ? [orgData] : []);
-  const members = membersData?.results ?? [];
-
-  const membersByOrgAndBranch: Record<number, Record<number, typeof members>> = {};
-  for (const m of members) {
-    if (!membersByOrgAndBranch[m.organization]) {
-      membersByOrgAndBranch[m.organization] = {};
-    }
-    const branchId = m.branch ?? 0;
-    if (!membersByOrgAndBranch[m.organization][branchId]) {
-      membersByOrgAndBranch[m.organization][branchId] = [];
-    }
-    membersByOrgAndBranch[m.organization][branchId].push(m);
-  }
-
-  const isLoading = gymsLoading || orgLoading || membersLoading;
+  const isLoading = gymsLoading || orgLoading;
 
   return (
     <Box>
@@ -84,202 +40,52 @@ export default function AllMembersPage() {
       ) : orgs.length === 0 ? (
         <Typography color="text.secondary">No gyms found</Typography>
       ) : (
-        orgs.map((org) => {
-          const orgMemberCount = members.filter((m) => m.organization === org.id).length;
-          return (
-            <Card key={org.id} sx={{ mb: 2, overflow: "hidden" }}>
-              <Accordion
-                expanded={expandedOrg === `org-${org.id}`}
-                onChange={(_, isExp) => setExpandedOrg(isExp ? `org-${org.id}` : false)}
-              >
-                <AccordionSummary expandIcon={<ExpandMore />}>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, width: "100%" }}>
-                    <FitnessCenter sx={{ color: "primary.main" }} />
-                    <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                      {org.name}
-                    </Typography>
-                    <Chip label={`${orgMemberCount} members`} size="small" color="primary" />
-                    <Chip label={`${org.branches?.length ?? 0} branches`} size="small" variant="outlined" />
-                  </Box>
-                </AccordionSummary>
-                <AccordionDetails sx={{ px: 0, pb: 0 }}>
-                  {org.branches?.map((branch) => {
-                    const branchMembers = membersByOrgAndBranch[org.id]?.[branch.id] ?? [];
-                    const isBranchExpanded = expandedBranch === `branch-${org.id}-${branch.id}`;
-                    return (
-                      <Accordion
-                        key={branch.id}
-                        expanded={isBranchExpanded}
-                        onChange={(_, isExp) =>
-                          setExpandedBranch(isExp ? `branch-${org.id}-${branch.id}` : false)
-                        }
-                        sx={{ "&:before": { display: "none" }, boxShadow: "none" }}
-                      >
-                        <AccordionSummary
-                          expandIcon={<ExpandMore />}
-                          sx={{ borderTop: "1px solid", borderColor: "divider" }}
-                        >
-                          <Box sx={{ display: "flex", alignItems: "center", gap: 1, width: "100%" }}>
-                            <Store sx={{ color: "text.secondary", fontSize: 20 }} />
-                            <Typography variant="subtitle2">{branch.name}</Typography>
-                            <Chip
-                              label={`${branchMembers.length} members`}
-                              size="small"
-                              variant="outlined"
-                              color="default"
-                              sx={{ ml: "auto" }}
-                            />
-                          </Box>
-                        </AccordionSummary>
-                        <AccordionDetails sx={{ px: 0, pb: 0 }}>
-                          <Box sx={{ display: "flex", justifyContent: "flex-end", px: 2, py: 1 }}>
-                            <Button
-                              variant="contained"
-                              size="small"
-                              startIcon={<PersonAdd />}
-                              onClick={() => setDialogBranch(branch.id)}
-                            >
-                              Add Member
-                            </Button>
-                          </Box>
-                          {branchMembers.length === 0 ? (
-                            <Typography color="text.secondary" sx={{ px: 2, py: 2 }}>
-                              No members in this branch
-                            </Typography>
-                          ) : (
-                            <TableContainer>
-                              <Table size="small">
-                                <TableHead>
-                                    <TableRow>
-                                      <TableCell sx={{ fontWeight: 600 }}>Gym Code</TableCell>
-                                      <TableCell sx={{ fontWeight: 600 }}>Name</TableCell>
-                                      <TableCell sx={{ fontWeight: 600 }}>Email</TableCell>
-                                      <TableCell sx={{ fontWeight: 600 }}>Phone</TableCell>
-                                      <TableCell sx={{ fontWeight: 600 }}>Plan</TableCell>
-                                      <TableCell sx={{ fontWeight: 600 }}>Gender</TableCell>
-                                      <TableCell sx={{ fontWeight: 600 }}>Status</TableCell>
-                                      <TableCell sx={{ fontWeight: 600 }}>End Date</TableCell>
-                                      <TableCell sx={{ fontWeight: 600 }}>Emergency Contact</TableCell>
-                                      <TableCell sx={{ fontWeight: 600 }}>Actions</TableCell>
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                  {branchMembers.map((m) => (
-                                    <TableRow key={m.id} hover>
-                                      <TableCell sx={{ fontFamily: '"JetBrains Mono", monospace', fontSize: "0.8rem" }}>
-                                        {m.gym_code}
-                                      </TableCell>
-                                      <TableCell>
-                                        {m.user?.first_name} {m.user?.last_name}
-                                      </TableCell>
-                                      <TableCell>{m.user?.email}</TableCell>
-                                      <TableCell>{m.user?.phone || "-"}</TableCell>
-                                      <TableCell>{m.user?.membership_plan || "-"}</TableCell>
-                                      <TableCell sx={{ textTransform: "capitalize" }}>{m.gender || "-"}</TableCell>
-                                      <TableCell>
-                                        <Chip
-                                          label={m.membership_status}
-                                          color={m.membership_status === "active" ? "success" : m.membership_status === "expired" ? "error" : "warning"}
-                                          size="small"
-                                        />
-                                      </TableCell>
-                                      <TableCell>{m.membership_end_date || "-"}</TableCell>
-                                      <TableCell sx={{ fontSize: "0.8rem" }}>
-                                        {m.emergency_contact_name ? (
-                                          <>
-                                            {m.emergency_contact_name}
-                                            <br />
-                                            <Typography variant="caption" color="text.secondary">
-                                              {m.emergency_contact_phone}
-                                            </Typography>
-                                          </>
-                                        ) : "-"}
-                                      </TableCell>
-                                      <TableCell sx={{ whiteSpace: "nowrap" }}>
-                                        <Tooltip title="Edit">
-                                          <IconButton size="small" onClick={() => setEditMember(m)}>
-                                            <Edit fontSize="small" />
-                                          </IconButton>
-                                        </Tooltip>
-                                        <Tooltip title="Deactivate">
-                                          <IconButton size="small" color="warning" onClick={() => setConfirmTarget({ member: m, action: "deactivate" })}>
-                                            <Block fontSize="small" />
-                                          </IconButton>
-                                        </Tooltip>
-                                        <Tooltip title="Delete permanently">
-                                          <IconButton size="small" color="error" onClick={() => setConfirmTarget({ member: m, action: "delete" })}>
-                                            <DeleteForever fontSize="small" />
-                                          </IconButton>
-                                        </Tooltip>
-                                      </TableCell>
-                                    </TableRow>
-                                  ))}
-                                </TableBody>
-                              </Table>
-                            </TableContainer>
-                          )}
-                        </AccordionDetails>
-                      </Accordion>
-                    );
-                  })}
-                </AccordionDetails>
-              </Accordion>
-            </Card>
-          );
-        })
+        orgs.map((org) => (
+          <Card key={org.id} sx={{ mb: 2, overflow: "hidden" }}>
+            <Accordion
+              expanded={expandedOrg === `org-${org.id}`}
+              onChange={(_, isExp) => setExpandedOrg(isExp ? `org-${org.id}` : false)}
+            >
+              <AccordionSummary expandIcon={<ExpandMore />}>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, width: "100%" }}>
+                  <FitnessCenter sx={{ color: "primary.main" }} />
+                  <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                    {org.name}
+                  </Typography>
+                  <Chip label={`${org.branches?.length ?? 0} branches`} size="small" variant="outlined" />
+                </Box>
+              </AccordionSummary>
+              <AccordionDetails sx={{ px: 0, pb: 0 }}>
+                {org.branches?.map((branch) => (
+                  <Accordion
+                    key={branch.id}
+                    expanded={expandedBranch === `branch-${org.id}-${branch.id}`}
+                    onChange={(_, isExp) =>
+                      setExpandedBranch(isExp ? `branch-${org.id}-${branch.id}` : false)
+                    }
+                    sx={{ "&:before": { display: "none" }, boxShadow: "none" }}
+                  >
+                    <AccordionSummary
+                      expandIcon={<ExpandMore />}
+                      sx={{ borderTop: "1px solid", borderColor: "divider" }}
+                    >
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 1, width: "100%" }}>
+                        <Store sx={{ color: "text.secondary", fontSize: 20 }} />
+                        <Typography variant="subtitle2">{branch.name}</Typography>
+                      </Box>
+                    </AccordionSummary>
+                    <AccordionDetails sx={{ px: 0, pb: 0 }}>
+                      {expandedBranch === `branch-${org.id}-${branch.id}` && (
+                        <BranchMemberTable branchId={branch.id} />
+                      )}
+                    </AccordionDetails>
+                  </Accordion>
+                ))}
+              </AccordionDetails>
+            </Accordion>
+          </Card>
+        ))
       )}
-
-      <MemberCreateDialog
-        open={!!dialogBranch}
-        branchId={dialogBranch}
-        onClose={() => setDialogBranch(null)}
-      />
-
-      <MemberEditDialog
-        open={!!editMember}
-        member={editMember}
-        onClose={() => setEditMember(null)}
-      />
-
-      <Dialog open={!!confirmTarget} onClose={() => setConfirmTarget(null)}>
-        <DialogTitle>
-          {confirmTarget?.action === "delete" ? "Permanently Delete Member" : "Deactivate Member"}
-        </DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            {confirmTarget?.action === "delete" ? (
-              <>
-                Are you sure you want to permanently delete <strong>{confirmTarget?.member?.user?.first_name} {confirmTarget?.member?.user?.last_name}</strong>?
-                This will remove them from the database entirely. This action cannot be undone.
-              </>
-            ) : (
-              <>
-                Are you sure you want to deactivate <strong>{confirmTarget?.member?.user?.first_name} {confirmTarget?.member?.user?.last_name}</strong>?
-                Their account will be suspended but their data will be preserved.
-              </>
-            )}
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setConfirmTarget(null)}>Cancel</Button>
-          <Button
-            color={confirmTarget?.action === "delete" ? "error" : "warning"}
-            variant="contained"
-            onClick={() => {
-              if (confirmTarget) {
-                if (confirmTarget.action === "delete") {
-                  hardDeleteMember.mutate(confirmTarget.member.id);
-                } else {
-                  deleteMember.mutate(confirmTarget.member.id);
-                }
-                setConfirmTarget(null);
-              }
-            }}
-          >
-            {confirmTarget?.action === "delete" ? "Permanently Delete" : "Deactivate"}
-          </Button>
-        </DialogActions>
-      </Dialog>
     </Box>
   );
 }

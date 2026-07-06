@@ -19,10 +19,14 @@ import {
 import { Add } from "@mui/icons-material";
 import { useForm } from "react-hook-form";
 import { useCreateMembershipPlan, useMembershipPlans } from "../../hooks/useApi";
+import PaginationBar from "../../components/common/PaginationBar";
 
 export default function MembershipPlanListPage() {
   const [open, setOpen] = useState(false);
-  const { data, isLoading } = useMembershipPlans();
+  const [page, setPage] = useState(1);
+  const params: Record<string, string> = {};
+  if (page > 1) params.page = String(page);
+  const { data, isLoading } = useMembershipPlans(params);
   const createPlan = useCreateMembershipPlan();
   const { register, handleSubmit, reset } = useForm();
 
@@ -74,6 +78,7 @@ export default function MembershipPlanListPage() {
             </TableBody>
           </Table>
         </TableContainer>
+        {data && <PaginationBar count={data.count} page={page} onChange={(_, v) => setPage(v)} />}
       </Card>
 
       <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>

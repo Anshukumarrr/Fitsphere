@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Box,
   Card,
@@ -11,9 +12,13 @@ import {
   Typography,
 } from "@mui/material";
 import { useMyPayments } from "../../hooks/useApi";
+import PaginationBar from "../../components/common/PaginationBar";
 
 export default function MyPaymentsPage() {
-  const { data, isLoading } = useMyPayments();
+  const [page, setPage] = useState(1);
+  const params: Record<string, string> = {};
+  if (page > 1) params.page = String(page);
+  const { data, isLoading } = useMyPayments(params);
 
   return (
     <Box>
@@ -78,6 +83,7 @@ export default function MyPaymentsPage() {
             </TableBody>
           </Table>
         </TableContainer>
+        {data && <PaginationBar count={data.count} page={page} onChange={(_, v) => setPage(v)} />}
       </Card>
     </Box>
   );

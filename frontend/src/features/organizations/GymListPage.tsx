@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Box,
   Card,
@@ -8,6 +9,8 @@ import {
 import { useGyms, useOrganization } from "../../hooks/useApi";
 import { useAuth } from "../../hooks/useAuth";
 import type { GymOrganization } from "../../types";
+import PaginationBar from "../../components/common/PaginationBar";
+import SearchInput from "../../components/common/SearchInput";
 
 function GymCard({ gym }: { gym: GymOrganization }) {
   return (
@@ -36,7 +39,12 @@ function GymCard({ gym }: { gym: GymOrganization }) {
 export default function GymListPage() {
   const { user } = useAuth();
   const isSuperAdmin = user?.role === "super_admin";
-  const { data: gymsData, isLoading: gymsLoading } = useGyms({ enabled: isSuperAdmin });
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
+  const params: Record<string, string> = {};
+  if (page > 1) params.page = String(page);
+  if (search) params.search = search;
+  const { data: gymsData, isLoading: gymsLoading } = useGyms(isSuperAdmin ? params : undefined, { enabled: isSuperAdmin });
   const { data: orgData, isLoading: orgLoading } = useOrganization({ enabled: !isSuperAdmin });
 
   const isLoading = isSuperAdmin ? gymsLoading : orgLoading;
@@ -48,6 +56,12 @@ export default function GymListPage() {
         Gyms & Branches
       </Typography>
 
+      {isSuperAdmin && (
+        <Box sx={{ mb: 2 }}>
+          <SearchInput value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder="Search gyms..." />
+        </Box>
+      )}
+
       {isLoading ? (
         <Typography>Loading...</Typography>
       ) : gyms.length === 0 ? (
@@ -55,6 +69,8 @@ export default function GymListPage() {
       ) : (
         gyms.map((gym) => <GymCard key={gym.id} gym={gym} />)
       )}
+
+      {isSuperAdmin && gymsData && <PaginationBar count={gymsData.count} page={page} onChange={(_, v) => setPage(v)} />}
     </Box>
   );
 }

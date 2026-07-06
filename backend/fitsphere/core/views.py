@@ -24,7 +24,7 @@ from .serializers import (
     StaffSerializer,
     UserSerializer,
 )
-from .permissions import IsGymOwnerOrAdmin, IsSuperAdmin
+from .permissions import IsGymOwnerOrAdmin, IsGymOwnerOrManager, IsSuperAdmin
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
@@ -155,6 +155,11 @@ class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
 class ReceptionistListCreateView(generics.ListCreateAPIView):
     permission_classes = (IsGymOwnerOrAdmin,)
 
+    def get_permissions(self):
+        if self.request.method == "POST":
+            return [IsGymOwnerOrManager()]
+        return [IsGymOwnerOrAdmin()]
+
     def get_serializer_class(self):
         if self.request.method == "POST":
             return ReceptionistCreateSerializer
@@ -178,7 +183,7 @@ class ReceptionistListCreateView(generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
         profile = serializer.save()
-        self._send_credentials_email(profile)
+        self._send_receptionist_verify_email(profile)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -190,26 +195,34 @@ class ReceptionistListCreateView(generics.ListCreateAPIView):
             status=status.HTTP_201_CREATED,
         )
 
-    def _send_credentials_email(self, profile):
+    def _send_receptionist_verify_email(self, profile):
         user = profile.user
+        user.is_active = False
+        user.save(update_fields=["is_active"])
+        token = secrets.token_urlsafe(32)
+        EmailVerificationToken.objects.update_or_create(user=user, defaults={"token": token})
+        verify_url = self.request.build_absolute_uri(
+            f"/api/v1/auth/verify-email/?token={token}&uid={user.id}"
+        )
         try:
-            html_body = render_to_string("emails/staff_credentials.html", {
+            html_body = render_to_string("emails/verify_email.html", {
                 "name": user.first_name or user.username,
-                "username": user.username,
-                "password": self.request.data.get("password", ""),
-                "role": "Receptionist",
-                "frontend_url": settings.FRONTEND_URL,
+                "verify_url": verify_url,
+            })
+            text_body = render_to_string("emails/verify_email.txt", {
+                "name": user.first_name or user.username,
+                "verify_url": verify_url,
             })
             msg = EmailMultiAlternatives(
-                subject="Your FitSphere Receptionist Account",
-                body=f"Username: {user.username}\nPassword: {self.request.data.get('password', '')}",
+                subject="Verify your FitSphere email address",
+                body=text_body,
                 from_email=settings.DEFAULT_FROM_EMAIL,
                 to=[user.email],
             )
             msg.attach_alternative(html_body, "text/html")
             msg.send(fail_silently=False)
         except Exception:
-            logger.exception("Failed to send credentials email")
+            logger.exception("Failed to send receptionist verification email")
 
 
 def _build_staff_record(profile, role_name, extra_fields=None):
@@ -243,6 +256,11 @@ def _build_staff_record(profile, role_name, extra_fields=None):
 
 class StaffListCreateView(generics.ListCreateAPIView):
     permission_classes = (IsGymOwnerOrAdmin,)
+
+    def get_permissions(self):
+        if self.request.method == "POST":
+            return [IsGymOwnerOrManager()]
+        return [IsGymOwnerOrAdmin()]
 
     def get_serializer_class(self):
         if self.request.method == "POST":
@@ -285,48 +303,64 @@ class StaffListCreateView(generics.ListCreateAPIView):
             branch_filter = {}
 
         combined_filter = {**org_filter, **branch_filter}
-        trainers = Trainer.objects.select_related("user", "branch").filter(**combined_filter).annotate(
+
+        role_filter = self.request.query_params.get("role")
+        search = self.request.query_params.get("search", "").strip()
+
+        q_base = Q(**combined_filter)
+        if search:
+            sq = Q(user__first_name__icontains=search) | Q(user__last_name__icontains=search) | Q(user__email__icontains=search)
+            q_base &= sq
+
+        trainers_qs = Trainer.objects.select_related("user", "branch").filter(q_base).annotate(
             _active_member_count=Count("assigned_members", filter=Q(assigned_members__membership_status="active"))
         )
-        receptionists = ReceptionistProfile.objects.select_related("user", "branch").filter(**combined_filter)
-        cleaners = CleanerProfile.objects.select_related("user", "branch").filter(**combined_filter)
-        managers = ManagerProfile.objects.select_related("user", "branch").filter(**combined_filter)
-        security = SecurityProfile.objects.select_related("user", "branch").filter(**combined_filter)
-        instructors = InstructorProfile.objects.select_related("user", "branch").filter(**combined_filter)
-        maintenance = MaintenanceProfile.objects.select_related("user", "branch").filter(**combined_filter)
+        receptionists_qs = ReceptionistProfile.objects.select_related("user", "branch").filter(q_base)
+        cleaners_qs = CleanerProfile.objects.select_related("user", "branch").filter(q_base)
+        managers_qs = ManagerProfile.objects.select_related("user", "branch").filter(q_base)
+        security_qs = SecurityProfile.objects.select_related("user", "branch").filter(q_base)
+        instructors_qs = InstructorProfile.objects.select_related("user", "branch").filter(q_base)
+        maintenance_qs = MaintenanceProfile.objects.select_related("user", "branch").filter(q_base)
 
         records = []
 
-        for t in trainers:
-            records.append(_build_staff_record(t, "trainer", {
-                "specialization": t.specialization,
-                "years_of_experience": t.years_of_experience,
-                "hourly_rate": t.hourly_rate,
-                "max_members": t.max_members,
-                "session_rating": t.session_rating,
-                "total_sessions": t.total_sessions,
-                "active_member_count": t._active_member_count,
-                "bio": t.bio,
-                "qualifications": t.qualifications,
-            }))
+        if not role_filter or role_filter == "trainer":
+            for t in trainers_qs:
+                records.append(_build_staff_record(t, "trainer", {
+                    "specialization": t.specialization,
+                    "years_of_experience": t.years_of_experience,
+                    "hourly_rate": t.hourly_rate,
+                    "max_members": t.max_members,
+                    "session_rating": t.session_rating,
+                    "total_sessions": t.total_sessions,
+                    "active_member_count": t._active_member_count,
+                    "bio": t.bio,
+                    "qualifications": t.qualifications,
+                }))
 
-        for r in receptionists:
-            records.append(_build_staff_record(r, "receptionist"))
+        if not role_filter or role_filter == "receptionist":
+            for r in receptionists_qs:
+                records.append(_build_staff_record(r, "receptionist"))
 
-        for c in cleaners:
-            records.append(_build_staff_record(c, "cleaner"))
+        if not role_filter or role_filter == "cleaner":
+            for c in cleaners_qs:
+                records.append(_build_staff_record(c, "cleaner"))
 
-        for m in managers:
-            records.append(_build_staff_record(m, "manager"))
+        if not role_filter or role_filter == "manager":
+            for m in managers_qs:
+                records.append(_build_staff_record(m, "manager"))
 
-        for s in security:
-            records.append(_build_staff_record(s, "security"))
+        if not role_filter or role_filter == "security":
+            for s in security_qs:
+                records.append(_build_staff_record(s, "security"))
 
-        for i in instructors:
-            records.append(_build_staff_record(i, "instructor"))
+        if not role_filter or role_filter == "instructor":
+            for i in instructors_qs:
+                records.append(_build_staff_record(i, "instructor"))
 
-        for m in maintenance:
-            records.append(_build_staff_record(m, "maintenance"))
+        if not role_filter or role_filter == "maintenance":
+            for m in maintenance_qs:
+                records.append(_build_staff_record(m, "maintenance"))
 
         return records
 
@@ -341,7 +375,7 @@ class StaffListCreateView(generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
         profile = serializer.save()
-        self._send_staff_credentials_email(profile)
+        self._send_staff_verify_email(profile)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -353,27 +387,34 @@ class StaffListCreateView(generics.ListCreateAPIView):
         out_serializer = StaffSerializer(record)
         return Response(out_serializer.data, status=status.HTTP_201_CREATED)
 
-    def _send_staff_credentials_email(self, profile):
+    def _send_staff_verify_email(self, profile):
         user = profile.user
-        role_display = user.get_role_display()
+        user.is_active = False
+        user.save(update_fields=["is_active"])
+        token = secrets.token_urlsafe(32)
+        EmailVerificationToken.objects.update_or_create(user=user, defaults={"token": token})
+        verify_url = self.request.build_absolute_uri(
+            f"/api/v1/auth/verify-email/?token={token}&uid={user.id}"
+        )
         try:
-            html_body = render_to_string("emails/staff_credentials.html", {
+            html_body = render_to_string("emails/verify_email.html", {
                 "name": user.first_name or user.username,
-                "username": user.username,
-                "password": self.request.data.get("password", ""),
-                "role": role_display,
-                "frontend_url": settings.FRONTEND_URL,
+                "verify_url": verify_url,
+            })
+            text_body = render_to_string("emails/verify_email.txt", {
+                "name": user.first_name or user.username,
+                "verify_url": verify_url,
             })
             msg = EmailMultiAlternatives(
-                subject=f"Your FitSphere {role_display} Account",
-                body=f"Username: {user.username}\nPassword: {self.request.data.get('password', '')}",
+                subject="Verify your FitSphere email address",
+                body=text_body,
                 from_email=settings.DEFAULT_FROM_EMAIL,
                 to=[user.email],
             )
             msg.attach_alternative(html_body, "text/html")
             msg.send(fail_silently=False)
         except Exception:
-            logger.exception("Failed to send staff credentials email")
+            logger.exception("Failed to send staff verification email")
 
 
 class StaffDetailView(generics.RetrieveUpdateDestroyAPIView):

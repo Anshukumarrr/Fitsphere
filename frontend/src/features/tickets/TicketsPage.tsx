@@ -21,6 +21,7 @@ import { Add } from "@mui/icons-material";
 import { useForm } from "react-hook-form";
 import { useAuth } from "../../hooks/useAuth";
 import { useCreateTicket, useTickets, useUpdateTicket } from "../../hooks/useApi";
+import PaginationBar from "../../components/common/PaginationBar";
 
 const statusColor: Record<string, "info" | "warning" | "success" | "default"> = {
   open: "info",
@@ -38,7 +39,10 @@ const priorityColor: Record<string, "success" | "warning" | "error" | "default">
 
 export default function TicketsPage() {
   const { user } = useAuth();
-  const { data, isLoading } = useTickets();
+  const [page, setPage] = useState(1);
+  const params: Record<string, string> = {};
+  if (page > 1) params.page = String(page);
+  const { data, isLoading } = useTickets(params);
   const createTicket = useCreateTicket();
   const updateTicket = useUpdateTicket();
   const [open, setOpen] = useState(false);
@@ -172,6 +176,7 @@ export default function TicketsPage() {
             </TableBody>
           </Table>
         </TableContainer>
+        {data && <PaginationBar count={data.count} page={page} onChange={(_, v) => setPage(v)} />}
       </Card>
 
       <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>

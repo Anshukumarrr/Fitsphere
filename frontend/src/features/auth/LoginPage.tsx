@@ -23,6 +23,7 @@ type LoginForm = z.infer<typeof loginSchema>;
 const VERIFIED_MESSAGES: Record<string, { text: string; severity: "success" | "error" }> = {
   expired: { text: "Verification link has expired. Please register again.", severity: "error" },
   invalid: { text: "Invalid verification link.", severity: "error" },
+  success: { text: "Email verified! Please log in with your credentials.", severity: "success" },
 };
 
 export default function LoginPage() {
