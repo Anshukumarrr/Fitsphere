@@ -1,23 +1,8 @@
 from rest_framework import generics
 
-from ..core.permissions import IsGymOwnerOrAdmin, IsMember, IsStaff
+from ..core.permissions import IsGymOwnerOrAdmin, IsMember, IsStaff, STAFF_BRANCH_SCOPED_ROLES, get_staff_branch
 from .models import Payment
 from .serializers import PaymentCreateSerializer, PaymentSerializer
-
-
-def _payment_branch_for_user(user):
-    profile_map = {
-        "receptionist": "receptionist_profile",
-        "trainer": "trainer_profile",
-        "manager": "manager_profile",
-    }
-    attr = profile_map.get(user.role)
-    if attr:
-        try:
-            return getattr(user, attr).branch
-        except Exception:
-            return None
-    return None
 
 
 class PaymentListCreateView(generics.ListCreateAPIView):
@@ -49,8 +34,8 @@ class PaymentListCreateView(generics.ListCreateAPIView):
         qs = Payment.objects.select_related("member", "member__user", "branch").filter(
             organization=user.organization
         )
-        if user.role in ("receptionist", "trainer", "manager"):
-            branch = _payment_branch_for_user(user)
+        if user.role in STAFF_BRANCH_SCOPED_ROLES:
+            branch = get_staff_branch(user)
             if branch:
                 qs = qs.filter(branch=branch)
         return qs
@@ -72,8 +57,8 @@ class PaymentDetailView(generics.RetrieveAPIView):
         qs = Payment.objects.select_related("member", "member__user").filter(
             organization=user.organization
         )
-        if user.role in ("receptionist", "trainer", "manager"):
-            branch = _payment_branch_for_user(user)
+        if user.role in STAFF_BRANCH_SCOPED_ROLES:
+            branch = get_staff_branch(user)
             if branch:
                 qs = qs.filter(branch=branch)
         return qs

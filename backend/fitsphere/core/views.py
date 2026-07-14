@@ -5,23 +5,21 @@ import secrets
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.mail import EmailMultiAlternatives
-from django.db.models import Count, Q
 from django.shortcuts import redirect
 from django.template.loader import render_to_string
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle
+from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-from .models import EmailVerificationToken
+from .models import EmailVerificationToken, PasswordResetToken
 
 from .serializers import (
     LoginSerializer,
     ReceptionistCreateSerializer,
     RegisterSerializer,
-    StaffCreateSerializer,
-    StaffSerializer,
     UserSerializer,
 )
 from .permissions import IsGymOwnerOrAdmin, IsGymOwnerOrManager, IsSuperAdmin
@@ -36,6 +34,10 @@ class RegisterThrottle(AnonRateThrottle):
 
 class LoginThrottle(AnonRateThrottle):
     rate = "10/min"
+
+
+class ResendVerificationThrottle(AnonRateThrottle):
+    rate = "3/hour"
 
 
 class RegisterView(generics.CreateAPIView):
@@ -87,6 +89,157 @@ class RegisterView(generics.CreateAPIView):
         )
 
 
+class ResendVerificationView(generics.GenericAPIView):
+    permission_classes = (permissions.AllowAny,)
+    throttle_classes = [ResendVerificationThrottle]
+
+    def post(self, request):
+        email = request.data.get("email", "")
+        try:
+            user = User.objects.get(email=email, is_active=False)
+        except User.DoesNotExist:
+            return Response(
+                {"detail": "If the account exists and is unverified, a new verification email will be sent."},
+                status=status.HTTP_200_OK,
+            )
+
+        token = secrets.token_urlsafe(32)
+        EmailVerificationToken.objects.update_or_create(
+            user=user, defaults={"token": token}
+        )
+
+        verify_url = request.build_absolute_uri(
+            f"/api/v1/auth/verify-email/?token={token}&uid={user.id}"
+        )
+
+        try:
+            html_body = render_to_string("emails/verify_email.html", {
+                "name": user.first_name or user.username,
+                "verify_url": verify_url,
+            })
+            text_body = render_to_string("emails/verify_email.txt", {
+                "name": user.first_name or user.username,
+                "verify_url": verify_url,
+            })
+            msg = EmailMultiAlternatives(
+                subject="Verify your FitSphere email address",
+                body=text_body,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                to=[user.email],
+            )
+            msg.attach_alternative(html_body, "text/html")
+            msg.send(fail_silently=False)
+        except Exception:
+            logger.exception("Failed to send verification email")
+
+        return Response(
+            {"detail": "If the account exists and is unverified, a new verification email will be sent."},
+            status=status.HTTP_200_OK,
+        )
+
+
+class PasswordResetRequestView(generics.GenericAPIView):
+    permission_classes = (permissions.AllowAny,)
+    throttle_classes = [RegisterThrottle]
+
+    def post(self, request):
+        email = request.data.get("email", "")
+        try:
+            user = User.objects.get(email=email, is_active=True)
+        except User.DoesNotExist:
+            return Response(
+                {"detail": "If an account with that email exists, a password reset link has been sent."},
+                status=status.HTTP_200_OK,
+            )
+
+        token = secrets.token_urlsafe(32)
+        PasswordResetToken.objects.create(user=user, token=token)
+
+        reset_url = f"{settings.FRONTEND_URL}/reset-password?token={token}&uid={user.id}"
+
+        try:
+            html_body = render_to_string("emails/password_reset.html", {
+                "name": user.first_name or user.username,
+                "reset_url": reset_url,
+            })
+            text_body = render_to_string("emails/password_reset.txt", {
+                "name": user.first_name or user.username,
+                "reset_url": reset_url,
+            })
+            msg = EmailMultiAlternatives(
+                subject="Reset your FitSphere password",
+                body=text_body,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                to=[user.email],
+            )
+            msg.attach_alternative(html_body, "text/html")
+            msg.send(fail_silently=False)
+        except Exception:
+            logger.exception("Failed to send password reset email")
+
+        return Response(
+            {"detail": "If an account with that email exists, a password reset link has been sent."},
+            status=status.HTTP_200_OK,
+        )
+
+
+class PasswordResetConfirmView(generics.GenericAPIView):
+    permission_classes = (permissions.AllowAny,)
+
+    def post(self, request):
+        token = request.data.get("token", "")
+        uid = request.data.get("uid", "")
+        password = request.data.get("password", "")
+
+        if not token or not uid or not password:
+            return Response(
+                {"detail": "Token, uid, and password are required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            uid = int(uid)
+        except (ValueError, TypeError):
+            return Response(
+                {"detail": "Invalid reset link."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            user = User.objects.get(pk=uid, is_active=True)
+        except User.DoesNotExist:
+            return Response(
+                {"detail": "Invalid reset link."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            reset_token = PasswordResetToken.objects.get(
+                user=user, token=token, is_used=False
+            )
+        except PasswordResetToken.DoesNotExist:
+            return Response(
+                {"detail": "Invalid or expired reset link."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if reset_token.is_expired():
+            return Response(
+                {"detail": "Reset link has expired. Please request a new one."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        user.set_password(password)
+        user.save(update_fields=["password"])
+        reset_token.is_used = True
+        reset_token.save(update_fields=["is_used"])
+
+        return Response(
+            {"detail": "Password has been reset successfully."},
+            status=status.HTTP_200_OK,
+        )
+
+
 class VerifyEmailView(generics.GenericAPIView):
     permission_classes = (permissions.AllowAny,)
 
@@ -129,6 +282,20 @@ class VerifyEmailView(generics.GenericAPIView):
 class LoginView(TokenObtainPairView):
     serializer_class = LoginSerializer
     throttle_classes = [LoginThrottle]
+
+
+class LogoutView(generics.GenericAPIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def post(self, request):
+        try:
+            refresh_token = request.data.get("refresh")
+            if refresh_token:
+                token = RefreshToken(refresh_token)
+                token.blacklist()
+        except TokenError:
+            pass
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class CurrentUserView(generics.RetrieveUpdateAPIView):
@@ -225,282 +392,4 @@ class ReceptionistListCreateView(generics.ListCreateAPIView):
             logger.exception("Failed to send receptionist verification email")
 
 
-def _build_staff_record(profile, role_name, extra_fields=None):
-    branch = profile.branch if hasattr(profile, "branch") else getattr(profile, "branch", None)
-    user = profile.user
-    record = {
-        "id": profile.id,
-        "user": user,
-        "full_name": user.get_full_name(),
-        "role": role_name,
-        "branch": branch.id if branch else None,
-        "branch_name": branch.name if branch else None,
-        "branch_details": branch,
-        "is_active": user.is_active,
-        "profile_id": profile.id,
-        "created_at": profile.created_at if hasattr(profile, "created_at") else None,
-        "specialization": None,
-        "years_of_experience": None,
-        "hourly_rate": None,
-        "max_members": None,
-        "session_rating": None,
-        "total_sessions": None,
-        "active_member_count": None,
-        "bio": None,
-        "qualifications": None,
-    }
-    if extra_fields:
-        record.update(extra_fields)
-    return record
 
-
-class StaffListCreateView(generics.ListCreateAPIView):
-    permission_classes = (IsGymOwnerOrAdmin,)
-
-    def get_permissions(self):
-        if self.request.method == "POST":
-            return [IsGymOwnerOrManager()]
-        return [IsGymOwnerOrAdmin()]
-
-    def get_serializer_class(self):
-        if self.request.method == "POST":
-            return StaffCreateSerializer
-        return StaffSerializer
-
-    def get_serializer_context(self):
-        context = super().get_serializer_context()
-        context["organization"] = getattr(self.request.user, "organization", None)
-        context["created_by"] = self.request.user
-        return context
-
-    def get_queryset(self):
-        from ..trainers.models import Trainer
-        from .models import (
-            CleanerProfile,
-            InstructorProfile,
-            MaintenanceProfile,
-            ManagerProfile,
-            ReceptionistProfile,
-            SecurityProfile,
-        )
-
-        user = self.request.user
-        if user.role == "super_admin":
-            org_filter = {}
-        else:
-            org_filter = {"user__organization": user.organization}
-
-        if user.role == "manager":
-            try:
-                branch = user.manager_profile.branch
-                if branch:
-                    branch_filter = {"branch": branch}
-                else:
-                    branch_filter = {}
-            except Exception:
-                branch_filter = {}
-        else:
-            branch_filter = {}
-
-        combined_filter = {**org_filter, **branch_filter}
-
-        role_filter = self.request.query_params.get("role")
-        search = self.request.query_params.get("search", "").strip()
-
-        q_base = Q(**combined_filter)
-        if search:
-            sq = Q(user__first_name__icontains=search) | Q(user__last_name__icontains=search) | Q(user__email__icontains=search)
-            q_base &= sq
-
-        trainers_qs = Trainer.objects.select_related("user", "branch").filter(q_base).annotate(
-            _active_member_count=Count("assigned_members", filter=Q(assigned_members__membership_status="active"))
-        )
-        receptionists_qs = ReceptionistProfile.objects.select_related("user", "branch").filter(q_base)
-        cleaners_qs = CleanerProfile.objects.select_related("user", "branch").filter(q_base)
-        managers_qs = ManagerProfile.objects.select_related("user", "branch").filter(q_base)
-        security_qs = SecurityProfile.objects.select_related("user", "branch").filter(q_base)
-        instructors_qs = InstructorProfile.objects.select_related("user", "branch").filter(q_base)
-        maintenance_qs = MaintenanceProfile.objects.select_related("user", "branch").filter(q_base)
-
-        records = []
-
-        if not role_filter or role_filter == "trainer":
-            for t in trainers_qs:
-                records.append(_build_staff_record(t, "trainer", {
-                    "specialization": t.specialization,
-                    "years_of_experience": t.years_of_experience,
-                    "hourly_rate": t.hourly_rate,
-                    "max_members": t.max_members,
-                    "session_rating": t.session_rating,
-                    "total_sessions": t.total_sessions,
-                    "active_member_count": t._active_member_count,
-                    "bio": t.bio,
-                    "qualifications": t.qualifications,
-                }))
-
-        if not role_filter or role_filter == "receptionist":
-            for r in receptionists_qs:
-                records.append(_build_staff_record(r, "receptionist"))
-
-        if not role_filter or role_filter == "cleaner":
-            for c in cleaners_qs:
-                records.append(_build_staff_record(c, "cleaner"))
-
-        if not role_filter or role_filter == "manager":
-            for m in managers_qs:
-                records.append(_build_staff_record(m, "manager"))
-
-        if not role_filter or role_filter == "security":
-            for s in security_qs:
-                records.append(_build_staff_record(s, "security"))
-
-        if not role_filter or role_filter == "instructor":
-            for i in instructors_qs:
-                records.append(_build_staff_record(i, "instructor"))
-
-        if not role_filter or role_filter == "maintenance":
-            for m in maintenance_qs:
-                records.append(_build_staff_record(m, "maintenance"))
-
-        return records
-
-    def list(self, request, *args, **kwargs):
-        records = self.get_queryset()
-        page = self.paginate_queryset(records)
-        if page is not None:
-            serializer = StaffSerializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-        serializer = StaffSerializer(records, many=True)
-        return Response(serializer.data)
-
-    def perform_create(self, serializer):
-        profile = serializer.save()
-        self._send_staff_verify_email(profile)
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        profile = serializer.instance
-        user = profile.user
-        record = _build_staff_record(profile, serializer.validated_data.get("role", user.role))
-        out_serializer = StaffSerializer(record)
-        return Response(out_serializer.data, status=status.HTTP_201_CREATED)
-
-    def _send_staff_verify_email(self, profile):
-        user = profile.user
-        user.is_active = False
-        user.save(update_fields=["is_active"])
-        token = secrets.token_urlsafe(32)
-        EmailVerificationToken.objects.update_or_create(user=user, defaults={"token": token})
-        verify_url = self.request.build_absolute_uri(
-            f"/api/v1/auth/verify-email/?token={token}&uid={user.id}"
-        )
-        try:
-            html_body = render_to_string("emails/verify_email.html", {
-                "name": user.first_name or user.username,
-                "verify_url": verify_url,
-            })
-            text_body = render_to_string("emails/verify_email.txt", {
-                "name": user.first_name or user.username,
-                "verify_url": verify_url,
-            })
-            msg = EmailMultiAlternatives(
-                subject="Verify your FitSphere email address",
-                body=text_body,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                to=[user.email],
-            )
-            msg.attach_alternative(html_body, "text/html")
-            msg.send(fail_silently=False)
-        except Exception:
-            logger.exception("Failed to send staff verification email")
-
-
-class StaffDetailView(generics.RetrieveUpdateDestroyAPIView):
-    permission_classes = (IsGymOwnerOrAdmin,)
-    serializer_class = StaffSerializer
-
-    def get_object(self):
-        from ..trainers.models import Trainer
-        from .models import (
-            CleanerProfile,
-            InstructorProfile,
-            MaintenanceProfile,
-            ManagerProfile,
-            ReceptionistProfile,
-            SecurityProfile,
-        )
-
-        pk = self.kwargs["pk"]
-        role = self.request.query_params.get("role")
-
-        user = self.request.user
-        org_filter = {}
-        if user.role != "super_admin":
-            org_filter = {"user__organization": user.organization}
-            if user.role == "manager":
-                try:
-                    branch = user.manager_profile.branch
-                    if branch:
-                        org_filter["branch"] = branch
-                except Exception:
-                    pass
-
-        profile = None
-        actual_role = role
-
-        if role == "trainer" or not role:
-            profile = Trainer.objects.select_related("user", "branch").filter(pk=pk, **org_filter).first()
-            if profile:
-                actual_role = "trainer"
-        if not profile and (role == "receptionist" or not role):
-            profile = ReceptionistProfile.objects.select_related("user", "branch").filter(pk=pk, **org_filter).first()
-            if profile:
-                actual_role = "receptionist"
-        if not profile and (role == "cleaner" or not role):
-            profile = CleanerProfile.objects.select_related("user", "branch").filter(pk=pk, **org_filter).first()
-            if profile:
-                actual_role = "cleaner"
-        if not profile and (role == "manager" or not role):
-            profile = ManagerProfile.objects.select_related("user", "branch").filter(pk=pk, **org_filter).first()
-            if profile:
-                actual_role = "manager"
-        if not profile and (role == "security" or not role):
-            profile = SecurityProfile.objects.select_related("user", "branch").filter(pk=pk, **org_filter).first()
-            if profile:
-                actual_role = "security"
-        if not profile and (role == "instructor" or not role):
-            profile = InstructorProfile.objects.select_related("user", "branch").filter(pk=pk, **org_filter).first()
-            if profile:
-                actual_role = "instructor"
-        if not profile and (role == "maintenance" or not role):
-            profile = MaintenanceProfile.objects.select_related("user", "branch").filter(pk=pk, **org_filter).first()
-            if profile:
-                actual_role = "maintenance"
-
-        if not profile:
-            from rest_framework.exceptions import NotFound
-            raise NotFound("Staff member not found.")
-
-        extra = {}
-        if actual_role == "trainer":
-            extra = {
-                "specialization": profile.specialization,
-                "years_of_experience": profile.years_of_experience,
-                "hourly_rate": profile.hourly_rate,
-                "max_members": profile.max_members,
-                "session_rating": profile.session_rating,
-                "total_sessions": profile.total_sessions,
-                "active_member_count": getattr(profile, "_active_member_count", profile.assigned_members.filter(membership_status="active").count()),
-                "bio": profile.bio,
-                "qualifications": profile.qualifications,
-            }
-
-        self._staff_record = _build_staff_record(profile, actual_role, extra)
-        return self._staff_record
-
-    def perform_destroy(self, instance):
-        user = instance["user"]
-        user.is_active = False
-        user.save()

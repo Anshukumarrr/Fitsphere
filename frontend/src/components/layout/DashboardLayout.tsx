@@ -80,32 +80,34 @@ export default function DashboardLayout() {
   const drawer = (
     <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
       <Toolbar sx={{ display: "flex", alignItems: "center", gap: 1.5, px: 2.5 }}>
-        <FitnessCenterIcon sx={{ color: "#E8E3D8", fontSize: 26 }} />
-        <Box>
-          <Typography
-            variant="h6"
-            sx={{
-              color: "#E8E3D8",
-              fontFamily: '"Anton", sans-serif',
-              letterSpacing: "0.04em",
-              lineHeight: 1.2,
-              fontSize: "1.05rem",
-            }}
-          >
-            FitSphere
-          </Typography>
-          <Typography
-            variant="caption"
-            sx={{
-              fontSize: 9,
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-              fontFamily: '"Inter", sans-serif',
-              color: "#6B6F6C",
-            }}
-          >
-            Gym Management OS
-          </Typography>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, cursor: "pointer" }} onClick={() => navigate({ to: "/dashboard" })}>
+          <FitnessCenterIcon sx={{ color: "#E8E3D8", fontSize: 26 }} />
+          <Box>
+            <Typography
+              variant="h6"
+              sx={{
+                color: "#E8E3D8",
+                fontFamily: '"Anton", sans-serif',
+                letterSpacing: "0.04em",
+                lineHeight: 1.2,
+                fontSize: "1.05rem",
+              }}
+            >
+              FitSphere
+            </Typography>
+            <Typography
+              variant="caption"
+              sx={{
+                fontSize: 9,
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+                fontFamily: '"Inter", sans-serif',
+                color: "#6B6F6C",
+              }}
+            >
+              Gym Management OS
+            </Typography>
+          </Box>
         </Box>
       </Toolbar>
       <Divider sx={{ borderColor: "#2A2D2B" }} />

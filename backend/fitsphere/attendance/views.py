@@ -5,7 +5,7 @@ from rest_framework import generics, permissions, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 
-from ..core.permissions import IsGymOwnerOrAdmin, IsReceptionist, IsStaff
+from ..core.permissions import IsGymOwnerOrAdmin, IsReceptionist, IsStaff, get_staff_branch
 from .models import AttendanceCode, AttendanceLog, QRCode
 from .serializers import (
     AttendanceCodeSerializer,
@@ -45,27 +45,12 @@ class AttendanceLogListView(generics.ListAPIView):
         if user.role in ("security", "cleaner", "maintenance"):
             return AttendanceLog.objects.none()
         if user.role in ("receptionist", "trainer", "manager", "instructor"):
-            branch = self._get_branch_for_user(user)
+            branch = get_staff_branch(user)
             return qs.filter(
                 organization=user.organization,
                 branch=branch,
             )
         return qs.filter(organization=user.organization)
-
-    def _get_branch_for_user(self, user):
-        profile_map = {
-            "receptionist": "receptionist_profile",
-            "trainer": "trainer_profile",
-            "manager": "manager_profile",
-            "instructor": "instructor_profile",
-        }
-        attr = profile_map.get(user.role)
-        if attr:
-            try:
-                return getattr(user, attr).branch
-            except Exception:
-                return None
-        return None
 
 
 @api_view(["POST"])

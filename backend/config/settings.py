@@ -6,8 +6,8 @@ from decouple import Csv, config
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = config("DJANGO_SECRET_KEY", default="insecure-dev-key-change-in-production")
 DEBUG = config("DJANGO_DEBUG", default=False, cast=bool)
+SECRET_KEY = config("DJANGO_SECRET_KEY") if not DEBUG else config("DJANGO_SECRET_KEY", default="insecure-dev-key-change-in-production")
 ALLOWED_HOSTS = config("DJANGO_ALLOWED_HOSTS", default="localhost,127.0.0.1,fitsphere-j65i.onrender.com", cast=Csv())
 
 INSTALLED_APPS = [
@@ -19,6 +19,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # Third-party
     "rest_framework",
+    "rest_framework_simplejwt.token_blacklist",
     "corsheaders",
     "django_filters",
     "django_extensions",
@@ -179,8 +180,8 @@ if config("AWS_ACCESS_KEY_ID", default=None):
     AWS_S3_REGION_NAME = config("AWS_S3_REGION_NAME", default="us-east-1")
     AWS_DEFAULT_ACL = "private"
 
-EMAIL_BACKEND = "anymail.backends.sendinblue.EmailBackend"
-ANYMAIL = {"SENDINBLUE_API_KEY": config("BREVO_API_KEY", default="")}
-DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="FitSphere <onboarding@resend.dev>")
+EMAIL_BACKEND = "anymail.backends.brevo.EmailBackend"
+ANYMAIL = {"BREVO_API_KEY": config("BREVO_API_KEY", default="")}
+DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="FitSphere <noreply@fitsphere.app>")
 
 FRONTEND_URL = config("FRONTEND_URL", default="http://localhost:5173")

@@ -81,6 +81,7 @@ export interface Member {
   gender: string;
   emergency_contact_name: string;
   emergency_contact_phone: string;
+  whatsapp_number: string;
   health_notes: string;
   photo: string | null;
   membership_status: "active" | "expired" | "frozen" | "cancelled";

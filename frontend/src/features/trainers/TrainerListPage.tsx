@@ -21,6 +21,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useBranches, useCreateTrainer, useTrainers } from "../../hooks/useApi";
+import { setApiErrors } from "../../hooks/setApiErrors";
 import PaginationBar from "../../components/common/PaginationBar";
 import SearchInput from "../../components/common/SearchInput";
 
@@ -46,6 +47,7 @@ export default function TrainerListPage() {
   const [open, setOpen] = useState(false);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const params: Record<string, string> = {};
   if (page > 1) params.page = String(page);
   if (search) params.search = search;
@@ -55,6 +57,7 @@ export default function TrainerListPage() {
   const {
     register,
     handleSubmit,
+    setError,
     reset,
     formState: { errors },
   } = useForm<TrainerForm>({
@@ -62,15 +65,21 @@ export default function TrainerListPage() {
   });
 
   const onSubmit = async (formData: TrainerForm) => {
-    const payload: Record<string, unknown> = { ...formData };
-    if (payload.branch) payload.branch = Number(payload.branch);
-    else delete payload.branch;
-    if (payload.years_of_experience) payload.years_of_experience = Number(payload.years_of_experience);
-    if (payload.hourly_rate) payload.hourly_rate = Number(payload.hourly_rate);
-    if (payload.max_members) payload.max_members = Number(payload.max_members);
-    await createTrainer.mutateAsync(payload);
-    reset();
-    setOpen(false);
+    try {
+      setSubmitError(null);
+      const payload: Record<string, unknown> = { ...formData };
+      if (payload.branch) payload.branch = Number(payload.branch);
+      else delete payload.branch;
+      if (payload.years_of_experience) payload.years_of_experience = Number(payload.years_of_experience);
+      if (payload.hourly_rate) payload.hourly_rate = Number(payload.hourly_rate);
+      if (payload.max_members) payload.max_members = Number(payload.max_members);
+      await createTrainer.mutateAsync(payload);
+      reset();
+      setOpen(false);
+    } catch (err) {
+      const apiError = setApiErrors(err, setError);
+      if (apiError) setSubmitError(apiError);
+    }
   };
 
   return (
@@ -125,9 +134,14 @@ export default function TrainerListPage() {
         {data && <PaginationBar count={data.count} page={page} onChange={(_, v) => setPage(v)} />}
       </Card>
 
-      <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>
+      <Dialog open={open} onClose={() => { setSubmitError(null); setOpen(false); }} maxWidth="sm" fullWidth>
         <DialogTitle>Add Trainer</DialogTitle>
         <DialogContent>
+          {submitError && (
+            <Typography color="error" variant="body2" sx={{ mb: 2, mt: 1 }}>
+              {submitError}
+            </Typography>
+          )}
           <form onSubmit={handleSubmit(onSubmit)}>
             <Typography variant="subtitle2" sx={{ color: "#E8E3D8", mt: 1, mb: 0.5, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", fontSize: "0.75rem" }}>
               Account Details

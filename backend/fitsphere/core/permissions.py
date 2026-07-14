@@ -1,3 +1,5 @@
+from django.core.exceptions import ObjectDoesNotExist
+
 from rest_framework.permissions import BasePermission, SAFE_METHODS
 
 
@@ -5,6 +7,24 @@ TICKET_ELIGIBLE_ROLES = (
     "gym_owner", "super_admin", "trainer", "member",
     "manager", "instructor", "security", "cleaner", "maintenance",
 )
+
+STAFF_BRANCH_SCOPED_ROLES = ("receptionist", "trainer", "manager", "instructor")
+
+
+def get_staff_branch(user):
+    profile_map = {
+        "receptionist": "receptionist_profile",
+        "trainer": "trainer_profile",
+        "manager": "manager_profile",
+        "instructor": "instructor_profile",
+    }
+    attr = profile_map.get(user.role)
+    if attr:
+        try:
+            return getattr(user, attr).branch
+        except (ObjectDoesNotExist, AttributeError):
+            return None
+    return None
 
 
 class IsSuperAdmin(BasePermission):

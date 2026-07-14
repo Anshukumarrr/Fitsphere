@@ -14,6 +14,7 @@ from fitsphere.attendance.models import AttendanceLog, AttendanceCode
 from fitsphere.payments.models import Payment
 from fitsphere.billing.models import SubscriptionPlan, Subscription
 from fitsphere.audit.models import AuditLog
+from fitsphere.notifications.models import NotificationTemplate, NotificationPreference
 
 PASSWORD = "admin123"
 
@@ -89,7 +90,7 @@ class Command(BaseCommand):
         self.stdout.write("  [OK] Super Admin created (superadmin / admin123)")
 
         # ── 3. Gym Organization: Fitness Gym ──
-        org, created = GymOrganization.objects.get_or_create(
+        fg_org, created = GymOrganization.objects.get_or_create(
             slug="fitness-gym",
             defaults=dict(
                 name="Fitness Gym",
@@ -106,7 +107,7 @@ class Command(BaseCommand):
 
         # ── 4. Subscription for the org ──
         sub, _ = Subscription.objects.get_or_create(
-            organization=org,
+            organization=fg_org,
             defaults=dict(
                 plan=pro_plan,
                 status="active",
@@ -118,12 +119,12 @@ class Command(BaseCommand):
                 auto_renew=True,
             ),
         )
-        org.subscription = sub
-        org.save(update_fields=["subscription"])
+        fg_org.subscription = sub
+        fg_org.save(update_fields=["subscription"])
 
         # ── 5. Branches ──
         branch_pb, _ = Branch.objects.get_or_create(
-            organization=org,
+            organization=fg_org,
             name="Sector 119, Punjab",
             defaults=dict(
                 code="FG-PB",
@@ -139,7 +140,7 @@ class Command(BaseCommand):
             ),
         )
         branch_ch, _ = Branch.objects.get_or_create(
-            organization=org,
+            organization=fg_org,
             name="Sector 34, Chandigarh",
             defaults=dict(
                 code="FG-CH",
@@ -165,7 +166,7 @@ class Command(BaseCommand):
                 last_name="Singh",
                 role="gym_owner",
                 phone="+91-9876543200",
-                organization=org,
+                organization=fg_org,
             ),
         )
         if user_created:
@@ -182,7 +183,7 @@ class Command(BaseCommand):
                 last_name="Singh",
                 role="trainer",
                 phone="+91-9876543221",
-                organization=org,
+                organization=fg_org,
             ),
         )
         if user_created:
@@ -192,7 +193,7 @@ class Command(BaseCommand):
         trainer_pb, _ = Trainer.objects.get_or_create(
             user=trainer_pb_user,
             defaults=dict(
-                organization=org,
+                organization=fg_org,
                 branch=branch_pb,
                 specialization="Strength & Conditioning",
                 bio="10+ years of experience in powerlifting and functional training",
@@ -211,7 +212,7 @@ class Command(BaseCommand):
                 last_name="Chopra",
                 role="trainer",
                 phone="+91-9876543222",
-                organization=org,
+                organization=fg_org,
             ),
         )
         if user_created:
@@ -221,7 +222,7 @@ class Command(BaseCommand):
         trainer_ch, _ = Trainer.objects.get_or_create(
             user=trainer_ch_user,
             defaults=dict(
-                organization=org,
+                organization=fg_org,
                 branch=branch_ch,
                 specialization="Yoga & Flexibility",
                 bio="Certified yoga instructor with expertise in Hatha and Vinyasa",
@@ -242,7 +243,7 @@ class Command(BaseCommand):
                 last_name="Verma",
                 role="receptionist",
                 phone="+91-9876543231",
-                organization=org,
+                organization=fg_org,
             ),
         )
         if user_created:
@@ -262,7 +263,7 @@ class Command(BaseCommand):
                 last_name="Gupta",
                 role="receptionist",
                 phone="+91-9876543232",
-                organization=org,
+                organization=fg_org,
             ),
         )
         if user_created:
@@ -277,7 +278,7 @@ class Command(BaseCommand):
 
         # ── 9. Membership Plans ──
         monthly_plan, _ = MembershipPlan.objects.get_or_create(
-            organization=org,
+            organization=fg_org,
             name="Monthly Unlimited",
             defaults=dict(
                 description="Full access to all equipment and classes",
@@ -288,7 +289,7 @@ class Command(BaseCommand):
             ),
         )
         quarterly_plan, _ = MembershipPlan.objects.get_or_create(
-            organization=org,
+            organization=fg_org,
             name="Quarterly Unlimited",
             defaults=dict(
                 description="Best value — 3 months full access",
@@ -299,7 +300,7 @@ class Command(BaseCommand):
             ),
         )
         yearly_plan, _ = MembershipPlan.objects.get_or_create(
-            organization=org,
+            organization=fg_org,
             name="Yearly Unlimited",
             defaults=dict(
                 description="Full year at the best rate",
@@ -313,7 +314,7 @@ class Command(BaseCommand):
 
         # ── 10. PT Packages ──
         pt_5, _ = PTPackage.objects.get_or_create(
-            organization=org,
+            organization=fg_org,
             name="5 Sessions + 1 Free",
             defaults=dict(
                 description="Get 1 session free with this pack",
@@ -323,7 +324,7 @@ class Command(BaseCommand):
             ),
         )
         pt_10, _ = PTPackage.objects.get_or_create(
-            organization=org,
+            organization=fg_org,
             name="10 Sessions Pack",
             defaults=dict(
                 description="Economical pack for regular training",
@@ -333,7 +334,7 @@ class Command(BaseCommand):
             ),
         )
         pt_20, _ = PTPackage.objects.get_or_create(
-            organization=org,
+            organization=fg_org,
             name="20 Sessions Pack",
             defaults=dict(
                 description="Best value for dedicated trainees",
@@ -377,7 +378,7 @@ class Command(BaseCommand):
                     "last_name": data["last"],
                     "role": "member",
                     "phone": data["phone"],
-                    "organization": org,
+                    "organization": fg_org,
                 },
             )
             if user_created:
@@ -387,7 +388,7 @@ class Command(BaseCommand):
             member, _ = Member.objects.get_or_create(
                 user=user,
                 defaults={
-                    "organization": org,
+                    "organization": fg_org,
                     "branch": branch,
                     "gender": data["gender"],
                     "emergency_contact_name": data["emergency_name"],
@@ -540,7 +541,7 @@ class Command(BaseCommand):
                     check_in_time=check_in_time,
                     check_in_method=method,
                     defaults={
-                        "organization": org,
+                        "organization": fg_org,
                         "marked_by": reception_user if method == "manual" else None,
                         "session_type": "regular",
                     },
@@ -561,7 +562,7 @@ class Command(BaseCommand):
                 payment_type="membership",
                 amount=amount,
                 branch=branch,
-                organization=org,
+                organization=fg_org,
                 paid_at=timezone.make_aware(datetime.combine(payment_date, time(10, 0))),
                 defaults=dict(
                     payment_method=method,
@@ -585,7 +586,7 @@ class Command(BaseCommand):
                 payment_type="pt_package",
                 amount=amount_paid,
                 branch=branch,
-                organization=org,
+                organization=fg_org,
                 paid_at=timezone.make_aware(datetime.combine(pay_date, time(14, 0))),
                 defaults=dict(
                     payment_method="upi",
@@ -610,7 +611,7 @@ class Command(BaseCommand):
                 entity_type="user",
                 entity_id=u.id,
                 timestamp=timezone.make_aware(datetime.combine(today - timedelta(days=random.randint(0, 3)), time(9, 0))),
-                defaults=dict(organization=org if u.role != "super_admin" else None),
+                defaults=dict(organization=fg_org if u.role != "super_admin" else None),
             )
 
         for member in all_members:
@@ -619,7 +620,7 @@ class Command(BaseCommand):
                 action="create",
                 entity_type="member",
                 entity_id=member.id,
-                organization=org,
+                organization=fg_org,
                 timestamp=timezone.make_aware(datetime.combine(
                     member.created_at.date() if hasattr(member, 'created_at') and member.created_at else today - timedelta(days=30),
                     time(10, 0),
@@ -910,7 +911,53 @@ class Command(BaseCommand):
 
         self.stdout.write("  [OK] Powerhouse audit logs created")
 
-        # ── 17. Done ──
+        # ── 17. Notification Templates & Preferences ──
+        wa_templates = [
+            ("Membership Expiry Reminder", "membership_expiry", "Hi {name}, your {plan} is expiring in {days} day(s) on {end_date}. Please renew to continue enjoying our services."),
+            ("Payment Due Reminder", "payment_due", "Hi {name}, payment of {amount} (Invoice: {invoice}) is due on {due_date}. Please pay at your earliest convenience."),
+            ("PT Session Reminder", "pt_session_reminder", "Hi {name}, you have a PT session with {trainer} on {date} at {time}. See you there!"),
+            ("Gym Announcement", "announcement", "Announcement: {message}"),
+            ("Staff Invite", "staff_invite", "Hi {name}, you have been invited to join {organization} as {role}. Welcome aboard!"),
+            ("Welcome", "welcome", "Welcome to {organization}, {name}! We are excited to have you with us."),
+        ]
+
+        for org in [fg_org, ph_org]:
+            for name, event, body in wa_templates:
+                NotificationTemplate.objects.get_or_create(
+                    event=event, channel="whatsapp",
+                    defaults=dict(
+                        name=name,
+                        body_template=body,
+                        subject="",
+                        channel="whatsapp",
+                        is_active=True,
+                    ),
+                )
+            for _, event, _ in wa_templates:
+                NotificationPreference.objects.get_or_create(
+                    organization=org, event=event, channel="whatsapp",
+                    defaults=dict(enabled=True),
+                )
+
+        email_templates = [
+            ("Welcome Email", "welcome", "Welcome to FitSphere!", "Hi {name},\n\nWelcome to {organization}! We are excited to have you on board.\n\nBest,\nFitSphere Team"),
+            ("Staff Invite Email", "staff_invite", "You're invited to join {organization}", "Hi {name},\n\nYou have been invited to join {organization} as {role}. Please check your email to accept the invitation.\n\nBest,\nFitSphere Team"),
+        ]
+        for org in [fg_org, ph_org]:
+            for name, event, subject, body in email_templates:
+                NotificationTemplate.objects.get_or_create(
+                    event=event, channel="email",
+                    defaults=dict(
+                        name=name,
+                        body_template=body,
+                        subject=subject,
+                        is_active=True,
+                    ),
+                )
+
+        self.stdout.write("  [OK] Notification templates & preferences seeded")
+
+        # ── 18. Done ──
         self.stdout.write("")
         self.stdout.write(self.style.SUCCESS("====== Seed Complete ======"))
         self.stdout.write("")

@@ -1,9 +1,11 @@
 from django.contrib import admin
+from django.http import JsonResponse
 from django.urls import include, path
 
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 api_urlpatterns = [
+    path("health/", lambda r: JsonResponse({"status": "ok"}), name="health"),
     path("auth/", include("fitsphere.core.urls")),
     path("organizations/", include("fitsphere.organizations.urls")),
     path("members/", include("fitsphere.members.urls")),

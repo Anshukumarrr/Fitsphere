@@ -112,6 +112,18 @@ class PTSessionCreateSerializer(serializers.ModelSerializer):
         )
 
     def validate(self, data):
+        pt_membership = data.get("pt_membership")
+        if pt_membership:
+            if pt_membership.sessions_remaining <= 0:
+                raise serializers.ValidationError(
+                    {"pt_membership": "This PT membership has no remaining sessions."}
+                )
+            member = data.get("member")
+            if member and pt_membership.member_id != member.id:
+                raise serializers.ValidationError(
+                    {"pt_membership": "PT membership does not belong to this member."}
+                )
+
         trainer = data["trainer"]
         date = data["scheduled_date"]
         time = data["scheduled_time"]

@@ -89,16 +89,32 @@ export default function StaffPage() {
 
   const watchedRole = watch("role");
 
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
   const onSubmit = async (formData: StaffForm) => {
-    const payload: Record<string, unknown> = { ...formData } as Record<string, unknown>;
-    if (payload.branch_id) payload.branch_id = Number(payload.branch_id);
-    else delete payload.branch_id;
-    if (payload.years_of_experience) payload.years_of_experience = Number(payload.years_of_experience);
-    if (payload.hourly_rate) payload.hourly_rate = Number(payload.hourly_rate);
-    if (payload.max_members) payload.max_members = Number(payload.max_members);
-    await createStaff.mutateAsync(payload);
-    reset();
-    setOpen(false);
+    try {
+      setSubmitError(null);
+      const payload: Record<string, unknown> = { ...formData } as Record<string, unknown>;
+      if (payload.branch_id) payload.branch_id = Number(payload.branch_id);
+      else delete payload.branch_id;
+      if (payload.years_of_experience) payload.years_of_experience = Number(payload.years_of_experience);
+      if (payload.hourly_rate) payload.hourly_rate = Number(payload.hourly_rate);
+      if (payload.max_members) payload.max_members = Number(payload.max_members);
+      await createStaff.mutateAsync(payload);
+      reset();
+      setOpen(false);
+    } catch (err: unknown) {
+      const data = (err as { response?: { data?: unknown } })?.response?.data;
+      if (data && typeof data === "object" && "detail" in (data as Record<string, unknown>)) {
+        setSubmitError((data as Record<string, string>).detail);
+      } else if (data && typeof data === "object") {
+        setSubmitError(Object.values(data as Record<string, unknown>).flat().join(", "));
+      } else if (typeof data === "string") {
+        setSubmitError(data);
+      } else {
+        setSubmitError("An unexpected error occurred.");
+      }
+    }
   };
 
   const handleOpen = (role: string) => {
@@ -142,6 +158,11 @@ export default function StaffPage() {
       <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle>Add {watchedRole ? ROLE_SINGULAR[watchedRole] || "Staff" : "Staff"}</DialogTitle>
         <DialogContent>
+          {submitError && (
+            <Typography color="error" variant="body2" sx={{ mb: 2, mt: 1 }}>
+              {submitError}
+            </Typography>
+          )}
           <form onSubmit={handleSubmit(onSubmit)}>
             <Typography variant="subtitle2" sx={{ color: "#E8E3D8", mt: 1, mb: 0.5, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", fontSize: "0.75rem" }}>
               Account Details

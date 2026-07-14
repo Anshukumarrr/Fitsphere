@@ -1,23 +1,25 @@
+import { lazy } from "react";
 import { redirect, RootRoute, Route } from "@tanstack/react-router";
 import DashboardLayout from "./components/layout/DashboardLayout";
-import AnalyticsPage from "./features/analytics/AnalyticsPage";
-import DashboardPage from "./features/analytics/DashboardPage";
-import AllMembersPage from "./features/members/AllMembersPage";
-import AuditLogPage from "./features/audit/AuditLogPage";
-import LoginPage from "./features/auth/LoginPage";
-import RegisterPage from "./features/auth/RegisterPage";
-import BillingPlansPage from "./features/billing/BillingPlansPage";
-import LandingPage from "./features/landing/LandingPage";
-import MyPaymentsPage from "./features/member/MyPaymentsPage";
-import MyProfilePage from "./features/member/MyProfilePage";
-import MySessionsPage from "./features/member/MySessionsPage";
-import NotificationSettingsPage from "./features/notifications/NotificationSettingsPage";
-import PaymentListPage from "./features/payments/PaymentListPage";
-import PTSessionListPage from "./features/personal-training/PTSessionListPage";
-import StaffPage from "./features/staff/StaffPage";
-import AttendanceListPage from "./features/attendance/AttendanceListPage";
-import TicketsPage from "./features/tickets/TicketsPage";
-import AttendanceCalendarPage from "./features/attendance/AttendanceCalendarPage";
+
+const LandingPage = lazy(() => import("./features/landing/LandingPage"));
+const LoginPage = lazy(() => import("./features/auth/LoginPage"));
+const RegisterPage = lazy(() => import("./features/auth/RegisterPage"));
+const DashboardPage = lazy(() => import("./features/analytics/DashboardPage"));
+const AnalyticsPage = lazy(() => import("./features/analytics/AnalyticsPage"));
+const AllMembersPage = lazy(() => import("./features/members/AllMembersPage"));
+const StaffPage = lazy(() => import("./features/staff/StaffPage"));
+const AttendanceListPage = lazy(() => import("./features/attendance/AttendanceListPage"));
+const AttendanceCalendarPage = lazy(() => import("./features/attendance/AttendanceCalendarPage"));
+const TicketsPage = lazy(() => import("./features/tickets/TicketsPage"));
+const PaymentListPage = lazy(() => import("./features/payments/PaymentListPage"));
+const PTSessionListPage = lazy(() => import("./features/personal-training/PTSessionListPage"));
+const BillingPlansPage = lazy(() => import("./features/billing/BillingPlansPage"));
+const NotificationSettingsPage = lazy(() => import("./features/notifications/NotificationSettingsPage"));
+const AuditLogPage = lazy(() => import("./features/audit/AuditLogPage"));
+const MyProfilePage = lazy(() => import("./features/member/MyProfilePage"));
+const MySessionsPage = lazy(() => import("./features/member/MySessionsPage"));
+const MyPaymentsPage = lazy(() => import("./features/member/MyPaymentsPage"));
 
 const rootRoute = new RootRoute();
 

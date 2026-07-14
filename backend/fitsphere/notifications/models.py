@@ -6,17 +6,19 @@ class NotificationTemplate(models.Model):
     class Channel(models.TextChoices):
         EMAIL = "email", "Email"
         SMS = "sms", "SMS"
+        WHATSAPP = "whatsapp", "WhatsApp"
 
     class Event(models.TextChoices):
         MEMBERSHIP_EXPIRY = "membership_expiry", "Membership Expiry Reminder"
+        MEMBERSHIP_EXPIRED = "membership_expired", "Membership Expired"
         PAYMENT_DUE = "payment_due", "Payment Due Reminder"
         PT_SESSION_REMINDER = "pt_session_reminder", "PT Session Reminder"
         ANNOUNCEMENT = "announcement", "Gym Announcement"
         STAFF_INVITE = "staff_invite", "Staff Invite"
-        WELCOME = "welcome", "Welcome Email"
+        WELCOME = "welcome", "Welcome"
 
     name = models.CharField(max_length=255)
-    event = models.CharField(max_length=50, choices=Event.choices, unique=True)
+    event = models.CharField(max_length=50, choices=Event.choices)
     channel = models.CharField(max_length=10, choices=Channel.choices, default=Channel.EMAIL)
     subject = models.CharField(max_length=500, blank=True)
     body_template = models.TextField()
@@ -26,6 +28,7 @@ class NotificationTemplate(models.Model):
 
     class Meta:
         db_table = "notification_templates"
+        unique_together = ("event", "channel")
 
     def __str__(self):
         return f"{self.get_event_display()} ({self.get_channel_display()})"
@@ -54,6 +57,39 @@ class EmailLog(models.Model):
         return f"Email to {self.recipient} - {self.status}"
 
 
+class WhatsAppMessageLog(models.Model):
+    class Status(models.TextChoices):
+        PENDING = "pending", "Pending"
+        SENT = "sent", "Sent"
+        FAILED = "failed", "Failed"
+
+    organization = models.ForeignKey(
+        "organizations.GymOrganization",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="whatsapp_logs",
+    )
+    recipient_phone = models.CharField(max_length=20)
+    message = models.TextField()
+    status = models.CharField(max_length=10, choices=Status.choices, default=Status.PENDING)
+    event = models.CharField(max_length=50, blank=True)
+    error_message = models.TextField(blank=True)
+    sent_at = models.DateTimeField(null=True, blank=True)
+    retry_count = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "whatsapp_message_logs"
+        indexes = [
+            models.Index(fields=["status"]),
+            models.Index(fields=["organization", "created_at"]),
+        ]
+
+    def __str__(self):
+        return f"WhatsApp to {self.recipient_phone} - {self.status}"
+
+
 class NotificationPreference(models.Model):
     organization = models.ForeignKey(
         "organizations.GymOrganization",
@@ -61,6 +97,10 @@ class NotificationPreference(models.Model):
         related_name="notification_preferences",
     )
     event = models.CharField(max_length=50, choices=NotificationTemplate.Event.choices)
+    channel = models.CharField(
+        max_length=10, choices=NotificationTemplate.Channel.choices,
+        default=NotificationTemplate.Channel.WHATSAPP,
+    )
     enabled = models.BooleanField(default=True)
     reminder_days = models.IntegerField(
         null=True, blank=True,
@@ -69,7 +109,7 @@ class NotificationPreference(models.Model):
 
     class Meta:
         db_table = "notification_preferences"
-        unique_together = ("organization", "event")
+        unique_together = ("organization", "event", "channel")
 
     def __str__(self):
-        return f"{self.organization.name} - {self.event}: {'On' if self.enabled else 'Off'}"
+        return f"{self.organization.name} - {self.event} ({self.channel}): {'On' if self.enabled else 'Off'}"

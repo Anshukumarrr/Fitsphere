@@ -103,5 +103,23 @@ class PTSession(TenantAwareModel):
             models.Index(fields=["member", "scheduled_date"]),
         ]
 
+    def save(self, *args, **kwargs):
+        is_new = self.pk is None
+        was_completed = False
+        if not is_new:
+            try:
+                old = PTSession.objects.get(pk=self.pk)
+                was_completed = old.status == "completed" and old.completed_at is not None
+            except PTSession.DoesNotExist:
+                pass
+
+        super().save(*args, **kwargs)
+
+        if self.pt_membership_id and self.status == "completed" and not was_completed:
+            PTMembership.objects.filter(pk=self.pt_membership_id).update(
+                sessions_used=models.F("sessions_used") + 1,
+                sessions_remaining=models.F("sessions_remaining") - 1,
+            )
+
     def __str__(self):
         return f"{self.member} with {self.trainer} on {self.scheduled_date}"

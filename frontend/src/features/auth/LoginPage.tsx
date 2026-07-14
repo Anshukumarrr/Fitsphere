@@ -12,6 +12,7 @@ import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
 import { useAuth } from "../../hooks/useAuth";
+import { setApiErrors } from "../../hooks/setApiErrors";
 
 const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
@@ -35,6 +36,7 @@ export default function LoginPage() {
   const {
     register,
     handleSubmit,
+    setError: setFieldError,
     formState: { errors, isSubmitting },
   } = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
@@ -45,8 +47,9 @@ export default function LoginPage() {
       setError("");
       await login(data.username, data.password);
       navigate({ to: "/dashboard" });
-    } catch {
-      setError("Invalid credentials. Please try again.");
+    } catch (err) {
+      const apiError = setApiErrors(err, setFieldError);
+      if (apiError) setError(apiError);
     }
   };
 
@@ -68,7 +71,7 @@ export default function LoginPage() {
           mx: 2,
         }}
       >
-        <Box sx={{ textAlign: "center", mb: 4 }}>
+        <Box sx={{ textAlign: "center", mb: 4, cursor: "pointer" }} onClick={() => navigate({ to: "/" })}>
           <FitnessCenterIcon
             sx={{
               fontSize: 48,

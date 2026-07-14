@@ -5,25 +5,9 @@ from rest_framework import generics, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from ..core.permissions import IsGymOwnerOrAdmin, IsReceptionist, IsStaffOrReadOnlyInstructor
+from ..core.permissions import IsGymOwnerOrAdmin, IsReceptionist, IsStaffOrReadOnlyInstructor, STAFF_BRANCH_SCOPED_ROLES, get_staff_branch
 from .models import Member
 from .serializers import MemberCreateSerializer, MemberSerializer, MemberStatusUpdateSerializer
-
-
-def _branch_for_user(user):
-    branch_map = {
-        "receptionist": "receptionist_profile",
-        "trainer": "trainer_profile",
-        "manager": "manager_profile",
-        "instructor": "instructor_profile",
-    }
-    profile_attr = branch_map.get(user.role)
-    if profile_attr:
-        try:
-            return getattr(user, profile_attr).branch
-        except Exception:
-            return None
-    return None
 
 
 class MemberListCreateView(generics.ListCreateAPIView):
@@ -53,9 +37,8 @@ class MemberListCreateView(generics.ListCreateAPIView):
         if user.role == "super_admin":
             return Member.objects.select_related("user", "branch").all()
         org = user.organization
-        branch_scoped_roles = ("receptionist", "trainer", "manager", "instructor")
-        if user.role in branch_scoped_roles:
-            branch = _branch_for_user(user)
+        if user.role in STAFF_BRANCH_SCOPED_ROLES:
+            branch = get_staff_branch(user)
             return Member.objects.select_related("user", "branch").filter(
                 organization=org, branch=branch
             )
@@ -98,9 +81,8 @@ class MemberDetailView(generics.RetrieveUpdateDestroyAPIView):
         if user.role == "super_admin":
             return Member.objects.select_related("user", "branch").all()
         org = user.organization
-        branch_scoped_roles = ("receptionist", "trainer", "manager", "instructor")
-        if user.role in branch_scoped_roles:
-            branch = _branch_for_user(user)
+        if user.role in STAFF_BRANCH_SCOPED_ROLES:
+            branch = get_staff_branch(user)
             return Member.objects.select_related("user", "branch").filter(
                 organization=org, branch=branch
             )
@@ -128,7 +110,7 @@ class MemberStatusChangeView(generics.UpdateAPIView):
             return Member.objects.all()
         org = user.organization
         if user.role == "manager":
-            branch = _branch_for_user(user)
+            branch = get_staff_branch(user)
             return Member.objects.filter(organization=org, branch=branch)
         return Member.objects.filter(organization=org)
 

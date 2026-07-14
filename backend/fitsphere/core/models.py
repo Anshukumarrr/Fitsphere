@@ -243,3 +243,21 @@ class EmailVerificationToken(models.Model):
     def is_expired(self):
         expiry = self.created_at + timezone.timedelta(hours=24)
         return timezone.now() > expiry
+
+
+class PasswordResetToken(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="password_reset_tokens",
+    )
+    token = models.CharField(max_length=64, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_used = models.BooleanField(default=False)
+
+    class Meta:
+        db_table = "password_reset_tokens"
+
+    def is_expired(self):
+        expiry = self.created_at + timezone.timedelta(hours=1)
+        return timezone.now() > expiry

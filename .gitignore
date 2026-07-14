@@ -40,3 +40,10 @@ backend/staticfiles/
 
 # Credentials
 CREDENTIALS.md
+
+# opencode (local AI session tooling)
+.opencode/
+_opencode_session_*
+
+# Session context (local only, not for GitHub)
+_session_context.md

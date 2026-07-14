@@ -77,12 +77,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     []
   );
 
-  const logout = useCallback(() => {
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
-    localStorage.removeItem("organization_id");
-    setUser(null);
-    qc.clear();
+  const logout = useCallback(async () => {
+    const refresh = localStorage.getItem("refresh_token");
+    try {
+      if (refresh) {
+        await apiClient.post("/auth/logout/", { refresh });
+      }
+    } catch {
+    } finally {
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("refresh_token");
+      localStorage.removeItem("organization_id");
+      setUser(null);
+      qc.clear();
+    }
   }, [qc]);
 
   const refetchUser = useCallback(async () => {

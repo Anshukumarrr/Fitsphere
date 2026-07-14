@@ -7,7 +7,7 @@ from rest_framework import generics, permissions, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 
-from ..core.permissions import IsGymOwnerOrAdmin, IsMember, IsSuperAdmin
+from ..core.permissions import IsGymOwnerOrAdmin, IsMember, IsSuperAdmin, get_staff_branch
 from ..members.models import Member
 from ..payments.models import Payment
 from ..attendance.models import AttendanceLog
@@ -20,15 +20,12 @@ def _org_filter(request, for_membership=False):
         return {}
     filters = {"organization": request.user.organization}
     if request.user.role == "manager":
-        try:
-            branch = request.user.manager_profile.branch
-            if branch:
-                if for_membership:
-                    filters["member__branch"] = branch
-                else:
-                    filters["branch"] = branch
-        except Exception:
-            pass
+        branch = get_staff_branch(request.user)
+        if branch:
+            if for_membership:
+                filters["member__branch"] = branch
+            else:
+                filters["branch"] = branch
     return filters
 
 

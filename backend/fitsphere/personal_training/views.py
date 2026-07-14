@@ -1,7 +1,7 @@
 from rest_framework import generics, permissions, serializers
 from rest_framework.response import Response
 
-from ..core.permissions import IsGymOwnerOrAdmin, IsMember, IsStaff
+from ..core.permissions import IsGymOwnerOrAdmin, IsMember, IsStaff, get_staff_branch
 from ..members.models import Member
 from ..trainers.models import Trainer
 from .models import PTPackage, PTMembership, PTSession
@@ -48,9 +48,14 @@ class PTMembershipListCreateView(generics.ListCreateAPIView):
             return PTMembership.objects.select_related(
                 "member", "member__user", "package", "trainer", "trainer__user"
             ).all()
-        return PTMembership.objects.select_related(
+        qs = PTMembership.objects.select_related(
             "member", "member__user", "package", "trainer", "trainer__user"
         ).filter(organization=user.organization)
+        if user.role == "manager":
+            branch = get_staff_branch(user)
+            if branch:
+                qs = qs.filter(member__branch=branch)
+        return qs
 
     def perform_create(self, serializer):
         serializer.save(organization=self.request.user.organization)
@@ -64,7 +69,12 @@ class PTMembershipDetailView(generics.RetrieveUpdateDestroyAPIView):
         user = self.request.user
         if user.role == "super_admin":
             return PTMembership.objects.all()
-        return PTMembership.objects.filter(organization=user.organization)
+        qs = PTMembership.objects.filter(organization=user.organization)
+        if user.role == "manager":
+            branch = get_staff_branch(user)
+            if branch:
+                qs = qs.filter(member__branch=branch)
+        return qs
 
 
 class PTSessionListCreateView(generics.ListCreateAPIView):
@@ -104,10 +114,7 @@ class PTSessionListCreateView(generics.ListCreateAPIView):
                 return PTSession.objects.none()
             qs = qs.filter(trainer=trainer)
         if user.role == "manager":
-            try:
-                branch = user.manager_profile.branch
-            except Exception:
-                branch = None
+            branch = get_staff_branch(user)
             if branch:
                 qs = qs.filter(trainer__branch=branch)
         return qs
@@ -126,10 +133,7 @@ class PTSessionDetailView(generics.RetrieveUpdateDestroyAPIView):
             return PTSession.objects.all()
         qs = PTSession.objects.filter(organization=user.organization)
         if user.role == "manager":
-            try:
-                branch = user.manager_profile.branch
-            except Exception:
-                branch = None
+            branch = get_staff_branch(user)
             if branch:
                 qs = qs.filter(trainer__branch=branch)
         return qs
@@ -146,8 +150,22 @@ class BookSessionView(generics.CreateAPIView):
             raise serializers.ValidationError(
                 {"error": "Member profile not found."}
             )
+
+        pt_membership = serializer.validated_data.get("pt_membership")
+        if not pt_membership:
+            pt_membership = PTMembership.objects.filter(
+                member=member,
+                is_active=True,
+                sessions_remaining__gt=0,
+            ).first()
+            if not pt_membership:
+                raise serializers.ValidationError(
+                    {"pt_membership": "No active PT membership with remaining sessions."}
+                )
+
         serializer.save(
             member=member,
+            pt_membership=pt_membership,
             organization=self.request.user.organization,
             branch=member.branch,
         )

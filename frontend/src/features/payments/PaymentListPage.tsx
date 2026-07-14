@@ -20,6 +20,7 @@ import {
 import { Add } from "@mui/icons-material";
 import { useForm } from "react-hook-form";
 import { useCreatePayment, usePayments } from "../../hooks/useApi";
+import { setApiErrors } from "../../hooks/setApiErrors";
 import PaginationBar from "../../components/common/PaginationBar";
 import SearchInput from "../../components/common/SearchInput";
 
@@ -32,12 +33,20 @@ export default function PaymentListPage() {
   if (search) params.search = search;
   const { data, isLoading } = usePayments(params);
   const createPayment = useCreatePayment();
-  const { register, handleSubmit, reset } = useForm();
+  const { register, handleSubmit, setError, reset } = useForm();
+
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const onSubmit = async (formData: Record<string, unknown>) => {
-    await createPayment.mutateAsync(formData);
-    reset();
-    setOpen(false);
+    try {
+      setSubmitError(null);
+      await createPayment.mutateAsync(formData);
+      reset();
+      setOpen(false);
+    } catch (err: unknown) {
+      const apiError = setApiErrors(err, setError);
+      if (apiError) setSubmitError(apiError);
+    }
   };
 
   const statusColor = (status: string) => {
@@ -112,6 +121,11 @@ export default function PaymentListPage() {
       <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle>Record Payment</DialogTitle>
         <DialogContent>
+          {submitError && (
+            <Typography color="error" variant="body2" sx={{ mb: 2, mt: 1 }}>
+              {submitError}
+            </Typography>
+          )}
           <form onSubmit={handleSubmit(onSubmit)}>
             <TextField fullWidth label="Member ID" margin="normal" type="number" {...register("member")} />
             <TextField fullWidth label="Amount" margin="normal" type="number" {...register("amount")} />

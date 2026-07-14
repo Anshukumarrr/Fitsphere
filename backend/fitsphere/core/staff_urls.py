@@ -1,8 +1,8 @@
 from django.urls import path
 
-from . import views
+from . import staff_views
 
 urlpatterns = [
-    path("", views.StaffListCreateView.as_view(), name="staff-list-create"),
-    path("<int:pk>/", views.StaffDetailView.as_view(), name="staff-detail"),
+    path("", staff_views.StaffListCreateView.as_view(), name="staff-list-create"),
+    path("<int:pk>/", staff_views.StaffDetailView.as_view(), name="staff-detail"),
 ]

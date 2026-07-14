@@ -13,6 +13,7 @@ import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
 import { useAuth } from "../../hooks/useAuth";
+import { setApiErrors } from "../../hooks/setApiErrors";
 
 const registerSchema = z
   .object({
@@ -45,6 +46,7 @@ export default function RegisterPage() {
   const {
     register,
     handleSubmit,
+    setError: setFieldError,
     formState: { errors, isSubmitting },
   } = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
@@ -68,8 +70,9 @@ export default function RegisterPage() {
       });
       setRegisteredEmail(result?.email || data.email);
       setSuccess(true);
-    } catch {
-      setError("Registration failed. Please try again.");
+    } catch (err) {
+      const apiError = setApiErrors(err, setFieldError);
+      if (apiError) setError(apiError);
     }
   };
 
@@ -163,7 +166,7 @@ export default function RegisterPage() {
           mx: 2,
         }}
       >
-        <Box sx={{ textAlign: "center", mb: 4 }}>
+        <Box sx={{ textAlign: "center", mb: 4, cursor: "pointer" }} onClick={() => navigate({ to: "/" })}>
           <FitnessCenterIcon
             sx={{
               fontSize: 48,
