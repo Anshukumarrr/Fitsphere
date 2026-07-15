@@ -17,6 +17,7 @@ const PTSessionListPage = lazy(() => import("./features/personal-training/PTSess
 const BillingPlansPage = lazy(() => import("./features/billing/BillingPlansPage"));
 const NotificationSettingsPage = lazy(() => import("./features/notifications/NotificationSettingsPage"));
 const AuditLogPage = lazy(() => import("./features/audit/AuditLogPage"));
+const ExerciseExplorerPage = lazy(() => import("./features/exercises/ExerciseExplorerPage"));
 const MyProfilePage = lazy(() => import("./features/member/MyProfilePage"));
 const MySessionsPage = lazy(() => import("./features/member/MySessionsPage"));
 const MyPaymentsPage = lazy(() => import("./features/member/MyPaymentsPage"));
@@ -150,6 +151,12 @@ const auditRoute = new Route({
   component: AuditLogPage,
 });
 
+const exercisesRoute = new Route({
+  getParentRoute: () => dashboardLayoutRoute,
+  path: "/exercises",
+  component: ExerciseExplorerPage,
+});
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   loginRoute,
@@ -170,6 +177,7 @@ const routeTree = rootRoute.addChildren([
     memberSessionsRoute,
     memberPaymentsRoute,
     auditRoute,
+    exercisesRoute,
   ]),
 ]);
 

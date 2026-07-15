@@ -1,4 +1,3 @@
-import FitnessCenterIcon from "@mui/icons-material/FitnessCenter";
 import {
   AppBar,
   Avatar,
@@ -21,6 +20,7 @@ import {
   BugReport,
   CalendarMonth,
   Dashboard,
+  FitnessCenter,
   Group,
   Logout,
   Menu as MenuIcon,
@@ -43,6 +43,7 @@ const navItems = [
   { label: "PT Sessions", icon: <Group />, path: "/pt-sessions", roles: ["gym_owner", "super_admin", "trainer", "manager"] },
   { label: "Attendance", icon: <CalendarMonth />, path: "/attendance", roles: ["gym_owner", "super_admin", "receptionist", "trainer", "manager", "instructor"] },
   { label: "Analytics", icon: <Assessment />, path: "/analytics", roles: ["gym_owner", "super_admin", "manager"] },
+  { label: "Exercises", icon: <FitnessCenter />, path: "/exercises", roles: ["trainer", "member"] },
   { label: "Tickets", icon: <BugReport />, path: "/tickets", roles: ["gym_owner", "super_admin", "trainer", "member", "manager", "instructor", "security", "cleaner", "maintenance"] },
   { label: "Notifications", icon: <Notifications />, path: "/notifications", roles: ["gym_owner", "super_admin", "manager"] },
   { label: "Billing", icon: <Receipt />, path: "/billing", roles: ["super_admin"] },
@@ -81,7 +82,7 @@ export default function DashboardLayout() {
     <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
       <Toolbar sx={{ display: "flex", alignItems: "center", gap: 1.5, px: 2.5 }}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, cursor: "pointer" }} onClick={() => navigate({ to: "/dashboard" })}>
-          <FitnessCenterIcon sx={{ color: "#E8E3D8", fontSize: 26 }} />
+          <FitnessCenter sx={{ color: "#E8E3D8", fontSize: 26 }} />
           <Box>
             <Typography
               variant="h6"
