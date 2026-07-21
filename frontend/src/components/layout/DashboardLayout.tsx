@@ -20,6 +20,7 @@ import {
   BugReport,
   CalendarMonth,
   Dashboard,
+  FileUpload,
   FitnessCenter,
   Group,
   Logout,
@@ -38,6 +39,7 @@ const drawerWidth = 250;
 const navItems = [
   { label: "Dashboard", icon: <Dashboard />, path: "/dashboard", roles: ["gym_owner", "super_admin", "receptionist", "trainer", "manager", "instructor"] },
   { label: "Members", icon: <People />, path: "/members", roles: ["gym_owner", "super_admin", "receptionist", "trainer", "manager", "instructor"] },
+  { label: "Import Members", icon: <FileUpload />, path: "/members/import", roles: ["gym_owner", "super_admin", "manager"] },
   { label: "Staff", icon: <Group />, path: "/staff", roles: ["gym_owner", "super_admin", "manager"] },
   { label: "Payments", icon: <MonetizationOn />, path: "/payments", roles: ["gym_owner", "super_admin", "receptionist", "manager"] },
   { label: "PT Sessions", icon: <Group />, path: "/pt-sessions", roles: ["gym_owner", "super_admin", "trainer", "manager"] },

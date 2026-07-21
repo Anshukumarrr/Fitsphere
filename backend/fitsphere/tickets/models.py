@@ -60,12 +60,11 @@ class Ticket(models.Model):
     class Meta:
         db_table = "tickets"
         indexes = [
-            models.Index(fields=["organization"]),
+            models.Index(fields=["organization", "created_at"]),
             models.Index(fields=["status"]),
             models.Index(fields=["priority"]),
             models.Index(fields=["assigned_to"]),
             models.Index(fields=["raised_by"]),
-            models.Index(fields=["created_at"]),
         ]
         ordering = ["-created_at"]
 

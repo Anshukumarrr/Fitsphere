@@ -51,7 +51,7 @@ class Member(TenantAwareModel):
         blank=True,
         related_name="assigned_members",
     )
-    gym_code = models.CharField(max_length=10, unique=True, blank=True)
+    gym_code = models.CharField(max_length=10, blank=True)
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
@@ -64,6 +64,7 @@ class Member(TenantAwareModel):
 
     class Meta:
         db_table = "members"
+        unique_together = ("organization", "gym_code")
         indexes = [
             models.Index(fields=["organization", "membership_status"]),
             models.Index(fields=["organization", "branch"]),

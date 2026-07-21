@@ -85,7 +85,8 @@ DATABASES = {
         "PASSWORD": config("DATABASE_PASSWORD", default="postgres"),
         "HOST": config("DATABASE_HOST", default="localhost"),
         "PORT": config("DATABASE_PORT", default="5432", cast=int),
-        "CONN_MAX_AGE": 60,
+        "CONN_MAX_AGE": 0,
+        "OPTIONS": {"sslmode": "require"},
     }
 }
 

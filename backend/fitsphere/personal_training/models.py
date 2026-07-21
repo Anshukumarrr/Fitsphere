@@ -49,6 +49,9 @@ class PTMembership(TenantAwareModel):
 
     class Meta:
         db_table = "pt_memberships"
+        indexes = [
+            models.Index(fields=["organization", "member"]),
+        ]
 
     def __str__(self):
         return f"{self.member} - {self.package}"
@@ -101,6 +104,7 @@ class PTSession(TenantAwareModel):
         indexes = [
             models.Index(fields=["trainer", "scheduled_date"]),
             models.Index(fields=["member", "scheduled_date"]),
+            models.Index(fields=["organization", "scheduled_date"]),
         ]
 
     def save(self, *args, **kwargs):

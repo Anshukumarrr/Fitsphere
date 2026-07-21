@@ -65,6 +65,7 @@ class MemberMembership(TenantAwareModel):
         indexes = [
             models.Index(fields=["member", "is_active"]),
             models.Index(fields=["end_date"]),
+            models.Index(fields=["organization", "member"]),
         ]
 
     def __str__(self):

@@ -5,8 +5,9 @@ from rest_framework import generics, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from ..core.permissions import IsGymOwnerOrAdmin, IsReceptionist, IsStaffOrReadOnlyInstructor, STAFF_BRANCH_SCOPED_ROLES, get_staff_branch
+from ..core.permissions import IsGymOwnerOrAdmin, IsGymOwnerOrManager, IsReceptionist, IsStaffOrReadOnlyInstructor, STAFF_BRANCH_SCOPED_ROLES, get_staff_branch
 from .models import Member
+from .import_serializers import MemberImportFileSerializer
 from .serializers import MemberCreateSerializer, MemberSerializer, MemberStatusUpdateSerializer
 
 
@@ -123,3 +124,36 @@ class MemberStatusChangeView(generics.UpdateAPIView):
             member.membership_end_date = serializer.validated_data["membership_end_date"]
         member.save()
         return Response(MemberSerializer(member).data)
+
+
+class BulkMemberImportView(generics.CreateAPIView):
+    permission_classes = (IsGymOwnerOrManager,)
+    serializer_class = MemberImportFileSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        file = serializer.validated_data["file"]
+
+        org = request.user.organization
+        branch = get_staff_branch(request.user) if request.user.role in STAFF_BRANCH_SCOPED_ROLES else None
+
+        from .import_service import import_members_from_file
+
+        result = import_members_from_file(
+            file_obj=file,
+            organization=org,
+            created_by=request.user,
+            branch=branch,
+        )
+
+        return Response({
+            "total": result.total,
+            "created": result.created,
+            "skipped": result.skipped,
+            "errors": [
+                {"row": e.row, "field": e.field, "value": e.value, "message": e.message}
+                for e in result.errors
+            ],
+        }, status=status.HTTP_200_OK)

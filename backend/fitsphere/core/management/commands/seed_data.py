@@ -406,7 +406,7 @@ class Command(BaseCommand):
                 start_date=today - timedelta(days=plans_by_branch[branch.id]["start_offset"]),
                 end_date=today + timedelta(days=plans_by_branch[branch.id]["end_offset"]),
                 amount_paid=plans_by_branch[branch.id]["price"],
-                defaults={"is_active": True},
+                defaults={"is_active": True, "organization": fg_org},
             )
 
             return member
@@ -426,6 +426,7 @@ class Command(BaseCommand):
             trainer=trainer_pb,
             start_date=today - timedelta(days=20),
             defaults=dict(
+                organization=fg_org,
                 sessions_total=10,
                 sessions_used=3,
                 sessions_remaining=7,
@@ -440,6 +441,7 @@ class Command(BaseCommand):
             trainer=trainer_pb,
             start_date=today - timedelta(days=15),
             defaults=dict(
+                organization=fg_org,
                 sessions_total=6,
                 sessions_used=2,
                 sessions_remaining=4,
@@ -454,6 +456,7 @@ class Command(BaseCommand):
             trainer=trainer_ch,
             start_date=today - timedelta(days=25),
             defaults=dict(
+                organization=fg_org,
                 sessions_total=10,
                 sessions_used=4,
                 sessions_remaining=6,
@@ -468,6 +471,7 @@ class Command(BaseCommand):
             trainer=trainer_ch,
             start_date=today - timedelta(days=10),
             defaults=dict(
+                organization=fg_org,
                 sessions_total=20,
                 sessions_used=1,
                 sessions_remaining=19,
@@ -508,6 +512,7 @@ class Command(BaseCommand):
                 scheduled_date=sched_date,
                 scheduled_time=sched_time,
                 defaults=dict(
+                    organization=fg_org,
                     branch=br,
                     duration_minutes=duration,
                     status=status,
@@ -829,7 +834,7 @@ class Command(BaseCommand):
                     member=mem, plan=ph_yearly_plan,
                     start_date=today - timedelta(days=45),
                     end_date=today + timedelta(days=320),
-                    amount_paid=17999, defaults={"is_active": True},
+                    amount_paid=17999, defaults={"is_active": True, "organization": ph_org},
                 )
                 ph_all_members.append(mem)
 
@@ -843,6 +848,7 @@ class Command(BaseCommand):
                 member=mem, package=ph_pt_20, trainer=tr,
                 start_date=today - timedelta(days=15),
                 defaults=dict(
+                    organization=ph_org,
                     sessions_total=20, sessions_used=2, sessions_remaining=18,
                     end_date=today + timedelta(days=45), amount_paid=5500, is_active=True,
                 ),
@@ -853,6 +859,7 @@ class Command(BaseCommand):
                     pt_membership=ptm, member=mem, trainer=tr,
                     scheduled_date=sd, scheduled_time=time(8, 0),
                     defaults=dict(
+                        organization=ph_org,
                         branch=br, duration_minutes=60, status="completed",
                         progress_notes=f"Session {d+1} - Good progress.",
                         rating=5, completed_at=timezone.make_aware(datetime.combine(sd, time(8, 30))),

@@ -4,6 +4,7 @@ import type {
   AttendanceCode,
   AttendanceLog,
   AuditLogEntry,
+  BulkImportResult,
   DashboardData,
   GymOrganization,
   Member,
@@ -103,6 +104,22 @@ export function useHardDeleteMember() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["members"] });
+    },
+  });
+}
+
+export function useBulkImportMembers() {
+  const qc = useQueryClient();
+  return useMutation<BulkImportResult, unknown, FormData>({
+    mutationFn: async (formData: FormData) => {
+      const { data } = await apiClient.post("/members/import/", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["members"] });
+      window.__chalkBurst?.();
     },
   });
 }

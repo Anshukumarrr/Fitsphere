@@ -312,6 +312,20 @@ export interface Ticket {
   resolved_at: string | null;
 }
 
+export interface BulkImportResult {
+  total: number;
+  created: number;
+  skipped: number;
+  errors: BulkImportError[];
+}
+
+export interface BulkImportError {
+  row: number;
+  field: string;
+  value: string;
+  message: string;
+}
+
 export interface PlatformGymAnalytics {
   gym_id: number;
   gym_name: string;
