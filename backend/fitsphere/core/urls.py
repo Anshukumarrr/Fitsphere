@@ -16,4 +16,5 @@ urlpatterns = [
     path("users/", views.UserListView.as_view(), name="user-list"),
     path("users/<int:pk>/", views.UserDetailView.as_view(), name="user-detail"),
     path("receptionists/", views.ReceptionistListCreateView.as_view(), name="receptionist-list-create"),
+    path("test-whatsapp/", views.test_whatsapp, name="test-whatsapp"),
 ]
