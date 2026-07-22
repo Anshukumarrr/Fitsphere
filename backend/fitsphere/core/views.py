@@ -8,7 +8,6 @@ from django.core.mail import EmailMultiAlternatives
 from django.shortcuts import redirect
 from django.template.loader import render_to_string
 from rest_framework import generics, permissions, status
-from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle
 from rest_framework_simplejwt.exceptions import TokenError
@@ -393,16 +392,5 @@ class ReceptionistListCreateView(generics.ListCreateAPIView):
             logger.exception("Failed to send receptionist verification email")
 
 
-@api_view(["POST"])
-@permission_classes([permissions.AllowAny])
-def test_whatsapp(request):
-    from ..notifications.services import WhatsAppService
-    phone = request.data.get("phone", "")
-    if not phone:
-        return Response({"error": "phone required"}, status=400)
-    try:
-        WhatsAppService().send(recipient_phone=phone, message="Test WhatsApp from FitSphere! Your notifications are working.")
-        return Response({"status": "sent"})
-    except Exception as e:
-        return Response({"error": str(e)}, status=500)
+
 
