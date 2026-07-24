@@ -18,9 +18,10 @@ User = get_user_model()
 
 EXPECTED_COLUMNS = [
     "first_name", "last_name", "email", "phone",
-    "gender", "date_of_birth", "whatsapp_number",
+    "gender", "date_of_birth",
     "branch_name", "plan_name",
     "emergency_contact_name", "emergency_contact_phone", "health_notes",
+    "whatsapp_number",
 ]
 
 REQUIRED_COLUMNS = ["first_name", "last_name", "email"]
@@ -234,7 +235,6 @@ def _process_row(row, data, organization, created_by, default_branch,
     gender = _normalize_gender(data.get("gender", ""))
     dob = _parse_date(data.get("date_of_birth", ""))
     phone = data.get("phone", "")
-    whatsapp = data.get("whatsapp_number", "")
 
     branch_name_raw = data.get("branch_name", "")
     matched_branch = None
@@ -251,6 +251,7 @@ def _process_row(row, data, organization, created_by, default_branch,
     emergency_contact_name = data.get("emergency_contact_name", "")
     emergency_contact_phone = data.get("emergency_contact_phone", "")
     health_notes = data.get("health_notes", "")
+    whatsapp_number = data.get("whatsapp_number", "")
 
     email_sent = _send_welcome_email_sync(email, first_name, username, password)
     if not email_sent:
@@ -283,10 +284,10 @@ def _process_row(row, data, organization, created_by, default_branch,
                 created_by=created_by,
                 date_of_birth=dob,
                 gender=gender,
-                whatsapp_number=whatsapp,
                 emergency_contact_name=emergency_contact_name,
                 emergency_contact_phone=emergency_contact_phone,
                 health_notes=health_notes,
+                whatsapp_number=whatsapp_number,
                 membership_start_date=membership_start_date,
                 membership_end_date=membership_end_date,
             )

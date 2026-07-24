@@ -5,8 +5,6 @@ from django.db import models
 class NotificationTemplate(models.Model):
     class Channel(models.TextChoices):
         EMAIL = "email", "Email"
-        SMS = "sms", "SMS"
-        WHATSAPP = "whatsapp", "WhatsApp"
 
     class Event(models.TextChoices):
         MEMBERSHIP_EXPIRY = "membership_expiry", "Membership Expiry Reminder"
@@ -56,40 +54,6 @@ class EmailLog(models.Model):
     def __str__(self):
         return f"Email to {self.recipient} - {self.status}"
 
-
-class WhatsAppMessageLog(models.Model):
-    class Status(models.TextChoices):
-        PENDING = "pending", "Pending"
-        SENT = "sent", "Sent"
-        FAILED = "failed", "Failed"
-
-    organization = models.ForeignKey(
-        "organizations.GymOrganization",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="whatsapp_logs",
-    )
-    recipient_phone = models.CharField(max_length=20)
-    message = models.TextField()
-    status = models.CharField(max_length=10, choices=Status.choices, default=Status.PENDING)
-    event = models.CharField(max_length=50, blank=True)
-    error_message = models.TextField(blank=True)
-    sent_at = models.DateTimeField(null=True, blank=True)
-    retry_count = models.PositiveIntegerField(default=0)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        db_table = "whatsapp_message_logs"
-        indexes = [
-            models.Index(fields=["status"]),
-            models.Index(fields=["organization", "created_at"]),
-        ]
-
-    def __str__(self):
-        return f"WhatsApp to {self.recipient_phone} - {self.status}"
-
-
 class NotificationPreference(models.Model):
     organization = models.ForeignKey(
         "organizations.GymOrganization",
@@ -99,7 +63,7 @@ class NotificationPreference(models.Model):
     event = models.CharField(max_length=50, choices=NotificationTemplate.Event.choices)
     channel = models.CharField(
         max_length=10, choices=NotificationTemplate.Channel.choices,
-        default=NotificationTemplate.Channel.WHATSAPP,
+        default=NotificationTemplate.Channel.EMAIL,
     )
     enabled = models.BooleanField(default=True)
     reminder_days = models.IntegerField(

@@ -1,12 +1,11 @@
 from rest_framework import generics
 
 from ..core.permissions import IsGymOwnerOrAdmin, IsSuperAdmin
-from .models import EmailLog, NotificationPreference, NotificationTemplate, WhatsAppMessageLog
+from .models import EmailLog, NotificationPreference, NotificationTemplate
 from .serializers import (
     EmailLogSerializer,
     NotificationPreferenceSerializer,
     NotificationTemplateSerializer,
-    WhatsAppMessageLogSerializer,
 )
 
 
@@ -22,15 +21,6 @@ class EmailLogListView(generics.ListAPIView):
     permission_classes = (IsSuperAdmin,)
     filterset_fields = ("status", "recipient")
     ordering = ("-created_at",)
-
-
-class WhatsAppMessageLogListView(generics.ListAPIView):
-    queryset = WhatsAppMessageLog.objects.all()
-    serializer_class = WhatsAppMessageLogSerializer
-    permission_classes = (IsSuperAdmin,)
-    filterset_fields = ("status", "event")
-    ordering = ("-created_at",)
-
 
 class NotificationPreferenceListUpdateView(generics.ListCreateAPIView):
     permission_classes = (IsGymOwnerOrAdmin,)

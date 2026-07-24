@@ -919,33 +919,6 @@ class Command(BaseCommand):
         self.stdout.write("  [OK] Powerhouse audit logs created")
 
         # ── 17. Notification Templates & Preferences ──
-        wa_templates = [
-            ("Membership Expiry Reminder", "membership_expiry", "Hi {name}, your {plan} is expiring in {days} day(s) on {end_date}. Please renew to continue enjoying our services."),
-            ("Payment Due Reminder", "payment_due", "Hi {name}, payment of {amount} (Invoice: {invoice}) is due on {due_date}. Please pay at your earliest convenience."),
-            ("PT Session Reminder", "pt_session_reminder", "Hi {name}, you have a PT session with {trainer} on {date} at {time}. See you there!"),
-            ("Gym Announcement", "announcement", "Announcement: {message}"),
-            ("Staff Invite", "staff_invite", "Hi {name}, you have been invited to join {organization} as {role}. Welcome aboard!"),
-            ("Welcome", "welcome", "Welcome to {organization}, {name}! We are excited to have you with us."),
-        ]
-
-        for org in [fg_org, ph_org]:
-            for name, event, body in wa_templates:
-                NotificationTemplate.objects.get_or_create(
-                    event=event, channel="whatsapp",
-                    defaults=dict(
-                        name=name,
-                        body_template=body,
-                        subject="",
-                        channel="whatsapp",
-                        is_active=True,
-                    ),
-                )
-            for _, event, _ in wa_templates:
-                NotificationPreference.objects.get_or_create(
-                    organization=org, event=event, channel="whatsapp",
-                    defaults=dict(enabled=True),
-                )
-
         email_templates = [
             ("Welcome Email", "welcome", "Welcome to FitSphere!", "Hi {name},\n\nWelcome to {organization}! We are excited to have you on board.\n\nBest,\nFitSphere Team"),
             ("Staff Invite Email", "staff_invite", "You're invited to join {organization}", "Hi {name},\n\nYou have been invited to join {organization} as {role}. Please check your email to accept the invitation.\n\nBest,\nFitSphere Team"),

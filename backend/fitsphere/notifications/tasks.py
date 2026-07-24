@@ -4,22 +4,9 @@ from celery import shared_task
 from django.utils import timezone
 
 from .models import NotificationPreference, NotificationTemplate
-from .services import EmailService, WhatsAppService
+from .services import EmailService
 
 logger = logging.getLogger(__name__)
-
-
-@shared_task(bind=True, max_retries=3, default_retry_delay=60)
-def send_whatsapp(self, recipient_phone: str, message: str, event: str = "", organization_id: int | None = None):
-    from organizations.models import GymOrganization
-
-    org = None
-    if organization_id:
-        org = GymOrganization.objects.filter(id=organization_id).first()
-    service = WhatsAppService()
-    log = service.send(recipient_phone, message, event, org)
-    if log.status == "failed":
-        raise self.retry(exc=Exception(log.error_message or "WhatsApp send failed"))
 
 
 @shared_task(bind=True, max_retries=3, default_retry_delay=60)
@@ -32,7 +19,6 @@ def send_email(self, recipient: str, subject: str, body: str, html_body: str = "
 
 @shared_task
 def send_event_notification(
-    recipient_phone: str = "",
     recipient_email: str = "",
     event: str = "",
     context: dict | None = None,
@@ -56,11 +42,7 @@ def send_event_notification(
         if not prefs.exists():
             continue
 
-        if template.channel == "whatsapp" and recipient_phone:
-            wa_service = WhatsAppService()
-            wa_service.send_template(recipient_phone, template, context, org)
-
-        elif template.channel == "email" and recipient_email:
+        if template.channel == "email" and recipient_email:
             email_service = EmailService()
             email_service.send_template(recipient_email, template, context)
 
@@ -88,16 +70,14 @@ def check_membership_expiry():
             ).select_related("organization")
 
             for pref in prefs:
-                if pref.channel != "whatsapp":
+                if pref.channel != "email":
                     continue
                 member = mem.member
-                phone = member.whatsapp_number
-                if not phone:
-                    phone = member.user.phone
-                if not phone:
+                email = member.user.email
+                if not email:
                     continue
                 templates = NotificationTemplate.objects.filter(
-                    event="membership_expiry", channel="whatsapp", is_active=True
+                    event="membership_expiry", channel="email", is_active=True
                 )
                 for tmpl in templates:
                     msg = tmpl.body_template.format(
@@ -106,9 +86,9 @@ def check_membership_expiry():
                         end_date=mem.end_date,
                         days=days,
                     )
-                    send_whatsapp.delay(phone, msg, "membership_expiry", mem.organization_id)
+                    subject = tmpl.subject
+                    send_email.delay(email, subject, msg)
 
-    # Membership expired notification (end_date was yesterday)
     expired_date = now - timedelta(days=1)
     expired_memberships = MemberMembership.objects.filter(
         end_date=expired_date, is_active=True
@@ -122,16 +102,14 @@ def check_membership_expiry():
         ).select_related("organization")
 
         for pref in prefs:
-            if pref.channel != "whatsapp":
+            if pref.channel != "email":
                 continue
             member = mem.member
-            phone = member.whatsapp_number
-            if not phone:
-                phone = member.user.phone
-            if not phone:
+            email = member.user.email
+            if not email:
                 continue
             templates = NotificationTemplate.objects.filter(
-                event="membership_expired", channel="whatsapp", is_active=True
+                event="membership_expired", channel="email", is_active=True
             )
             for tmpl in templates:
                 msg = tmpl.body_template.format(
@@ -139,7 +117,8 @@ def check_membership_expiry():
                     plan=mem.plan.name if mem.plan else "Membership",
                     end_date=mem.end_date,
                 )
-                send_whatsapp.delay(phone, msg, "membership_expired", mem.organization_id)
+                subject = tmpl.subject
+                send_email.delay(email, subject, msg)
 
 
 @shared_task
@@ -164,16 +143,14 @@ def check_payment_due():
             ).select_related("organization")
 
             for pref in prefs:
-                if pref.channel != "whatsapp":
+                if pref.channel != "email":
                     continue
                 member = payment.member
-                phone = member.whatsapp_number
-                if not phone:
-                    phone = member.user.phone
-                if not phone:
+                email = member.user.email
+                if not email:
                     continue
                 templates = NotificationTemplate.objects.filter(
-                    event="payment_due", channel="whatsapp", is_active=True
+                    event="payment_due", channel="email", is_active=True
                 )
                 for tmpl in templates:
                     msg = tmpl.body_template.format(
@@ -182,7 +159,8 @@ def check_payment_due():
                         invoice=payment.invoice_number,
                         due_date=payment.paid_at.date() if payment.paid_at else "",
                     )
-                    send_whatsapp.delay(phone, msg, "payment_due", payment.organization_id)
+                    subject = tmpl.subject
+                    send_email.delay(email, subject, msg)
 
 
 @shared_task
@@ -206,16 +184,14 @@ def check_pt_session_reminder():
         )
 
         for pref in prefs:
-            if pref.channel != "whatsapp":
+            if pref.channel != "email":
                 continue
             member = session.member
-            phone = member.whatsapp_number
-            if not phone:
-                phone = member.user.phone
-            if not phone:
+            email = member.user.email
+            if not email:
                 continue
             templates = NotificationTemplate.objects.filter(
-                event="pt_session_reminder", channel="whatsapp", is_active=True
+                event="pt_session_reminder", channel="email", is_active=True
             )
             for tmpl in templates:
                 msg = tmpl.body_template.format(
@@ -224,4 +200,5 @@ def check_pt_session_reminder():
                     date=session.scheduled_date,
                     time=session.scheduled_time,
                 )
-                send_whatsapp.delay(phone, msg, "pt_session_reminder", session.organization_id)
+                subject = tmpl.subject
+                send_email.delay(email, subject, msg)

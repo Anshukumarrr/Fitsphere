@@ -11,7 +11,7 @@ from rest_framework.response import Response
 from .models import EmailVerificationToken
 from .permissions import IsGymOwnerOrAdmin, IsGymOwnerOrManager, get_staff_branch
 from .serializers import StaffCreateSerializer, StaffSerializer
-from ..notifications.services import EmailService, WhatsAppService
+from ..notifications.services import EmailService
 
 logger = logging.getLogger(__name__)
 
@@ -215,17 +215,6 @@ class StaffListCreateView(generics.ListCreateAPIView):
     # send_event_notification call when DB records are guaranteed
     def _send_welcome_notifications(self, profile):
         user = profile.user
-        org = getattr(user, "organization", None)
-        if user.phone:
-            try:
-                WhatsAppService().send(
-                    recipient_phone=user.phone,
-                    message=f"Welcome to FitSphere, {user.first_name or user.username}! We are excited to have you with us.",
-                    event="welcome",
-                    organization=org,
-                )
-            except Exception:
-                logger.exception("Failed to send WhatsApp welcome to staff %s", user.id)
         if user.email:
             try:
                 EmailService().send(

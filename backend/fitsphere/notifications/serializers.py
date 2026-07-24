@@ -4,7 +4,6 @@ from .models import (
     EmailLog,
     NotificationPreference,
     NotificationTemplate,
-    WhatsAppMessageLog,
 )
 
 
@@ -19,14 +18,6 @@ class EmailLogSerializer(serializers.ModelSerializer):
         model = EmailLog
         fields = "__all__"
         read_only_fields = ("id", "sent_at", "created_at")
-
-
-class WhatsAppMessageLogSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = WhatsAppMessageLog
-        fields = "__all__"
-        read_only_fields = ("id", "sent_at", "created_at")
-
 
 class NotificationPreferenceSerializer(serializers.ModelSerializer):
     class Meta:

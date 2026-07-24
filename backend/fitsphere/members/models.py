@@ -34,7 +34,6 @@ class Member(TenantAwareModel):
     )
     emergency_contact_name = models.CharField(max_length=255, blank=True)
     emergency_contact_phone = models.CharField(max_length=20, blank=True)
-    whatsapp_number = models.CharField(max_length=20, blank=True, help_text="Phone number for WhatsApp notifications")
     health_notes = models.TextField(blank=True)
     photo = models.ImageField(upload_to="member_photos/", blank=True, null=True)
     membership_status = models.CharField(
@@ -50,6 +49,10 @@ class Member(TenantAwareModel):
         null=True,
         blank=True,
         related_name="assigned_members",
+    )
+    whatsapp_number = models.CharField(
+        max_length=20, blank=True,
+        help_text="Phone number for WhatsApp notifications",
     )
     gym_code = models.CharField(max_length=10, blank=True)
     created_by = models.ForeignKey(

@@ -39,8 +39,6 @@ services:
       BREVO_API_KEY: ${BREVO_API_KEY:-}
       DEFAULT_FROM_EMAIL: ${DEFAULT_FROM_EMAIL:-FitSphere <noreply@fitsphere.app>}
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
-      OPENWA_URL: http://openwa:2785
-      OPENWA_API_KEY: ${OPENWA_API_KEY:-dev-admin-key}
       SECRET_KEY: ${SECRET_KEY:-dev-secret-key-change-in-production}
       DEBUG: "True"
       CORS_ALLOWED_ORIGINS: http://localhost:5173,http://localhost:3000
@@ -65,8 +63,6 @@ services:
       REDIS_URL: redis://redis:6379/1
       BREVO_API_KEY: ${BREVO_API_KEY:-}
       DEFAULT_FROM_EMAIL: ${DEFAULT_FROM_EMAIL:-FitSphere <noreply@fitsphere.app>}
-      OPENWA_URL: http://openwa:2785
-      OPENWA_API_KEY: ${OPENWA_API_KEY:-dev-admin-key}
       SECRET_KEY: ${SECRET_KEY:-dev-secret-key-change-in-production}
     depends_on:
       postgres:
@@ -89,8 +85,6 @@ services:
       REDIS_URL: redis://redis:6379/1
       BREVO_API_KEY: ${BREVO_API_KEY:-}
       DEFAULT_FROM_EMAIL: ${DEFAULT_FROM_EMAIL:-FitSphere <noreply@fitsphere.app>}
-      OPENWA_URL: http://openwa:2785
-      OPENWA_API_KEY: ${OPENWA_API_KEY:-dev-admin-key}
       SECRET_KEY: ${SECRET_KEY:-dev-secret-key-change-in-production}
     depends_on:
       postgres:
@@ -102,21 +96,8 @@ services:
     volumes:
       - ./backend:/app
 
-  openwa:
-    image: ghcr.io/rmyndharis/openwa:latest
-    ports:
-      - "2785:2785"
-    environment:
-      DATABASE_TYPE: sqlite
-      ENGINE_TYPE: whatsapp-web.js
-      API_MASTER_KEY: ${OPENWA_API_KEY:-dev-admin-key}
-      ALLOW_DEV_API_KEY: "true"
-    volumes:
-      - openwa_data:/app/data
-    restart: unless-stopped
 
 volumes:
   postgres_data:
   backend_static:
   backend_media:
-  openwa_data:
