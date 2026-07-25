@@ -178,7 +178,7 @@ export default function ProfilePage() {
                 <>
                   <Box sx={{ display: "flex", gap: 2 }}>
                     <TextField fullWidth label="Gender" value={profileFields.gender || ""} onChange={(e) => handleFieldChange("gender", e.target.value)} size="small" />
-                    <TextField fullWidth label="Date of Birth" type="date" value={profileFields.date_of_birth || ""} onChange={(e) => handleFieldChange("date_of_birth", e.target.value)} size="small" InputLabelProps={{ shrink: true }} />
+                    <TextField fullWidth label="Date of Birth" type="date" value={profileFields.date_of_birth || ""} onChange={(e) => handleFieldChange("date_of_birth", e.target.value)} size="small" slotProps={{ inputLabel: { shrink: true } }} />
                   </Box>
                   <TextField fullWidth label="Emergency Contact Name" value={profileFields.emergency_contact_name || ""} onChange={(e) => handleFieldChange("emergency_contact_name", e.target.value)} size="small" />
                   <TextField fullWidth label="Emergency Contact Phone" value={profileFields.emergency_contact_phone || ""} onChange={(e) => handleFieldChange("emergency_contact_phone", e.target.value)} size="small" />
