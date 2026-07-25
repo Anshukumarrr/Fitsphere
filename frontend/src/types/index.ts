@@ -13,6 +13,29 @@ export interface User {
   membership_plan: string | null;
   membership_expiry: string | null;
   member_branch_id: number | null;
+  profile: UserProfile;
+}
+
+export interface UserProfile {
+  specialization?: string;
+  bio?: string;
+  qualifications?: string;
+  years_of_experience?: number;
+  hourly_rate?: string | null;
+  max_members?: number;
+  branch_id?: number | null;
+  branch_name?: string | null;
+  active_member_count?: number;
+  gender?: string;
+  date_of_birth?: string | null;
+  emergency_contact_name?: string;
+  emergency_contact_phone?: string;
+  health_notes?: string;
+  assigned_trainer?: number | null;
+  gym_code?: string;
+  membership_status?: string;
+  membership_start_date?: string | null;
+  membership_end_date?: string | null;
 }
 
 export type UserRole =

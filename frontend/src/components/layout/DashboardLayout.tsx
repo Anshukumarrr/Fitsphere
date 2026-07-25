@@ -1,6 +1,5 @@
 import {
   AppBar,
-  Avatar,
   Box,
   Divider,
   Drawer,
@@ -33,6 +32,7 @@ import {
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "../../hooks/useAuth";
+import UserAvatar from "../UserAvatar";
 
 const drawerWidth = 250;
 
@@ -54,7 +54,7 @@ const navItems = [
   { label: "My Attendance", icon: <CalendarMonth />, path: "/my-attendance", roles: ["member", "security", "cleaner", "maintenance"] },
   { label: "My Sessions", icon: <Group />, path: "/my-sessions", roles: ["member"] },
   { label: "My Payments", icon: <MonetizationOn />, path: "/my-payments", roles: ["member"] },
-  { label: "My Profile", icon: <People />, path: "/profile", roles: ["member"] },
+  { label: "My Profile", icon: <People />, path: "/profile", roles: ["member", "trainer", "receptionist", "cleaner", "manager", "security", "instructor", "maintenance", "gym_owner", "super_admin"] },
 ];
 
 export default function DashboardLayout() {
@@ -175,9 +175,7 @@ export default function DashboardLayout() {
           gap: 1.5,
         }}
       >
-        <Avatar sx={{ width: 32, height: 32, bgcolor: "#2A2D2B", fontSize: 11, fontWeight: 600, border: "1px solid rgba(107,111,108,0.15)" }}>
-          {user?.first_name?.[0]?.toUpperCase() || "U"}
-        </Avatar>
+        <UserAvatar firstName={user?.first_name} size={32} />
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Typography variant="body2" sx={{ fontWeight: 500, fontSize: "0.75rem", color: "#E8E3D8", fontFamily: '"Inter", sans-serif', overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
             {user?.first_name} {user?.last_name}
@@ -215,9 +213,7 @@ export default function DashboardLayout() {
               : ""}
           </Typography>
           <IconButton onClick={(e) => setAnchorEl(e.currentTarget)} size="small">
-            <Avatar sx={{ width: 32, height: 32, bgcolor: "#2A2D2B", fontWeight: 600, fontSize: 11, border: "1px solid rgba(107,111,108,0.15)" }}>
-              {user?.first_name?.[0]?.toUpperCase() || "U"}
-            </Avatar>
+            <UserAvatar firstName={user?.first_name} size={32} />
           </IconButton>
           <Menu
             anchorEl={anchorEl}

@@ -16,6 +16,7 @@ class UserSerializer(serializers.ModelSerializer):
     membership_plan = serializers.SerializerMethodField()
     membership_expiry = serializers.SerializerMethodField()
     member_branch_id = serializers.SerializerMethodField()
+    profile = serializers.JSONField(write_only=True, required=False)
 
     class Meta:
         model = User
@@ -34,9 +35,9 @@ class UserSerializer(serializers.ModelSerializer):
             "membership_expiry",
             "member_branch_id",
             "organization",
+            "profile",
         )
         read_only_fields = ("id", "role", "is_active")
-
 
     def get_gym_code(self, obj):
         profile = getattr(obj, "member_profile", None)
@@ -56,6 +57,78 @@ class UserSerializer(serializers.ModelSerializer):
     def get_member_branch_id(self, obj):
         profile = getattr(obj, "member_profile", None)
         return profile.branch_id if profile else None
+
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        ret["profile"] = self._build_profile(instance)
+        return ret
+
+    def _build_profile(self, obj):
+        if obj.role == "trainer":
+            t = getattr(obj, "trainer_profile", None)
+            if t:
+                return {
+                    "specialization": t.specialization,
+                    "bio": t.bio,
+                    "qualifications": t.qualifications,
+                    "years_of_experience": t.years_of_experience,
+                    "hourly_rate": str(t.hourly_rate) if t.hourly_rate else None,
+                    "max_members": t.max_members,
+                    "branch_id": t.branch_id,
+                    "branch_name": t.branch.name if t.branch else None,
+                    "active_member_count": getattr(t, "active_member_count", None),
+                }
+        if obj.role == "member":
+            m = getattr(obj, "member_profile", None)
+            if m:
+                return {
+                    "gender": m.gender,
+                    "date_of_birth": str(m.date_of_birth) if m.date_of_birth else None,
+                    "emergency_contact_name": m.emergency_contact_name,
+                    "emergency_contact_phone": m.emergency_contact_phone,
+                    "health_notes": m.health_notes,
+                    "assigned_trainer": m.assigned_trainer_id,
+                    "branch_id": m.branch_id,
+                    "branch_name": m.branch.name if m.branch else None,
+                    "gym_code": m.gym_code,
+                    "membership_status": m.membership_status,
+                    "membership_start_date": str(m.membership_start_date) if m.membership_start_date else None,
+                    "membership_end_date": str(m.membership_end_date) if m.membership_end_date else None,
+                }
+        staff_roles = {"receptionist", "cleaner", "manager", "security", "instructor", "maintenance"}
+        if obj.role in staff_roles:
+            p = getattr(obj, f"{obj.role}_profile", None)
+            if p:
+                return {
+                    "branch_id": p.branch_id,
+                    "branch_name": p.branch.name if p.branch else None,
+                }
+        return {}
+
+    def update(self, instance, validated_data):
+        profile_data = validated_data.pop("profile", None)
+        instance = super().update(instance, validated_data)
+        if profile_data:
+            self._apply_profile(instance, profile_data)
+        return instance
+
+    def _apply_profile(self, user, data):
+        if user.role == "trainer":
+            t = getattr(user, "trainer_profile", None)
+            if t:
+                allowed = ["specialization", "bio", "qualifications", "years_of_experience", "hourly_rate", "max_members"]
+                for field in allowed:
+                    if field in data:
+                        setattr(t, field, data[field])
+                t.save(update_fields=allowed)
+        elif user.role == "member":
+            m = getattr(user, "member_profile", None)
+            if m:
+                allowed = ["gender", "date_of_birth", "emergency_contact_name", "emergency_contact_phone", "health_notes"]
+                for field in allowed:
+                    if field in data:
+                        setattr(m, field, data[field])
+                m.save(update_fields=allowed)
 
 
 class GymOrganizationSerializer(serializers.Serializer):

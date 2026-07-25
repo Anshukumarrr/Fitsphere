@@ -18,6 +18,7 @@ import type {
   SubscriptionPlan,
   Ticket,
   Trainer,
+  User,
 } from "../types";
 
 const orgId = () => {
@@ -474,5 +475,20 @@ export function useAvailableTrainers(branchId?: number | null) {
       return data;
     },
     enabled: !!branchId,
+  });
+}
+
+// --- Profile hooks ---
+
+export function useUpdateProfile() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (profileData: Record<string, unknown>) => {
+      const { data } = await apiClient.patch("/auth/me/", profileData);
+      return data as User;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["auth"] });
+    },
   });
 }

@@ -19,7 +19,7 @@ const BillingPlansPage = lazy(() => import("./features/billing/BillingPlansPage"
 const NotificationSettingsPage = lazy(() => import("./features/notifications/NotificationSettingsPage"));
 const AuditLogPage = lazy(() => import("./features/audit/AuditLogPage"));
 const ExerciseExplorerPage = lazy(() => import("./features/exercises/ExerciseExplorerPage"));
-const MyProfilePage = lazy(() => import("./features/member/MyProfilePage"));
+const ProfilePage = lazy(() => import("./features/profile/ProfilePage"));
 const MySessionsPage = lazy(() => import("./features/member/MySessionsPage"));
 const MyPaymentsPage = lazy(() => import("./features/member/MyPaymentsPage"));
 
@@ -134,10 +134,10 @@ const notificationsRoute = new Route({
   component: NotificationSettingsPage,
 });
 
-const memberProfileRoute = new Route({
+const profileRoute = new Route({
   getParentRoute: () => dashboardLayoutRoute,
   path: "/profile",
-  component: MyProfilePage,
+  component: ProfilePage,
 });
 
 const memberSessionsRoute = new Route({
@@ -181,7 +181,7 @@ const routeTree = rootRoute.addChildren([
     analyticsRoute,
     billingRoute,
     notificationsRoute,
-    memberProfileRoute,
+    profileRoute,
     memberSessionsRoute,
     memberPaymentsRoute,
     auditRoute,
