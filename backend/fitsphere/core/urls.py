@@ -13,6 +13,7 @@ urlpatterns = [
     path("logout/", views.LogoutView.as_view(), name="auth-logout"),
     path("refresh/", TokenRefreshView.as_view(), name="auth-refresh"),
     path("me/", views.CurrentUserView.as_view(), name="auth-me"),
+    path("change-password/", views.ChangePasswordView.as_view(), name="auth-change-password"),
     path("users/", views.UserListView.as_view(), name="user-list"),
     path("users/<int:pk>/", views.UserDetailView.as_view(), name="user-detail"),
     path("receptionists/", views.ReceptionistListCreateView.as_view(), name="receptionist-list-create"),

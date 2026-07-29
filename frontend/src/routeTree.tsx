@@ -5,6 +5,8 @@ import DashboardLayout from "./components/layout/DashboardLayout";
 const LandingPage = lazy(() => import("./features/landing/LandingPage"));
 const LoginPage = lazy(() => import("./features/auth/LoginPage"));
 const RegisterPage = lazy(() => import("./features/auth/RegisterPage"));
+const ForgotPasswordPage = lazy(() => import("./features/auth/ForgotPasswordPage"));
+const ResetPasswordPage = lazy(() => import("./features/auth/ResetPasswordPage"));
 const DashboardPage = lazy(() => import("./features/analytics/DashboardPage"));
 const AnalyticsPage = lazy(() => import("./features/analytics/AnalyticsPage"));
 const AllMembersPage = lazy(() => import("./features/members/AllMembersPage"));
@@ -22,6 +24,8 @@ const ExerciseExplorerPage = lazy(() => import("./features/exercises/ExerciseExp
 const ProfilePage = lazy(() => import("./features/profile/ProfilePage"));
 const MySessionsPage = lazy(() => import("./features/member/MySessionsPage"));
 const MyPaymentsPage = lazy(() => import("./features/member/MyPaymentsPage"));
+const PaymentReceiptPage = lazy(() => import("./features/member/PaymentReceiptPage"));
+const RenewMembershipPage = lazy(() => import("./features/member/RenewMembershipPage"));
 
 const rootRoute = new RootRoute();
 
@@ -41,6 +45,18 @@ const registerRoute = new Route({
   getParentRoute: () => rootRoute,
   path: "/register",
   component: RegisterPage,
+});
+
+const forgotPasswordRoute = new Route({
+  getParentRoute: () => rootRoute,
+  path: "/forgot-password",
+  component: ForgotPasswordPage,
+});
+
+const resetPasswordRoute = new Route({
+  getParentRoute: () => rootRoute,
+  path: "/reset-password",
+  component: ResetPasswordPage,
 });
 
 const dashboardLayoutRoute = new Route({
@@ -152,6 +168,12 @@ const memberPaymentsRoute = new Route({
   component: MyPaymentsPage,
 });
 
+const paymentReceiptRoute = new Route({
+  getParentRoute: () => dashboardLayoutRoute,
+  path: "/my-payments/$paymentId/receipt",
+  component: PaymentReceiptPage,
+});
+
 const auditRoute = new Route({
   getParentRoute: () => dashboardLayoutRoute,
   path: "/audit",
@@ -164,10 +186,18 @@ const exercisesRoute = new Route({
   component: ExerciseExplorerPage,
 });
 
+const renewRoute = new Route({
+  getParentRoute: () => dashboardLayoutRoute,
+  path: "/renew/$membershipId",
+  component: RenewMembershipPage,
+});
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   loginRoute,
   registerRoute,
+  forgotPasswordRoute,
+  resetPasswordRoute,
   dashboardLayoutRoute.addChildren([
     dashboardIndexRoute,
     membersRoute,
@@ -184,8 +214,10 @@ const routeTree = rootRoute.addChildren([
     profileRoute,
     memberSessionsRoute,
     memberPaymentsRoute,
+    paymentReceiptRoute,
     auditRoute,
     exercisesRoute,
+    renewRoute,
   ]),
 ]);
 

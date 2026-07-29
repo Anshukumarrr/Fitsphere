@@ -1,20 +1,29 @@
 import {
-  Box, Card, CardContent, Typography, TextField, Button, Grid, Chip,
+  Alert, Box, Card, CardContent, Typography, TextField, Button, Grid, Chip,
 } from "@mui/material";
+import { Link } from "@tanstack/react-router";
 import { useAuth } from "../../hooks/useAuth";
-import { useUpdateProfile } from "../../hooks/useApi";
+import { useChangePassword, useUpdateProfile } from "../../hooks/useApi";
 import { useEffect, useState } from "react";
 import UserAvatar from "../../components/UserAvatar";
 
 export default function ProfilePage() {
   const { user, refetchUser } = useAuth();
   const updateProfile = useUpdateProfile();
+  const changePassword = useChangePassword();
 
   const [editing, setEditing] = useState(false);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [phone, setPhone] = useState("");
   const [profileFields, setProfileFields] = useState<Record<string, string>>({});
+
+  const [pwOpen, setPwOpen] = useState(false);
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [pwError, setPwError] = useState("");
+  const [pwSuccess, setPwSuccess] = useState("");
 
   useEffect(() => {
     if (user) {
@@ -54,6 +63,37 @@ export default function ProfilePage() {
     await updateProfile.mutateAsync(payload);
     await refetchUser();
     setEditing(false);
+  };
+
+  const handleChangePassword = async () => {
+    setPwError("");
+    setPwSuccess("");
+    if (!oldPassword || !newPassword || !confirmPassword) {
+      setPwError("All fields are required.");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPwError("New passwords don't match.");
+      return;
+    }
+    if (newPassword.length < 6) {
+      setPwError("New password must be at least 6 characters.");
+      return;
+    }
+    try {
+      await changePassword.mutateAsync({ old_password: oldPassword, new_password: newPassword });
+      setPwSuccess("Password changed successfully.");
+      setOldPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setPwOpen(false);
+    } catch (err: unknown) {
+      const msg =
+        err && typeof err === "object" && "response" in err
+          ? (err as { response: { data: { detail?: string } } }).response?.data?.detail || "Failed to change password."
+          : "Failed to change password.";
+      setPwError(msg);
+    }
   };
 
   return (
@@ -206,6 +246,51 @@ export default function ProfilePage() {
         </Card>
       )}
 
+      <Card sx={{ mb: 3, bgcolor: "#0B0D0C", border: "1px solid #2A2D2B" }}>
+        <CardContent sx={{ py: 3 }}>
+          <Typography variant="h6" sx={{ fontFamily: '"Anton", sans-serif', fontSize: "0.8rem", letterSpacing: "0.08em", color: "#6B6F6C", mb: 2 }}>
+            Change Password
+          </Typography>
+
+          {pwSuccess && (
+            <Alert severity="success" sx={{ mb: 2, backgroundColor: "rgba(212,255,63,0.1)", border: "1px solid rgba(212,255,63,0.3)", color: "#D4FF3F" }}>
+              {pwSuccess}
+            </Alert>
+          )}
+
+          {!pwOpen ? (
+            <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+              <Button variant="outlined" onClick={() => setPwOpen(true)} sx={{ borderColor: "#2A2D2B", color: "#E8E3D8" }}>
+                Change Password
+              </Button>
+              <Typography variant="body2" sx={{ color: "#6B6F6C" }}>
+                <Link to="/forgot-password" style={{ color: "#6B6F6C" }}>
+                  Forgot your password?
+                </Link>
+              </Typography>
+            </Box>
+          ) : (
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+              {pwError && (
+                <Alert severity="error" sx={{ backgroundColor: "rgba(255,75,62,0.1)", border: "1px solid rgba(255,75,62,0.3)", color: "#FF4B3E" }}>
+                  {pwError}
+                </Alert>
+              )}
+              <TextField fullWidth label="Current Password" type="password" value={oldPassword} onChange={(e) => setOldPassword(e.target.value)} size="small" />
+              <TextField fullWidth label="New Password" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} size="small" />
+              <TextField fullWidth label="Confirm New Password" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} size="small" />
+              <Box sx={{ display: "flex", gap: 1, justifyContent: "flex-end" }}>
+                <Button variant="outlined" onClick={() => { setPwOpen(false); setPwError(""); }} sx={{ borderColor: "#2A2D2B", color: "#6B6F6C" }}>
+                  Cancel
+                </Button>
+                <Button variant="contained" onClick={handleChangePassword} disabled={changePassword.isPending} sx={{ bgcolor: "#D4FF3F", color: "#0A0A0A", fontWeight: 600 }}>
+                  {changePassword.isPending ? "Saving..." : "Save"}
+                </Button>
+              </Box>
+            </Box>
+          )}
+        </CardContent>
+      </Card>
 
     </Box>
   );

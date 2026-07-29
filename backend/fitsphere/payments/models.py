@@ -25,6 +25,10 @@ class Payment(TenantAwareModel):
         FAILED = "failed", "Failed"
         REFUNDED = "refunded", "Refunded"
 
+    class Gateway(models.TextChoices):
+        MANUAL = "manual", "Manual"
+        RAZORPAY = "razorpay", "Razorpay"
+
     member = models.ForeignKey(
         "members.Member",
         on_delete=models.CASCADE,
@@ -54,6 +58,12 @@ class Payment(TenantAwareModel):
         max_length=255, blank=True,
         help_text="External payment gateway reference"
     )
+    gateway = models.CharField(
+        max_length=20, choices=Gateway.choices, default=Gateway.MANUAL
+    )
+    gateway_order_id = models.CharField(max_length=100, blank=True, db_index=True)
+    gateway_payment_id = models.CharField(max_length=100, blank=True)
+    gateway_signature = models.CharField(max_length=255, blank=True)
     received_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,

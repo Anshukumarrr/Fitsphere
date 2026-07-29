@@ -24,6 +24,10 @@ class PaymentSerializer(serializers.ModelSerializer):
             "invoice_number",
             "description",
             "reference_id",
+            "gateway",
+            "gateway_order_id",
+            "gateway_payment_id",
+            "gateway_signature",
             "received_by",
             "paid_at",
             "created_at",
@@ -38,6 +42,10 @@ class PaymentSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
             "organization",
+            "gateway",
+            "gateway_order_id",
+            "gateway_payment_id",
+            "gateway_signature",
         )
 
 

@@ -13,6 +13,7 @@ import type {
   PaginatedResponse,
   Payment,
   PlatformGymAnalytics,
+  PTPackage,
   PTSession,
   Staff,
   SubscriptionPlan,
@@ -125,6 +126,17 @@ export function useBulkImportMembers() {
   });
 }
 
+export function useMyMembership(id?: number) {
+  return useQuery<MemberMembership>({
+    queryKey: ["my-membership", id],
+    queryFn: async () => {
+      const { data } = await apiClient.get(`/memberships/my-memberships/${id}/`);
+      return data;
+    },
+    enabled: !!id,
+  });
+}
+
 export function useMembershipPlans(params?: Record<string, string>) {
   return useQuery<PaginatedResponse<MembershipPlan>>({
     queryKey: ["membership-plans", params],
@@ -196,6 +208,16 @@ export function useAttendanceLogs(params?: Record<string, string>) {
     queryKey: ["attendance", params],
     queryFn: async () => {
       const { data } = await apiClient.get("/attendance/logs/", { params });
+      return data;
+    },
+  });
+}
+
+export function usePTPackages(params?: Record<string, string>) {
+  return useQuery<PaginatedResponse<PTPackage>>({
+    queryKey: ["pt-packages", params],
+    queryFn: async () => {
+      const { data } = await apiClient.get("/personal-training/packages/", { params });
       return data;
     },
   });
@@ -400,6 +422,17 @@ export function useMyPayments(params?: Record<string, string>) {
   });
 }
 
+export function useMyPayment(id?: number) {
+  return useQuery<Payment>({
+    queryKey: ["my-payments", id],
+    queryFn: async () => {
+      const { data } = await apiClient.get(`/payments/${id}/`);
+      return data;
+    },
+    enabled: !!id,
+  });
+}
+
 // --- Ticket hooks ---
 
 export function useTickets(params?: Record<string, string>) {
@@ -475,6 +508,64 @@ export function useAvailableTrainers(branchId?: number | null) {
       return data;
     },
     enabled: !!branchId,
+  });
+}
+
+// --- Razorpay hooks ---
+
+export function useCreateRazorpayOrder() {
+  return useMutation({
+      mutationFn: async (payload: { purchase_type: string; item_id: number; plan_id?: number }) => {
+      const { data } = await apiClient.post("/payments/razorpay/create-order/", payload);
+      return data as { order_id: string; amount: number; currency: string; key: string; payment_id: number };
+    },
+  });
+}
+
+export function useVerifyRazorpayPayment() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload: {
+      payment_id: number;
+      razorpay_order_id: string;
+      razorpay_payment_id: string;
+      razorpay_signature: string;
+    }) => {
+      const { data } = await apiClient.post("/payments/razorpay/verify/", payload);
+      return data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["my-payments"] }),
+  });
+}
+
+// --- Password Reset hooks ---
+
+export function useForgotPassword() {
+  return useMutation({
+    mutationFn: async (email: string) => {
+      const { data } = await apiClient.post("/auth/password-reset/", { email });
+      return data;
+    },
+  });
+}
+
+export function useResetPassword() {
+  return useMutation({
+    mutationFn: async (payload: { token: string; uid: string; password: string }) => {
+      const { data } = await apiClient.post("/auth/password-reset/confirm/", payload);
+      return data;
+    },
+  });
+}
+
+// --- Change Password hook ---
+
+export function useChangePassword() {
+  return useMutation({
+    mutationFn: async (payload: { old_password: string; new_password: string }) => {
+      const { data } = await apiClient.post("/auth/change-password/", payload);
+      return data;
+    },
   });
 }
 

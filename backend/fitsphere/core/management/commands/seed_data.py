@@ -922,6 +922,10 @@ class Command(BaseCommand):
         email_templates = [
             ("Welcome Email", "welcome", "Welcome to FitSphere!", "Hi {name},\n\nWelcome to {organization}! We are excited to have you on board.\n\nBest,\nFitSphere Team"),
             ("Staff Invite Email", "staff_invite", "You're invited to join {organization}", "Hi {name},\n\nYou have been invited to join {organization} as {role}. Please check your email to accept the invitation.\n\nBest,\nFitSphere Team"),
+            ("Membership Expiry Reminder", "membership_expiry", "Membership Expiring Soon", "Hi {name},\n\nYour {plan} membership at {organization} is expiring in {days} day(s) on {end_date}. Please renew to continue enjoying our services.\n\nBest,\nFitSphere Team"),
+            ("Membership Expired", "membership_expired", "Membership Expired", "Hi {name},\n\nYour {plan} membership at {organization} expired on {end_date}. Renew now to reactivate your access.\n\nBest,\nFitSphere Team"),
+            ("Payment Due Reminder", "payment_due", "Payment Due Soon", "Hi {name},\n\nThis is a reminder that your payment of ₹{amount} (Invoice: {invoice}) is due on {due_date}. Please make the payment to avoid any disruption.\n\nBest,\nFitSphere Team"),
+            ("PT Session Reminder", "pt_session_reminder", "PT Session Tomorrow", "Hi {name},\n\nThis is a reminder that you have a personal training session with {trainer} on {date} at {time}. Please be on time.\n\nBest,\nFitSphere Team"),
         ]
         for org in [fg_org, ph_org]:
             for name, event, subject, body in email_templates:

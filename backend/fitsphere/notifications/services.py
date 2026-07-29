@@ -10,6 +10,8 @@ logger = logging.getLogger(__name__)
 
 
 class EmailService:
+    MAX_RETRIES = 3
+
     def send(self, recipient: str, subject: str, body: str, html_body: str = "") -> EmailLog:
         log = EmailLog.objects.create(
             recipient=recipient,
@@ -17,23 +19,32 @@ class EmailService:
             body=body,
             status=EmailLog.Status.PENDING,
         )
-        try:
-            send_mail(
-                subject=subject,
-                message=body,
-                html_message=html_body or None,
-                from_email=None,
-                recipient_list=[recipient],
-                fail_silently=False,
-            )
-            log.status = EmailLog.Status.SENT
-            log.sent_at = timezone.now()
-            log.save(update_fields=["status", "sent_at"])
-        except Exception as e:
-            logger.exception("Email send failed to %s", recipient)
-            log.status = EmailLog.Status.FAILED
-            log.error_message = str(e)
-            log.save(update_fields=["status", "error_message"])
+        last_exception = None
+        for attempt in range(self.MAX_RETRIES):
+            try:
+                send_mail(
+                    subject=subject,
+                    message=body,
+                    html_message=html_body or None,
+                    from_email=None,
+                    recipient_list=[recipient],
+                    fail_silently=False,
+                )
+                log.status = EmailLog.Status.SENT
+                log.sent_at = timezone.now()
+                log.save(update_fields=["status", "sent_at"])
+                return log
+            except Exception as e:
+                last_exception = e
+                log.retry_count = attempt + 1
+                log.save(update_fields=["retry_count"])
+                if attempt < self.MAX_RETRIES - 1:
+                    import time
+                    time.sleep(2 ** attempt)
+        logger.exception("Email send failed to %s after %d retries", recipient, self.MAX_RETRIES)
+        log.status = EmailLog.Status.FAILED
+        log.error_message = str(last_exception)
+        log.save(update_fields=["status", "error_message", "retry_count"])
         return log
 
     def send_template(self, recipient: str, template: NotificationTemplate, context: dict) -> EmailLog:
@@ -42,6 +53,6 @@ class EmailService:
         html_body = ""
         try:
             html_body = render_to_string(f"emails/{template.event}.html", context)
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning("Failed to render HTML template for %s: %s", template.event, e)
         return self.send(recipient, subject, body, html_body)

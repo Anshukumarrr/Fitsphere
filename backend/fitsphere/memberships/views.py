@@ -1,6 +1,6 @@
 from rest_framework import generics, permissions
 
-from ..core.permissions import IsGymOwnerOrAdmin, IsStaff
+from ..core.permissions import IsGymOwnerOrAdmin, IsMember, IsStaff
 from .models import MembershipPlan, MemberMembership
 from .serializers import MembershipPlanSerializer, MemberMembershipSerializer
 
@@ -8,11 +8,12 @@ from .serializers import MembershipPlanSerializer, MemberMembershipSerializer
 class MembershipPlanListCreateView(generics.ListCreateAPIView):
     permission_classes = (IsStaff,)
     serializer_class = MembershipPlanSerializer
+    filterset_fields = ["is_active"]
 
     def get_permissions(self):
         if self.request.method == "POST":
             return [permission() for permission in (IsGymOwnerOrAdmin,)]
-        return [permission() for permission in self.permission_classes]
+        return [permission() for permission in (IsStaff | IsMember,)]
 
     def get_queryset(self):
         user = self.request.user
@@ -85,3 +86,17 @@ class ActiveMembershipByMemberView(generics.ListAPIView):
             is_active=True,
             organization=user.organization,
         )
+
+
+class MyMembershipDetailView(generics.RetrieveAPIView):
+    serializer_class = MemberMembershipSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get_queryset(self):
+        user = self.request.user
+        member = getattr(user, "member_profile", None)
+        if not member:
+            return MemberMembership.objects.none()
+        if user.role == "super_admin":
+            return MemberMembership.objects.all()
+        return MemberMembership.objects.filter(member=member, organization=user.organization)

@@ -145,10 +145,15 @@ export default function LoginPage() {
               color="primary"
               size="large"
               disabled={isSubmitting}
-              sx={{ mt: 3, mb: 2, py: 1.5 }}
+              sx={{ mt: 3, mb: 1, py: 1.5 }}
             >
               {isSubmitting ? "PUSHING HARD..." : "LET'S GO"}
             </Button>
+            <Box sx={{ textAlign: "right", mb: 1 }}>
+              <Link to="/forgot-password" style={{ color: "#6B6F6C", fontSize: "0.8rem", textDecoration: "none" }}>
+                Forgot Password?
+              </Link>
+            </Box>
           </form>
 
           <Typography variant="body2" sx={{ textAlign: "center", color: "#6B6F6C" }}>

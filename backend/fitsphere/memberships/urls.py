@@ -24,4 +24,9 @@ urlpatterns = [
         views.ActiveMembershipByMemberView.as_view(),
         name="member-active-membership",
     ),
+    path(
+        "my-memberships/<int:pk>/",
+        views.MyMembershipDetailView.as_view(),
+        name="my-membership-detail",
+    ),
 ]

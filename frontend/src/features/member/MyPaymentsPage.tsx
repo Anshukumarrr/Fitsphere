@@ -1,30 +1,59 @@
 import { useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import {
   Box,
+  Button,
   Card,
   Chip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  IconButton,
+  List,
+  ListItemButton,
+  ListItemText,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
+  Tooltip,
   Typography,
 } from "@mui/material";
-import { useMyPayments } from "../../hooks/useApi";
+import { Receipt } from "@mui/icons-material";
+import { useMyPayments, useMembershipPlans, usePTPackages } from "../../hooks/useApi";
 import PaginationBar from "../../components/common/PaginationBar";
+import RazorpayCheckoutButton from "./RazorpayCheckoutButton";
+
+type DialogType = "membership_plan" | "pt_package" | null;
 
 export default function MyPaymentsPage() {
+  const navigate = useNavigate();
   const [page, setPage] = useState(1);
+  const [dialog, setDialog] = useState<DialogType>(null);
   const params: Record<string, string> = {};
   if (page > 1) params.page = String(page);
   const { data, isLoading } = useMyPayments(params);
+  const { data: planData } = useMembershipPlans({ is_active: "true" });
+  const { data: pkgData } = usePTPackages({ is_active: "true" });
+  const plans = planData?.results ?? [];
+  const packages = pkgData?.results ?? [];
+  const items = dialog === "membership_plan" ? plans : packages;
 
   return (
     <Box>
-      <Typography variant="h5" sx={{ mb: 3 }}>
-        My Payment History
-      </Typography>
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
+        <Typography variant="h5">My Payment History</Typography>
+        <Box sx={{ display: "flex", gap: 2 }}>
+          <Button variant="outlined" onClick={() => setDialog("membership_plan")}>
+            Buy Membership
+          </Button>
+          <Button variant="outlined" onClick={() => setDialog("pt_package")}>
+            Buy PT Package
+          </Button>
+        </Box>
+      </Box>
 
       <Card>
         <TableContainer>
@@ -37,16 +66,17 @@ export default function MyPaymentsPage() {
                 <TableCell>Amount</TableCell>
                 <TableCell>Method</TableCell>
                 <TableCell>Status</TableCell>
+                <TableCell align="center">Receipt</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={6} align="center">Loading...</TableCell>
+                  <TableCell colSpan={7} align="center">Loading...</TableCell>
                 </TableRow>
               ) : data?.results?.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} align="center" sx={{ color: "#6B6F6C", fontStyle: "italic" }}>
+                  <TableCell colSpan={7} align="center" sx={{ color: "#6B6F6C", fontStyle: "italic" }}>
                     No payments yet.
                   </TableCell>
                 </TableRow>
@@ -77,6 +107,13 @@ export default function MyPaymentsPage() {
                         size="small"
                       />
                     </TableCell>
+                    <TableCell align="center">
+                      <Tooltip title="View / Print Receipt">
+                        <IconButton size="small" onClick={() => navigate({ to: "/my-payments/$paymentId/receipt", params: { paymentId: String(payment.id) } })}>
+                          <Receipt fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    </TableCell>
                   </TableRow>
                 ))
               )}
@@ -85,6 +122,39 @@ export default function MyPaymentsPage() {
         </TableContainer>
         {data && <PaginationBar count={data.count} page={page} onChange={(_, v) => setPage(v)} />}
       </Card>
+
+      <Dialog open={!!dialog} onClose={() => setDialog(null)} maxWidth="xs" fullWidth>
+        <DialogTitle>
+          {dialog === "membership_plan" ? "Choose a Membership Plan" : "Choose a PT Package"}
+        </DialogTitle>
+        <DialogContent>
+          {items.length === 0 ? (
+            <Typography sx={{ py: 2, textAlign: "center", color: "#6B6F6C" }}>
+              No items available.
+            </Typography>
+          ) : (
+            <List>
+              {items.map((item: any) => (
+                <ListItemButton key={item.id} sx={{ borderRadius: 1, mb: 1 }}>
+                  <ListItemText
+                    primary={item.name}
+                    secondary={`₹${Number(item.price).toLocaleString()} — ${dialog === "membership_plan" ? `${item.duration_days} days` : `${item.number_of_sessions} sessions`}`}
+                  />
+                  <RazorpayCheckoutButton
+                    purchaseType={dialog!}
+                    itemId={item.id}
+                    amount={Number(item.price)}
+                    onSuccess={(paymentId) => {
+                      setDialog(null);
+                      navigate({ to: "/my-payments/$paymentId/receipt", params: { paymentId: String(paymentId) } });
+                    }}
+                  />
+                </ListItemButton>
+              ))}
+            </List>
+          )}
+        </DialogContent>
+      </Dialog>
     </Box>
   );
 }

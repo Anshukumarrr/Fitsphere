@@ -153,7 +153,9 @@ class PasswordResetRequestView(generics.GenericAPIView):
             )
 
         token = secrets.token_urlsafe(32)
-        PasswordResetToken.objects.create(user=user, token=token)
+        PasswordResetToken.objects.update_or_create(
+            user=user, defaults={"token": token, "is_used": False}
+        )
 
         reset_url = f"{settings.FRONTEND_URL}/reset-password?token={token}&uid={user.id}"
 
@@ -392,5 +394,38 @@ class ReceptionistListCreateView(generics.ListCreateAPIView):
             logger.exception("Failed to send receptionist verification email")
 
 
+class ChangePasswordView(generics.GenericAPIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def post(self, request):
+        user = request.user
+        old_password = request.data.get("old_password", "")
+        new_password = request.data.get("new_password", "")
+
+        if not old_password or not new_password:
+            return Response(
+                {"detail": "Both old and new passwords are required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if not user.check_password(old_password):
+            return Response(
+                {"detail": "Current password is incorrect."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if len(new_password) < 6:
+            return Response(
+                {"detail": "New password must be at least 6 characters."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        user.set_password(new_password)
+        user.save(update_fields=["password"])
+
+        return Response(
+            {"detail": "Password changed successfully."},
+            status=status.HTTP_200_OK,
+        )
 
 

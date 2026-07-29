@@ -27,6 +27,7 @@ import {
   MonetizationOn,
   Notifications,
   People,
+  Person,
   Receipt,
 } from "@mui/icons-material";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -240,6 +241,12 @@ export default function DashboardLayout() {
               </Box>
             </MenuItem>
             <Divider sx={{ borderColor: "#2A2D2B" }} />
+            <MenuItem onClick={() => { setAnchorEl(null); navigate({ to: "/profile" }); }} sx={{ color: "#E8E3D8" }}>
+              <ListItemIcon>
+                <Person fontSize="small" sx={{ color: "#E8E3D8" }} />
+              </ListItemIcon>
+              My Profile
+            </MenuItem>
             <MenuItem onClick={() => { logout(); navigate({ to: "/" }); }} sx={{ color: "#FF4B3E" }}>
               <ListItemIcon>
                 <Logout fontSize="small" sx={{ color: "#FF4B3E" }} />

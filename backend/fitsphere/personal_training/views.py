@@ -16,6 +16,12 @@ from .serializers import (
 class PTPackageListCreateView(generics.ListCreateAPIView):
     permission_classes = (IsGymOwnerOrAdmin,)
     serializer_class = PTPackageSerializer
+    filterset_fields = ["is_active"]
+
+    def get_permissions(self):
+        if self.request.method == "POST":
+            return [permission() for permission in (IsGymOwnerOrAdmin,)]
+        return [permission() for permission in (IsStaff | IsMember,)]
 
     def get_queryset(self):
         user = self.request.user

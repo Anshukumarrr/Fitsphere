@@ -90,7 +90,7 @@ export default function NotificationSettingsPage() {
         Notification Preferences
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        Configure which events trigger WhatsApp notifications.
+        Configure which events trigger email notifications.
       </Typography>
 
       <Card>
@@ -101,9 +101,6 @@ export default function NotificationSettingsPage() {
                 <TableRow>
                   <TableCell sx={{ fontWeight: 600 }}>Event</TableCell>
                   <TableCell sx={{ fontWeight: 600 }} align="center">
-                    WhatsApp
-                  </TableCell>
-                  <TableCell sx={{ fontWeight: 600 }} align="center">
                     Email
                   </TableCell>
                 </TableRow>
@@ -112,23 +109,6 @@ export default function NotificationSettingsPage() {
                 {EVENTS.map((event) => (
                   <TableRow key={event}>
                     <TableCell>{EVENT_LABELS[event]}</TableCell>
-                    <TableCell align="center">
-                      <FormControlLabel
-                        control={
-                          <Switch
-                            checked={getPref(event, "whatsapp")}
-                            onChange={(e) =>
-                              upsertPref.mutate({
-                                event,
-                                channel: "whatsapp",
-                                enabled: e.target.checked,
-                              })
-                            }
-                          />
-                        }
-                        label=""
-                      />
-                    </TableCell>
                     <TableCell align="center">
                       <FormControlLabel
                         control={
