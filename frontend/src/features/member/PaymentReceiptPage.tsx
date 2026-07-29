@@ -37,14 +37,14 @@ export default function PaymentReceiptPage() {
 
         <Card className="receipt-card" sx={{ p: 4 }}>
           <Box sx={{ textAlign: "center", mb: 3 }}>
-            <Typography variant="h5" fontWeight={700}>FitSphere</Typography>
+            <Typography variant="h5" sx={{ fontWeight: 700 }}>FitSphere</Typography>
             <Typography variant="body2" color="text.secondary">Payment Receipt</Typography>
           </Box>
 
           <Divider sx={{ mb: 2 }} />
           <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
             <Typography variant="body2" color="text.secondary">Invoice</Typography>
-            <Typography fontWeight={600} sx={{ fontFamily: '"JetBrains Mono", monospace' }}>{payment.invoice_number}</Typography>
+            <Typography sx={{ fontWeight: 600, fontFamily: '"JetBrains Mono", monospace' }}>{payment.invoice_number}</Typography>
           </Box>
           <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
             <Typography variant="body2" color="text.secondary">Date</Typography>
@@ -67,7 +67,7 @@ export default function PaymentReceiptPage() {
 
           <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
             <Typography variant="body2" color="text.secondary">Amount</Typography>
-            <Typography fontWeight={700} sx={{ fontFamily: '"JetBrains Mono", monospace', fontSize: "1.2rem" }}>
+            <Typography sx={{ fontWeight: 700, fontFamily: '"JetBrains Mono", monospace', fontSize: "1.2rem" }}>
               ₹{Number(payment.amount).toLocaleString()}
             </Typography>
           </Box>
@@ -77,7 +77,7 @@ export default function PaymentReceiptPage() {
           </Box>
           <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
             <Typography variant="body2" color="text.secondary">Status</Typography>
-            <Typography color={payment.status === "completed" ? "success.main" : "error.main"} fontWeight={600}>{payment.status}</Typography>
+            <Typography sx={{ color: payment.status === "completed" ? "success.main" : "error.main", fontWeight: 600 }}>{payment.status}</Typography>
           </Box>
 
           {payment.gateway_payment_id && (

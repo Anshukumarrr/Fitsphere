@@ -21,9 +21,11 @@ export default function RazorpayCheckoutButton({ purchaseType, itemId, amount, p
   const handleClick = async () => {
     setError("");
     try {
-      const payload: Record<string, unknown> = { purchase_type: purchaseType, item_id: itemId };
-      if (purchaseType === "renewal" && planId) payload.plan_id = planId;
-      const order = await createOrder.mutateAsync(payload);
+      const order = await createOrder.mutateAsync({
+        purchase_type: purchaseType,
+        item_id: itemId,
+        ...(purchaseType === "renewal" && planId ? { plan_id: planId } : {}),
+      });
       const options = {
         key: order.key,
         amount: order.amount,

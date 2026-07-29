@@ -9,6 +9,7 @@ import type {
   GymOrganization,
   Member,
   MemberDashboardData,
+  MemberMembership,
   MembershipPlan,
   PaginatedResponse,
   Payment,

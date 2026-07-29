@@ -250,6 +250,8 @@ export interface Payment {
   invoice_number: string;
   description: string;
   reference_id: string;
+  gateway_order_id: string;
+  gateway_payment_id: string;
   received_by: number | null;
   paid_at: string;
   created_at: string;
