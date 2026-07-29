@@ -211,23 +211,23 @@ from celery.schedules import crontab
 
 CELERY_BEAT_SCHEDULE = {
     "deactivate-expired-memberships": {
-        "task": "memberships.tasks.deactivate_expired_memberships",
+        "task": "fitsphere.memberships.tasks.deactivate_expired_memberships",
         "schedule": crontab(hour=2, minute=0),
     },
     "send-membership-expiry-reminders": {
-        "task": "notifications.tasks.check_membership_expiry",
+        "task": "fitsphere.notifications.tasks.check_membership_expiry",
         "schedule": crontab(hour=8, minute=0),
     },
     "send-payment-due-reminders": {
-        "task": "notifications.tasks.check_payment_due",
+        "task": "fitsphere.notifications.tasks.check_payment_due",
         "schedule": crontab(hour=9, minute=0),
     },
     "send-pt-session-reminders": {
-        "task": "notifications.tasks.check_pt_session_reminder",
+        "task": "fitsphere.notifications.tasks.check_pt_session_reminder",
         "schedule": crontab(hour=10, minute=0),
     },
     "generate-daily-attendance-report": {
-        "task": "attendance.tasks.generate_daily_attendance_report",
+        "task": "fitsphere.attendance.tasks.generate_daily_attendance_report",
         "schedule": crontab(hour=23, minute=59),
     },
 }
