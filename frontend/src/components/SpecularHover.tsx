@@ -1,4 +1,4 @@
-import { useCallback, useRef, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, type ReactNode } from "react";
 
 interface SpecularHoverProps {
   children: ReactNode;
@@ -8,10 +8,28 @@ interface SpecularHoverProps {
 
 export default function SpecularHover({ children, className, sx }: SpecularHoverProps) {
   const ref = useRef<HTMLDivElement>(null);
+  const rectRef = useRef<DOMRect | null>(null);
+
+  // getBoundingClientRect() forces a synchronous layout read. Cache it and
+  // only invalidate on resize/scroll (viewport coords change there) instead
+  // of re-reading layout on every mousemove — that was a forced reflow per
+  // event on every hovered card.
+  useEffect(() => {
+    const invalidate = () => {
+      rectRef.current = null;
+    };
+    window.addEventListener("resize", invalidate, { passive: true });
+    // Capture-phase so scrolls inside nested scroll containers count too.
+    window.addEventListener("scroll", invalidate, { capture: true, passive: true });
+    return () => {
+      window.removeEventListener("resize", invalidate);
+      window.removeEventListener("scroll", invalidate, { capture: true });
+    };
+  }, []);
 
   const onMove = useCallback((e: React.MouseEvent) => {
     const el = ref.current ?? (e.currentTarget as HTMLElement);
-    const rect = el.getBoundingClientRect();
+    const rect = rectRef.current ?? (rectRef.current = el.getBoundingClientRect());
     const mx = ((e.clientX - rect.left) / rect.width) * 100;
     const my = ((e.clientY - rect.top) / rect.height) * 100;
     el.style.setProperty("--mx", `${mx}%`);

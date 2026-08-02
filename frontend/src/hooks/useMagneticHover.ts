@@ -12,8 +12,18 @@ export function useMagneticHover(radius = 8) {
     const el = ref.current;
     if (!el) return;
 
+    // Cache the bounding rect: re-reading it on every mousemove forces a
+    // synchronous layout calculation (forced reflow). Invalidate only on
+    // resize/scroll, where the viewport-relative rect actually changes.
+    let cachedRect: DOMRect | null = null;
+    const invalidate = () => {
+      cachedRect = null;
+    };
+    window.addEventListener("resize", invalidate, { passive: true });
+    window.addEventListener("scroll", invalidate, { capture: true, passive: true });
+
     const onMove = (e: MouseEvent) => {
-      const rect = el.getBoundingClientRect();
+      const rect = cachedRect ?? (cachedRect = el.getBoundingClientRect());
       const cx = rect.left + rect.width / 2;
       const cy = rect.top + rect.height / 2;
       const dx = e.clientX - cx;
@@ -37,6 +47,8 @@ export function useMagneticHover(radius = 8) {
     return () => {
       el.removeEventListener("mousemove", onMove);
       el.removeEventListener("mouseleave", onLeave);
+      window.removeEventListener("resize", invalidate);
+      window.removeEventListener("scroll", invalidate, { capture: true });
     };
   }, [radius, rawX, rawY]);
 
