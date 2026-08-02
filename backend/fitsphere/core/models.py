@@ -19,6 +19,7 @@ class User(AbstractUser):
 
     role = models.CharField(max_length=20, choices=Role.choices, default=Role.MEMBER)
     phone = models.CharField(max_length=20, blank=True)
+    avatar = models.CharField(max_length=255, blank=True, default="")
     photo = models.ImageField(upload_to="user_photos/", blank=True, null=True)
     organization = models.ForeignKey(
         "organizations.GymOrganization",
