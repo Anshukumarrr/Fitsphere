@@ -63,7 +63,7 @@ export default function ForgotPasswordPage() {
           <Typography variant="h6" sx={{ mb: 1, color: "#E8E3D8", fontFamily: '"Anton", sans-serif', letterSpacing: "0.04em" }}>
             Reset Password
           </Typography>
-          <Typography variant="body2" sx={{ mb: 3, color: "#6B6F6C", fontFamily: '"Inter", sans-serif' }}>
+          <Typography variant="body2" sx={{ mb: 3, color: "#8A8F8C", fontFamily: '"Inter", sans-serif' }}>
             Enter your email and we'll send you a reset link.
           </Typography>
 
@@ -100,7 +100,7 @@ export default function ForgotPasswordPage() {
             </form>
           )}
 
-          <Typography variant="body2" sx={{ textAlign: "center", color: "#6B6F6C" }}>
+          <Typography variant="body2" sx={{ textAlign: "center", color: "#8A8F8C" }}>
             <Link to="/login" style={{ color: "#D4FF3F", fontWeight: 700 }}>
               Back to Login
             </Link>

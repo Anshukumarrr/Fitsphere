@@ -15,7 +15,7 @@ export default function MemberCheckInPanel() {
   return (
     <Card sx={{ mb: 3 }}>
       <CardContent sx={{ py: 2.5 }}>
-        <Typography variant="h6" sx={{ fontFamily: '"Anton", sans-serif', fontSize: "0.8rem", letterSpacing: "0.08em", color: "#6B6F6C", mb: 1.5 }}>
+        <Typography variant="h6" sx={{ fontFamily: '"Anton", sans-serif', fontSize: "0.8rem", letterSpacing: "0.08em", color: "#8A8F8C", mb: 1.5 }}>
           Daily Check-In
         </Typography>
         <Box sx={{ display: "flex", gap: 1.5, alignItems: "center" }}>

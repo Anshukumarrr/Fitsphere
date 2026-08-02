@@ -150,13 +150,13 @@ export default function LoginPage() {
               {isSubmitting ? "PUSHING HARD..." : "LET'S GO"}
             </Button>
             <Box sx={{ textAlign: "right", mb: 1 }}>
-              <Link to="/forgot-password" style={{ color: "#6B6F6C", fontSize: "0.8rem", textDecoration: "none" }}>
+              <Link to="/forgot-password" style={{ color: "#8A8F8C", fontSize: "0.8rem", textDecoration: "none" }}>
                 Forgot Password?
               </Link>
             </Box>
           </form>
 
-          <Typography variant="body2" sx={{ textAlign: "center", color: "#6B6F6C" }}>
+          <Typography variant="body2" sx={{ textAlign: "center", color: "#8A8F8C" }}>
             New to FitSphere?{" "}
             <Link to="/register" style={{ color: "#D4FF3F", fontWeight: 700 }}>
               Sign Up

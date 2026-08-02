@@ -203,7 +203,7 @@ export default function BulkImportPage() {
           hidden
           onChange={(e) => handleFileChange(e.target.files?.[0] ?? null)}
         />
-        <CloudUpload sx={{ fontSize: 48, color: file ? "primary.main" : "#6B6F6C", mb: 2 }} />
+        <CloudUpload sx={{ fontSize: 48, color: file ? "primary.main" : "#8A8F8C", mb: 2 }} />
         {file ? (
           <>
             <Typography variant="h6" sx={{ fontWeight: 600, color: "primary.main" }}>{file.name}</Typography>

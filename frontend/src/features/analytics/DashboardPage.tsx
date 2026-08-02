@@ -71,7 +71,7 @@ function StatCard({
             }}
           >
             {isEmpty ? (
-              <Box sx={{ color: "#6B6F6C", fontFamily: '"Inter", sans-serif', fontSize: "1.8rem", fontWeight: 300 }}>
+              <Box sx={{ color: "#8A8F8C", fontFamily: '"Inter", sans-serif', fontSize: "1.8rem", fontWeight: 300 }}>
                 —
               </Box>
             ) : typeof value === "number" ? (
@@ -89,7 +89,7 @@ function StatCard({
               fontSize: "0.7rem",
               textTransform: "uppercase",
               letterSpacing: "0.08em",
-              color: "#6B6F6C",
+              color: "#8A8F8C",
               textAlign: "center",
             }}
           >
@@ -100,7 +100,7 @@ function StatCard({
               sx={{
                 fontFamily: '"Inter", sans-serif',
                 fontSize: "0.6rem",
-                color: "#6B6F6C",
+                color: "#8A8F8C",
                 mt: 0.5,
                 fontStyle: "italic",
               }}
@@ -157,7 +157,7 @@ export default function DashboardPage() {
                   value={attendanceRate}
                   label="ATTENDANCE TODAY"
                   subtitle={data?.attendance_today ? `${data.attendance_today} check-ins` : "No check-ins yet"}
-                  color={attendanceRate > 0 ? "#D4FF3F" : "#6B6F6C"}
+                  color={attendanceRate > 0 ? "#D4FF3F" : "#8A8F8C"}
                 />
               </CardContent>
             </Card>
@@ -184,7 +184,7 @@ export default function DashboardPage() {
                   value={expiringRate}
                   label="EXPIRING THIS MONTH"
                   subtitle={data?.expiring_this_month ? `${data.expiring_this_month} members` : "All clear"}
-                  color={expiringRate > 10 ? "#FF4B3E" : expiringRate > 0 ? "#D4FF3F" : "#6B6F6C"}
+                  color={expiringRate > 10 ? "#FF4B3E" : expiringRate > 0 ? "#D4FF3F" : "#8A8F8C"}
                 />
               </CardContent>
             </Card>

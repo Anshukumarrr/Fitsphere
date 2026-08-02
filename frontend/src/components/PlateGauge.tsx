@@ -59,7 +59,7 @@ export default function PlateGauge({
           y={center + 18}
           textAnchor="middle"
           dominantBaseline="central"
-          fill="#6B6F6C"
+          fill="#8A8F8C"
           fontFamily='"Inter", sans-serif'
           fontSize="10"
         >
@@ -83,7 +83,7 @@ export default function PlateGauge({
           style={{
             fontFamily: '"Inter", sans-serif',
             fontSize: "0.7rem",
-            color: "#6B6F6C",
+            color: "#8A8F8C",
             marginTop: 2,
           }}
         >

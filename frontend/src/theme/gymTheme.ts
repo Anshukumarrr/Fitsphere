@@ -28,8 +28,8 @@ const gymTheme = createTheme({
       contrastText: "#0B0D0C",
     },
     secondary: {
-      main: "#6B6F6C",
-      light: "#8A8F8C",
+      main: "#8A8F8C",
+      light: "#A0A5A1",
       dark: "#4D504E",
       contrastText: "#E8E3D8",
     },
@@ -44,7 +44,7 @@ const gymTheme = createTheme({
     },
     text: {
       primary: "#E8E3D8",
-      secondary: "#6B6F6C",
+      secondary: "#8A8F8C",
     },
     divider: "#2A2D2B",
   },
@@ -242,7 +242,7 @@ const gymTheme = createTheme({
     MuiListItemIcon: {
       styleOverrides: {
         root: {
-          color: "#6B6F6C",
+          color: "#8A8F8C",
           minWidth: 34,
           transition: "color 120ms ease-out",
         },
@@ -268,14 +268,14 @@ const gymTheme = createTheme({
               borderColor: "#2A2D2B",
             },
             "&:hover fieldset": {
-              borderColor: "#6B6F6C",
+              borderColor: "#8A8F8C",
             },
             "&.Mui-focused fieldset": {
               borderColor: "#D4FF3F",
             },
           },
           "& .MuiInputLabel-root": {
-            color: "#6B6F6C",
+            color: "#8A8F8C",
             fontFamily: '"Inter", sans-serif',
             "&.Mui-focused": {
               color: "#D4FF3F",
@@ -300,7 +300,7 @@ const gymTheme = createTheme({
           },
           "&.MuiChip-colorDefault": {
             backgroundColor: "rgba(107,111,108,0.1)",
-            color: "#6B6F6C",
+            color: "#8A8F8C",
             border: "1px solid rgba(107,111,108,0.2)",
           },
           "&.MuiChip-colorError": {
@@ -316,7 +316,7 @@ const gymTheme = createTheme({
         root: {
           "& .MuiTableCell-head": {
             fontWeight: 600,
-            color: "#6B6F6C",
+            color: "#8A8F8C",
             textTransform: "uppercase",
             letterSpacing: "0.06em",
             fontSize: "0.65rem",

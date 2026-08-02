@@ -68,7 +68,7 @@ const roleColor = (role: string) => {
     cleaner: "#00BCD4",
     maintenance: "#607D8B",
   };
-  return colors[role] || "#6B6F6C";
+  return colors[role] || "#8A8F8C";
 };
 
 export default function StaffPage() {

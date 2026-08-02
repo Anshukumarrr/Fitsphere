@@ -13,7 +13,7 @@ export default function LandingFooter() {
     >
       <Container maxWidth="md">
         <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 1, mb: 2 }}>
-          <FitnessCenterIcon sx={{ color: "#6B6F6C", fontSize: 22 }} />
+          <FitnessCenterIcon sx={{ color: "#8A8F8C", fontSize: 22 }} />
           <Typography
             variant="h6"
             sx={{

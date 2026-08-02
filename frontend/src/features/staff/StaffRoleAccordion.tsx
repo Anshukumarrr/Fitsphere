@@ -44,7 +44,7 @@ export default function StaffRoleAccordion({ role, label, color }: StaffRoleAcco
         "&:before": { display: "none" },
       }}
     >
-      <AccordionSummary expandIcon={<ExpandMore sx={{ color: "#6B6F6C" }} />}>
+      <AccordionSummary expandIcon={<ExpandMore sx={{ color: "#8A8F8C" }} />}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
           <Typography variant="subtitle1" sx={{ fontWeight: 600, textTransform: "capitalize" }}>
             {label}
@@ -66,7 +66,7 @@ export default function StaffRoleAccordion({ role, label, color }: StaffRoleAcco
           <SearchInput value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder={`Search ${label.toLowerCase()}...`} />
         </Box>
         {staffList.length === 0 && !isLoading ? (
-          <Typography sx={{ p: 2, color: "#6B6F6C" }}>
+          <Typography sx={{ p: 2, color: "#8A8F8C" }}>
             No {label.toLowerCase()} yet.
           </Typography>
         ) : (

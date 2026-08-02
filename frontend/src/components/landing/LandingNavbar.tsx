@@ -39,7 +39,7 @@ export default function LandingNavbar() {
         </Box>
         <Button
           variant="text"
-          sx={{ color: "#6B6F6C", mr: 1, "&:hover": { color: "#E8E3D8" } }}
+          sx={{ color: "#8A8F8C", mr: 1, "&:hover": { color: "#E8E3D8" } }}
           onClick={() => navigate({ to: "/login" })}
         >
           Sign In

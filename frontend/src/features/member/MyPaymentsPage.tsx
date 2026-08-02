@@ -76,7 +76,7 @@ export default function MyPaymentsPage() {
                 </TableRow>
               ) : data?.results?.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} align="center" sx={{ color: "#6B6F6C", fontStyle: "italic" }}>
+                  <TableCell colSpan={7} align="center" sx={{ color: "#8A8F8C", fontStyle: "italic" }}>
                     No payments yet.
                   </TableCell>
                 </TableRow>
@@ -129,7 +129,7 @@ export default function MyPaymentsPage() {
         </DialogTitle>
         <DialogContent>
           {items.length === 0 ? (
-            <Typography sx={{ py: 2, textAlign: "center", color: "#6B6F6C" }}>
+            <Typography sx={{ py: 2, textAlign: "center", color: "#8A8F8C" }}>
               No items available.
             </Typography>
           ) : (

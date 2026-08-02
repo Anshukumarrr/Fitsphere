@@ -72,7 +72,7 @@ export default function RenewMembershipPage() {
 
       <Typography variant="h6" gutterBottom>Choose a Plan to Renew</Typography>
       {plans.length === 0 ? (
-        <Typography sx={{ color: "#6B6F6C", fontStyle: "italic" }}>
+        <Typography sx={{ color: "#8A8F8C", fontStyle: "italic" }}>
           No plans available.
         </Typography>
       ) : (

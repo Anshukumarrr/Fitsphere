@@ -116,7 +116,7 @@ export default function ProfilePage() {
 
       <Card sx={{ mb: 3, bgcolor: "#0B0D0C", border: "1px solid #2A2D2B" }}>
         <CardContent sx={{ py: 3 }}>
-          <Typography variant="h6" sx={{ fontFamily: '"Anton", sans-serif', fontSize: "0.8rem", letterSpacing: "0.08em", color: "#6B6F6C", mb: 2 }}>
+          <Typography variant="h6" sx={{ fontFamily: '"Anton", sans-serif', fontSize: "0.8rem", letterSpacing: "0.08em", color: "#8A8F8C", mb: 2 }}>
             Personal Information
           </Typography>
 
@@ -132,19 +132,19 @@ export default function ProfilePage() {
             <Box>
               <Grid container spacing={3}>
                 <Grid size={6}>
-                  <Typography variant="caption" sx={{ color: "#6B6F6C", fontFamily: '"Inter", sans-serif' }}>Email</Typography>
+                  <Typography variant="caption" sx={{ color: "#8A8F8C", fontFamily: '"Inter", sans-serif' }}>Email</Typography>
                   <Typography variant="body2" sx={{ color: "#E8E3D8" }}>{user.email}</Typography>
                 </Grid>
                 <Grid size={6}>
-                  <Typography variant="caption" sx={{ color: "#6B6F6C", fontFamily: '"Inter", sans-serif' }}>Phone</Typography>
+                  <Typography variant="caption" sx={{ color: "#8A8F8C", fontFamily: '"Inter", sans-serif' }}>Phone</Typography>
                   <Typography variant="body2" sx={{ color: "#E8E3D8" }}>{user.phone || "—"}</Typography>
                 </Grid>
                 <Grid size={6}>
-                  <Typography variant="caption" sx={{ color: "#6B6F6C", fontFamily: '"Inter", sans-serif' }}>Username</Typography>
+                  <Typography variant="caption" sx={{ color: "#8A8F8C", fontFamily: '"Inter", sans-serif' }}>Username</Typography>
                   <Typography variant="body2" sx={{ color: "#E8E3D8" }}>{user.username}</Typography>
                 </Grid>
                 <Grid size={6}>
-                  <Typography variant="caption" sx={{ color: "#6B6F6C", fontFamily: '"Inter", sans-serif' }}>Role</Typography>
+                  <Typography variant="caption" sx={{ color: "#8A8F8C", fontFamily: '"Inter", sans-serif' }}>Role</Typography>
                   <Typography variant="body2" sx={{ color: "#D4FF3F", textTransform: "capitalize" }}>{user.role.replace("_", " ")}</Typography>
                 </Grid>
               </Grid>
@@ -156,7 +156,7 @@ export default function ProfilePage() {
 
           {editing && (
             <Box sx={{ display: "flex", gap: 1, justifyContent: "flex-end", mt: 2 }}>
-              <Button variant="outlined" onClick={() => setEditing(false)} sx={{ borderColor: "#2A2D2B", color: "#6B6F6C" }}>Cancel</Button>
+              <Button variant="outlined" onClick={() => setEditing(false)} sx={{ borderColor: "#2A2D2B", color: "#8A8F8C" }}>Cancel</Button>
               <Button variant="contained" onClick={handleSave} disabled={updateProfile.isPending} sx={{ bgcolor: "#D4FF3F", color: "#0A0A0A", fontWeight: 600 }}>
                 {updateProfile.isPending ? "Saving..." : "Save"}
               </Button>
@@ -168,24 +168,24 @@ export default function ProfilePage() {
       {isMember && (
         <Card sx={{ mb: 3, bgcolor: "#0B0D0C", border: "1px solid #2A2D2B" }}>
           <CardContent sx={{ py: 3 }}>
-            <Typography variant="h6" sx={{ fontFamily: '"Anton", sans-serif', fontSize: "0.8rem", letterSpacing: "0.08em", color: "#6B6F6C", mb: 2 }}>
+            <Typography variant="h6" sx={{ fontFamily: '"Anton", sans-serif', fontSize: "0.8rem", letterSpacing: "0.08em", color: "#8A8F8C", mb: 2 }}>
               Membership
             </Typography>
             <Grid container spacing={2}>
               <Grid size={6}>
-                <Typography variant="caption" sx={{ color: "#6B6F6C", fontFamily: '"Inter", sans-serif' }}>Plan</Typography>
+                <Typography variant="caption" sx={{ color: "#8A8F8C", fontFamily: '"Inter", sans-serif' }}>Plan</Typography>
                 <Typography variant="body2" sx={{ color: "#E8E3D8", fontWeight: 500 }}>{user.membership_plan || "—"}</Typography>
               </Grid>
               <Grid size={6}>
-                <Typography variant="caption" sx={{ color: "#6B6F6C", fontFamily: '"Inter", sans-serif' }}>Gym Code</Typography>
+                <Typography variant="caption" sx={{ color: "#8A8F8C", fontFamily: '"Inter", sans-serif' }}>Gym Code</Typography>
                 <Typography variant="body2" sx={{ color: "#E8E3D8", fontFamily: '"JetBrains Mono", monospace' }}>{user.gym_code || "—"}</Typography>
               </Grid>
               <Grid size={6}>
-                <Typography variant="caption" sx={{ color: "#6B6F6C", fontFamily: '"Inter", sans-serif' }}>Status</Typography>
+                <Typography variant="caption" sx={{ color: "#8A8F8C", fontFamily: '"Inter", sans-serif' }}>Status</Typography>
                 <Chip label={profileFields.membership_status || "—"} size="small" sx={{ color: profileFields.membership_status === "active" ? "#4CAF50" : "#FF4B3E", bgcolor: "#2A2D2B", fontWeight: 500 }} />
               </Grid>
               <Grid size={6}>
-                <Typography variant="caption" sx={{ color: "#6B6F6C", fontFamily: '"Inter", sans-serif' }}>Expires</Typography>
+                <Typography variant="caption" sx={{ color: "#8A8F8C", fontFamily: '"Inter", sans-serif' }}>Expires</Typography>
                 <Typography variant="body2" sx={{ color: user.membership_expiry && new Date(user.membership_expiry) < new Date() ? "#FF4B3E" : "#E8E3D8" }}>
                   {user.membership_expiry ? new Date(user.membership_expiry).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" }) : "—"}
                 </Typography>
@@ -198,7 +198,7 @@ export default function ProfilePage() {
       {(isTrainer || isMember) && editing && (
         <Card sx={{ mb: 3, bgcolor: "#0B0D0C", border: "1px solid #2A2D2B" }}>
           <CardContent sx={{ py: 3 }}>
-            <Typography variant="h6" sx={{ fontFamily: '"Anton", sans-serif', fontSize: "0.8rem", letterSpacing: "0.08em", color: "#6B6F6C", mb: 2 }}>
+            <Typography variant="h6" sx={{ fontFamily: '"Anton", sans-serif', fontSize: "0.8rem", letterSpacing: "0.08em", color: "#8A8F8C", mb: 2 }}>
               {isTrainer ? "Trainer Details" : "Additional Info"}
             </Typography>
             <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
@@ -233,12 +233,12 @@ export default function ProfilePage() {
       {isStaff && !editing && (
         <Card sx={{ mb: 3, bgcolor: "#0B0D0C", border: "1px solid #2A2D2B" }}>
           <CardContent sx={{ py: 3 }}>
-            <Typography variant="h6" sx={{ fontFamily: '"Anton", sans-serif', fontSize: "0.8rem", letterSpacing: "0.08em", color: "#6B6F6C", mb: 2 }}>
+            <Typography variant="h6" sx={{ fontFamily: '"Anton", sans-serif', fontSize: "0.8rem", letterSpacing: "0.08em", color: "#8A8F8C", mb: 2 }}>
               Branch Information
             </Typography>
             <Grid container spacing={2}>
               <Grid size={6}>
-                <Typography variant="caption" sx={{ color: "#6B6F6C", fontFamily: '"Inter", sans-serif' }}>Branch</Typography>
+                <Typography variant="caption" sx={{ color: "#8A8F8C", fontFamily: '"Inter", sans-serif' }}>Branch</Typography>
                 <Typography variant="body2" sx={{ color: "#E8E3D8" }}>{user.profile?.branch_name || "—"}</Typography>
               </Grid>
             </Grid>
@@ -248,7 +248,7 @@ export default function ProfilePage() {
 
       <Card sx={{ mb: 3, bgcolor: "#0B0D0C", border: "1px solid #2A2D2B" }}>
         <CardContent sx={{ py: 3 }}>
-          <Typography variant="h6" sx={{ fontFamily: '"Anton", sans-serif', fontSize: "0.8rem", letterSpacing: "0.08em", color: "#6B6F6C", mb: 2 }}>
+          <Typography variant="h6" sx={{ fontFamily: '"Anton", sans-serif', fontSize: "0.8rem", letterSpacing: "0.08em", color: "#8A8F8C", mb: 2 }}>
             Change Password
           </Typography>
 
@@ -263,8 +263,8 @@ export default function ProfilePage() {
               <Button variant="outlined" onClick={() => setPwOpen(true)} sx={{ borderColor: "#2A2D2B", color: "#E8E3D8" }}>
                 Change Password
               </Button>
-              <Typography variant="body2" sx={{ color: "#6B6F6C" }}>
-                <Link to="/forgot-password" style={{ color: "#6B6F6C" }}>
+              <Typography variant="body2" sx={{ color: "#8A8F8C" }}>
+                <Link to="/forgot-password" style={{ color: "#8A8F8C" }}>
                   Forgot your password?
                 </Link>
               </Typography>
@@ -280,7 +280,7 @@ export default function ProfilePage() {
               <TextField fullWidth label="New Password" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} size="small" />
               <TextField fullWidth label="Confirm New Password" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} size="small" />
               <Box sx={{ display: "flex", gap: 1, justifyContent: "flex-end" }}>
-                <Button variant="outlined" onClick={() => { setPwOpen(false); setPwError(""); }} sx={{ borderColor: "#2A2D2B", color: "#6B6F6C" }}>
+                <Button variant="outlined" onClick={() => { setPwOpen(false); setPwError(""); }} sx={{ borderColor: "#2A2D2B", color: "#8A8F8C" }}>
                   Cancel
                 </Button>
                 <Button variant="contained" onClick={handleChangePassword} disabled={changePassword.isPending} sx={{ bgcolor: "#D4FF3F", color: "#0A0A0A", fontWeight: 600 }}>

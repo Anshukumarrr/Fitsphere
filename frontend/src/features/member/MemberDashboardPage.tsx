@@ -38,18 +38,18 @@ export default function MemberDashboardPage() {
             Welcome back, {user?.first_name}
           </Typography>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <Typography variant="body2" sx={{ color: "#6B6F6C", fontFamily: '"JetBrains Mono", monospace', fontSize: "0.8rem" }}>
+            <Typography variant="body2" sx={{ color: "#8A8F8C", fontFamily: '"JetBrains Mono", monospace', fontSize: "0.8rem" }}>
               {user?.gym_code}
             </Typography>
             {user?.membership_plan && (
-              <Typography variant="body2" sx={{ color: "#6B6F6C", fontSize: "0.75rem" }}>
+              <Typography variant="body2" sx={{ color: "#8A8F8C", fontSize: "0.75rem" }}>
                 &middot; {user.membership_plan}
               </Typography>
             )}
           </Box>
         </Box>
         {user?.membership_expiry && (
-          <Typography variant="body2" sx={{ color: "#6B6F6C", fontFamily: '"Inter", sans-serif', fontSize: "0.75rem" }}>
+          <Typography variant="body2" sx={{ color: "#8A8F8C", fontFamily: '"Inter", sans-serif', fontSize: "0.75rem" }}>
             Expires: {new Date(user.membership_expiry).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
           </Typography>
         )}
@@ -74,7 +74,7 @@ export default function MemberDashboardPage() {
               <Typography variant="h3" sx={{ fontFamily: '"JetBrains Mono", monospace', color: "#D4FF3F", fontSize: "3rem", lineHeight: 1 }}>
                 {data?.total_check_ins ?? "—"}
               </Typography>
-              <Typography variant="body2" sx={{ color: "#6B6F6C", fontFamily: '"Anton", sans-serif', fontSize: "0.7rem", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+              <Typography variant="body2" sx={{ color: "#8A8F8C", fontFamily: '"Anton", sans-serif', fontSize: "0.7rem", letterSpacing: "0.08em", textTransform: "uppercase" }}>
                 Total Check-Ins
               </Typography>
             </CardContent>
@@ -84,14 +84,14 @@ export default function MemberDashboardPage() {
           <Card sx={{ height: "100%" }}>
             <CardContent sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", py: 3, gap: 0.5 }}>
               <Box sx={{ display: "flex", alignItems: "baseline", gap: 0.5 }}>
-                <Typography variant="h3" sx={{ fontFamily: '"JetBrains Mono", monospace', color: data?.streak && data.streak > 0 ? "#D4FF3F" : "#6B6F6C", fontSize: "3rem", lineHeight: 1 }}>
+                <Typography variant="h3" sx={{ fontFamily: '"JetBrains Mono", monospace', color: data?.streak && data.streak > 0 ? "#D4FF3F" : "#8A8F8C", fontSize: "3rem", lineHeight: 1 }}>
                   {data?.streak ?? "—"}
                 </Typography>
                 {data?.streak && data.streak > 0 && (
                   <Typography sx={{ fontSize: "1.5rem" }}>🔥</Typography>
                 )}
               </Box>
-              <Typography variant="body2" sx={{ color: "#6B6F6C", fontFamily: '"Anton", sans-serif', fontSize: "0.7rem", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+              <Typography variant="body2" sx={{ color: "#8A8F8C", fontFamily: '"Anton", sans-serif', fontSize: "0.7rem", letterSpacing: "0.08em", textTransform: "uppercase" }}>
                 Day Streak
               </Typography>
             </CardContent>
@@ -121,17 +121,17 @@ export default function MemberDashboardPage() {
                     <Typography variant="body1" sx={{ color: "#E8E3D8", fontFamily: '"Inter", sans-serif', fontWeight: 500 }}>
                       {data.upcoming_sessions[0].trainer_name}
                     </Typography>
-                    <Typography variant="body2" sx={{ color: "#6B6F6C", fontFamily: '"JetBrains Mono", monospace', fontSize: "0.8rem" }}>
+                    <Typography variant="body2" sx={{ color: "#8A8F8C", fontFamily: '"JetBrains Mono", monospace', fontSize: "0.8rem" }}>
                       {new Date(data.upcoming_sessions[0].scheduled_date).toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" })} at {data.upcoming_sessions[0].scheduled_time}
                     </Typography>
                   </Box>
                 ) : (
-                  <Typography variant="body2" sx={{ color: "#6B6F6C", fontStyle: "italic" }}>
+                  <Typography variant="body2" sx={{ color: "#8A8F8C", fontStyle: "italic" }}>
                     No upcoming sessions &mdash; book one now
                   </Typography>
                 )}
               </Box>
-              <ArrowForwardIcon sx={{ color: "#6B6F6C" }} />
+              <ArrowForwardIcon sx={{ color: "#8A8F8C" }} />
             </Box>
           </Card>
         </Grid>

@@ -11,7 +11,7 @@ import { useGitHubFallback } from "./useGitHubFallback";
 const FALLBACK = "data:image/svg+xml," + encodeURIComponent(
   `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
     <rect fill="#1A1D1B" width="400" height="300"/>
-    <g transform="translate(200 130)" fill="none" stroke="#6B6F6C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <g transform="translate(200 130)" fill="none" stroke="#8A8F8C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
       <circle cx="-30" cy="-40" r="14"/>
       <line x1="-30" y1="-26" x2="-30" y2="10"/>
       <line x1="-50" y1="-10" x2="-10" y2="-10"/>
@@ -27,7 +27,7 @@ const FALLBACK = "data:image/svg+xml," + encodeURIComponent(
       <line x1="30" y1="10" x2="20" y2="60"/>
       <line x1="30" y1="10" x2="40" y2="60"/>
     </g>
-    <text x="200" y="220" fill="#6B6F6C" font-family="Inter,sans-serif" font-size="13" text-anchor="middle">No Preview</text>
+    <text x="200" y="220" fill="#8A8F8C" font-family="Inter,sans-serif" font-size="13" text-anchor="middle">No Preview</text>
   </svg>`
 );
 
@@ -115,7 +115,7 @@ function ExerciseDetail({ exercise, open, onClose, findGitHubImage }: { exercise
             </Box>
             {exercise.secondaryMuscles.length > 0 && (
               <>
-                <Typography variant="subtitle2" sx={{ color: "#6B6F6C", mb: 1 }}>Secondary Muscles</Typography>
+                <Typography variant="subtitle2" sx={{ color: "#8A8F8C", mb: 1 }}>Secondary Muscles</Typography>
                 <Box sx={{ display: "flex", gap: 0.5, flexWrap: "wrap", mb: 2 }}>
                   {exercise.secondaryMuscles.map((m) => (
                     <Chip key={m} label={m} size="small" variant="outlined" />

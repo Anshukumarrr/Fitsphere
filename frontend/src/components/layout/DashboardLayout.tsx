@@ -106,7 +106,7 @@ export default function DashboardLayout() {
                 letterSpacing: "0.1em",
                 textTransform: "uppercase",
                 fontFamily: '"Inter", sans-serif',
-                color: "#6B6F6C",
+                color: "#8A8F8C",
               }}
             >
               Gym Management OS
@@ -141,7 +141,7 @@ export default function DashboardLayout() {
                 <ListItemIcon
                   sx={{
                     minWidth: 34,
-                    color: isActive ? "#E8E3D8" : "#6B6F6C",
+                    color: isActive ? "#E8E3D8" : "#8A8F8C",
                     "& .MuiSvgIcon-root": { fontSize: 18 },
                     transition: "color 120ms ease-out",
                   }}
@@ -156,7 +156,7 @@ export default function DashboardLayout() {
                         fontFamily: '"Inter", sans-serif',
                         fontSize: "0.82rem",
                         fontWeight: isActive ? 500 : 400,
-                        color: isActive ? "#E8E3D8" : "#6B6F6C",
+                        color: isActive ? "#E8E3D8" : "#8A8F8C",
                         transition: "color 120ms ease-out",
                       },
                     },
@@ -181,7 +181,7 @@ export default function DashboardLayout() {
           <Typography variant="body2" sx={{ fontWeight: 500, fontSize: "0.75rem", color: "#E8E3D8", fontFamily: '"Inter", sans-serif', overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
             {user?.first_name} {user?.last_name}
           </Typography>
-          <Typography variant="caption" sx={{ fontSize: "0.62rem", textTransform: "capitalize", fontFamily: '"Inter", sans-serif', color: "#6B6F6C" }}>
+          <Typography variant="caption" sx={{ fontSize: "0.62rem", textTransform: "capitalize", fontFamily: '"Inter", sans-serif', color: "#8A8F8C" }}>
             {user?.role?.replace("_", " ")}
           </Typography>
         </Box>
@@ -204,7 +204,7 @@ export default function DashboardLayout() {
             color="inherit"
             edge="start"
             onClick={handleDrawerToggle}
-            sx={{ mr: 2, display: { md: "none" }, color: "#6B6F6C" }}
+            sx={{ mr: 2, display: { md: "none" }, color: "#8A8F8C" }}
           >
             <MenuIcon />
           </IconButton>

@@ -88,7 +88,7 @@ export default function MySessionsPage() {
                 </TableRow>
               ) : data?.results?.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} align="center" sx={{ color: "#6B6F6C", fontStyle: "italic" }}>
+                  <TableCell colSpan={5} align="center" sx={{ color: "#8A8F8C", fontStyle: "italic" }}>
                     No sessions yet. Book your first one!
                   </TableCell>
                 </TableRow>

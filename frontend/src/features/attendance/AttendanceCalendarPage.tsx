@@ -89,7 +89,7 @@ export default function AttendanceCalendarPage() {
         <Grid size={{ xs: 12, sm: 4 }}>
           <Card>
             <CardContent sx={{ textAlign: "center", py: 3 }}>
-              <Typography variant="h3" sx={{ fontFamily: '"JetBrains Mono", monospace', color: isCheckedInToday ? "#D4FF3F" : "#6B6F6C" }}>
+              <Typography variant="h3" sx={{ fontFamily: '"JetBrains Mono", monospace', color: isCheckedInToday ? "#D4FF3F" : "#8A8F8C" }}>
                 {isCheckedInToday ? "Yes" : "No"}
               </Typography>
               <Typography variant="body2" color="text.secondary">
@@ -119,7 +119,7 @@ export default function AttendanceCalendarPage() {
               <Grid key={day} size={{ xs: 12 / 7 }}>
                 <Typography
                   variant="caption"
-                  sx={{ display: "block", textAlign: "center", color: "#6B6F6C", fontWeight: 600, mb: 1 }}
+                  sx={{ display: "block", textAlign: "center", color: "#8A8F8C", fontWeight: 600, mb: 1 }}
                 >
                   {day}
                 </Typography>
@@ -148,7 +148,7 @@ export default function AttendanceCalendarPage() {
                       sx={{
                         fontFamily: '"JetBrains Mono", monospace',
                         fontSize: "0.85rem",
-                        color: isCheckedIn ? "#D4FF3F" : isToday ? "#E8E3D8" : "#6B6F6C",
+                        color: isCheckedIn ? "#D4FF3F" : isToday ? "#E8E3D8" : "#8A8F8C",
                       }}
                     >
                       {d}

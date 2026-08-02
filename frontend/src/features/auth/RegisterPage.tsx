@@ -128,7 +128,7 @@ export default function RegisterPage() {
             </Typography>
             <Typography
               variant="body2"
-              sx={{ color: "#6B6F6C", mb: 3, textAlign: "center", fontFamily: '"Inter", sans-serif' }}
+              sx={{ color: "#8A8F8C", mb: 3, textAlign: "center", fontFamily: '"Inter", sans-serif' }}
             >
               Click the link in the email to activate your account. The link expires in 24 hours.
             </Typography>
@@ -334,7 +334,7 @@ export default function RegisterPage() {
             </Button>
           </form>
 
-          <Typography variant="body2" sx={{ textAlign: "center", color: "#6B6F6C" }}>
+          <Typography variant="body2" sx={{ textAlign: "center", color: "#8A8F8C" }}>
             Already have an account?{" "}
             <Link to="/login" style={{ color: "#D4FF3F", fontWeight: 700 }}>
               Sign In

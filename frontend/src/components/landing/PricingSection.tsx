@@ -85,7 +85,7 @@ export default function PricingSection() {
                   <Box sx={{ my: 2 }}>
                     {plan.features.map((f) => (
                       <Box key={f} sx={{ display: "flex", alignItems: "center", gap: 1, py: 0.5 }}>
-                        <CheckCircleIcon sx={{ color: "#6B6F6C", fontSize: 18 }} />
+                        <CheckCircleIcon sx={{ color: "#8A8F8C", fontSize: 18 }} />
                         <Typography variant="body2" color="text.secondary" sx={{ fontFamily: '"Inter", sans-serif' }}>
                           {f}
                         </Typography>

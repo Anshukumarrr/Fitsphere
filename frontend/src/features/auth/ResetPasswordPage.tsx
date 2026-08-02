@@ -109,7 +109,7 @@ export default function ResetPasswordPage() {
               <Typography variant="h6" sx={{ mb: 1, color: "#E8E3D8", fontFamily: '"Anton", sans-serif', letterSpacing: "0.04em" }}>
                 Set New Password
               </Typography>
-              <Typography variant="body2" sx={{ mb: 3, color: "#6B6F6C", fontFamily: '"Inter", sans-serif' }}>
+              <Typography variant="body2" sx={{ mb: 3, color: "#8A8F8C", fontFamily: '"Inter", sans-serif' }}>
                 Enter your new password below.
               </Typography>
               <form onSubmit={handleSubmit(onSubmit)}>

@@ -32,11 +32,11 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, LineEleme
 const chartOptions = {
   responsive: true,
   plugins: {
-    legend: { labels: { color: "#6B6F6C" } },
+    legend: { labels: { color: "#8A8F8C" } },
   },
   scales: {
-    x: { ticks: { color: "#6B6F6C" }, grid: { color: "rgba(107,111,108,0.1)" } },
-    y: { ticks: { color: "#6B6F6C" }, grid: { color: "rgba(107,111,108,0.1)" } },
+    x: { ticks: { color: "#8A8F8C" }, grid: { color: "rgba(107,111,108,0.1)" } },
+    y: { ticks: { color: "#8A8F8C" }, grid: { color: "rgba(107,111,108,0.1)" } },
   },
 };
 
