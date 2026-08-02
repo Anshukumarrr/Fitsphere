@@ -23,6 +23,7 @@ const editSchema = z.object({
   emergency_contact_phone: z.string().optional(),
   whatsapp_number: z.string().optional(),
   health_notes: z.string().optional(),
+  membership_end_date: z.string().optional(),
 });
 
 type EditForm = z.infer<typeof editSchema>;
@@ -55,6 +56,7 @@ export default function MemberEditDialog({ open, member, onClose }: Props) {
         emergency_contact_phone: member.emergency_contact_phone || "",
         whatsapp_number: member.whatsapp_number || "",
         health_notes: member.health_notes || "",
+        membership_end_date: member.membership_end_date || "",
       });
     }
   }, [member, reset]);
@@ -103,6 +105,10 @@ export default function MemberEditDialog({ open, member, onClose }: Props) {
             <TextField fullWidth label="WhatsApp Number" margin="normal" {...register("whatsapp_number")} error={!!errors.whatsapp_number} helperText={errors.whatsapp_number?.message} />
           </Box>
           <TextField fullWidth label="Health Notes" margin="normal" multiline rows={2} {...register("health_notes")} error={!!errors.health_notes} helperText={errors.health_notes?.message} />
+          <Typography variant="subtitle2" sx={{ color: "#E8E3D8", mt: 2, mb: 0.5, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", fontSize: "0.75rem" }}>
+            Membership
+          </Typography>
+          <TextField fullWidth label="Membership End Date" type="date" margin="normal" slotProps={{ inputLabel: { shrink: true } }} {...register("membership_end_date")} error={!!errors.membership_end_date} helperText={errors.membership_end_date?.message} />
           <Button type="submit" variant="contained" fullWidth sx={{ mt: 2 }} disabled={updateMember.isPending}>
             {updateMember.isPending ? "Saving..." : "Save Changes"}
           </Button>
