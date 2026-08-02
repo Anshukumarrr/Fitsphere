@@ -110,21 +110,29 @@ class VerifyPaymentView(APIView):
         ser = VerifyPaymentSerializer(data=request.data)
         ser.is_valid(raise_exception=True)
         payment_id = ser.validated_data["payment_id"]
+        submitted_order_id = ser.validated_data["razorpay_order_id"]
 
         member = getattr(request.user, "member_profile", None)
         if not member:
             return Response({"detail": "Member profile not found."}, status=status.HTTP_400_BAD_REQUEST)
 
+        # C1: payment must exist and belong to this member.
         try:
-            payment = Payment.objects.get(id=payment_id, member=member, status="pending")
+            payment = Payment.objects.get(id=payment_id, member=member)
         except Payment.DoesNotExist:
             return Response({"detail": "Payment not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        # C1: the submitted order must be the order created for THIS payment.
+        # A valid signature only proves the (order_id, payment_id) pair is
+        # genuine — it does not prove that order belongs to this Payment row.
+        if payment.gateway_order_id != submitted_order_id:
+            return Response({"detail": "Order mismatch."}, status=status.HTTP_400_BAD_REQUEST)
 
         import razorpay
         client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
 
         params = {
-            "razorpay_order_id": ser.validated_data["razorpay_order_id"],
+            "razorpay_order_id": submitted_order_id,
             "razorpay_payment_id": ser.validated_data["razorpay_payment_id"],
             "razorpay_signature": ser.validated_data["razorpay_signature"],
         }
@@ -133,7 +141,27 @@ class VerifyPaymentView(APIView):
         except razorpay.errors.SignatureVerificationError:
             return Response({"detail": "Signature verification failed."}, status=status.HTTP_400_BAD_REQUEST)
 
+        # C1: confirm with Razorpay that this order was created for this
+        # payment (receipt) and that the paid amount matches.
+        try:
+            order = client.order.fetch(submitted_order_id)
+        except Exception:
+            return Response({"detail": "Could not verify order."}, status=status.HTTP_400_BAD_REQUEST)
+        expected_paise = int(payment.amount * 100)
+        if str(order.get("receipt")) != str(payment.id):
+            return Response({"detail": "Order receipt mismatch."}, status=status.HTTP_400_BAD_REQUEST)
+        if int(order.get("amount", 0)) != expected_paise:
+            return Response({"detail": "Amount mismatch."}, status=status.HTTP_400_BAD_REQUEST)
+        if int(order.get("amount_paid", 0)) < expected_paise:
+            return Response({"detail": "Order not fully paid."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # C2: lock the row and re-check status inside the transaction so two
+        # concurrent verify calls can't both pass the pending check and both
+        # fulfil (double credit / double membership extension).
         with transaction.atomic():
+            payment = Payment.objects.select_for_update().get(id=payment_id)
+            if payment.status != "pending":
+                return Response({"detail": "Payment already processed."}, status=status.HTTP_400_BAD_REQUEST)
             payment.status = "completed"
             payment.payment_method = "online"
             payment.gateway_payment_id = ser.validated_data["razorpay_payment_id"]

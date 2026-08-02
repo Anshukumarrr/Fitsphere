@@ -14,5 +14,4 @@ django-anymail[sendinblue]>=15.0
 django_storages
 django_import_export
 razorpay>=1.4
-celery>=5.4
-redis>=5.2
+apscheduler>=3.11

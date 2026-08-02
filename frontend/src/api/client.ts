@@ -4,6 +4,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || "https://fitsphere-j65i.onr
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
+  timeout: 15000,
   headers: {
     "Content-Type": "application/json",
   },
@@ -45,7 +46,7 @@ apiClient.interceptors.response.use(
         if (!refresh) throw new Error("No refresh token");
         const { data } = await axios.post(`${API_BASE_URL}/auth/refresh/`, {
           refresh,
-        });
+        }, { timeout: 15000 });
         const newToken = data.access;
         localStorage.setItem("access_token", newToken);
         if (data.refresh) {
@@ -62,7 +63,7 @@ apiClient.interceptors.response.use(
         pendingQueue = [];
         localStorage.removeItem("access_token");
         localStorage.removeItem("refresh_token");
-        window.location.href = "/login";
+        window.dispatchEvent(new Event("auth:session-expired"));
       } finally {
         isRefreshing = false;
       }

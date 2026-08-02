@@ -37,7 +37,7 @@ class UserSerializer(serializers.ModelSerializer):
             "organization",
             "profile",
         )
-        read_only_fields = ("id", "role", "is_active")
+        read_only_fields = ("id", "role", "is_active", "organization")
 
     def get_gym_code(self, obj):
         profile = getattr(obj, "member_profile", None)

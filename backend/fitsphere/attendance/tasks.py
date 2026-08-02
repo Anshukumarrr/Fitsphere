@@ -1,14 +1,12 @@
 import logging
 from datetime import timedelta
 
-from celery import shared_task
 from django.db.models import Count
 from django.utils import timezone
 
 logger = logging.getLogger(__name__)
 
 
-@shared_task
 def generate_daily_attendance_report():
     from .models import AttendanceLog
     from ..organizations.models import GymOrganization

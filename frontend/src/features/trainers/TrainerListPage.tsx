@@ -174,8 +174,8 @@ export default function TrainerListPage() {
             </Box>
             <TextField fullWidth label="Bio" margin="normal" multiline rows={2} {...register("bio")} error={!!errors.bio} helperText={errors.bio?.message} />
             <TextField fullWidth label="Qualifications" margin="normal" multiline rows={2} {...register("qualifications")} error={!!errors.qualifications} helperText={errors.qualifications?.message} />
-            <Button type="submit" variant="contained" fullWidth sx={{ mt: 2 }}>
-              Create Trainer
+            <Button type="submit" variant="contained" fullWidth sx={{ mt: 2 }} disabled={createTrainer.isPending}>
+              {createTrainer.isPending ? "Creating..." : "Create Trainer"}
             </Button>
           </form>
         </DialogContent>

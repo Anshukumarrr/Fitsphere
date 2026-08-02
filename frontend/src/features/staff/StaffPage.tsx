@@ -205,8 +205,8 @@ export default function StaffPage() {
               </>
             )}
 
-            <Button type="submit" variant="contained" fullWidth sx={{ mt: 2 }}>
-              Create {watchedRole ? ROLE_SINGULAR[watchedRole] || "Staff" : "Staff"}
+            <Button type="submit" variant="contained" fullWidth sx={{ mt: 2 }} disabled={createStaff.isPending}>
+              {createStaff.isPending ? "Creating..." : `Create ${watchedRole ? ROLE_SINGULAR[watchedRole] || "Staff" : "Staff"}`}
             </Button>
           </form>
         </DialogContent>

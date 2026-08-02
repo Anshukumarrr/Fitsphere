@@ -21,10 +21,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (data.organization) {
         localStorage.setItem("organization_id", String(data.organization));
       }
-    } catch {
-      localStorage.removeItem("access_token");
-      localStorage.removeItem("refresh_token");
-      localStorage.removeItem("organization_id");
+    } catch (err: unknown) {
+      // Only 401/403 mean the session is genuinely invalid. Network errors
+      // (timeouts, offline, Render cold-start) must NOT wipe valid tokens —
+      // otherwise a sleeping backend silently logs the user out.
+      const status = (err as { response?: { status?: number } })?.response?.status;
+      if (status === 401 || status === 403) {
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
+        localStorage.removeItem("organization_id");
+      }
+      setUser(null);
     } finally {
       setIsLoading(false);
     }
@@ -40,9 +47,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         fetchUser();
       }
     };
+    const handleSessionExpired = () => {
+      localStorage.removeItem("organization_id");
+      setUser(null);
+      qc.clear();
+    };
     window.addEventListener("storage", handleStorage);
-    return () => window.removeEventListener("storage", handleStorage);
-  }, [fetchUser]);
+    window.addEventListener("auth:session-expired", handleSessionExpired);
+    return () => {
+      window.removeEventListener("storage", handleStorage);
+      window.removeEventListener("auth:session-expired", handleSessionExpired);
+    };
+  }, [fetchUser, qc]);
 
   const login = useCallback(async (username: string, password: string) => {
     const { data } = await apiClient.post("/auth/login/", {

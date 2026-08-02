@@ -114,6 +114,7 @@ export default function NotificationSettingsPage() {
                         control={
                           <Switch
                             checked={getPref(event, "email")}
+                            disabled={upsertPref.isPending}
                             onChange={(e) =>
                               upsertPref.mutate({
                                 event,

@@ -4,8 +4,6 @@ from django.conf import settings
 from django.template.loader import render_to_string
 from django.utils import timezone
 
-from celery import shared_task
-
 from .models import NotificationPreference, NotificationTemplate
 from .services import EmailService
 
@@ -29,7 +27,6 @@ def _render(template_body: str, **kwargs) -> str | None:
         return None
 
 
-@shared_task
 def send_email(recipient: str, subject: str, body: str, html_body: str = ""):
     service = EmailService()
     service.send(recipient, subject, body, html_body)
@@ -61,7 +58,6 @@ def send_event_notification(
         email_service.send_template(recipient_email, template, context)
 
 
-@shared_task
 def check_membership_expiry():
     from datetime import timedelta
 
@@ -154,7 +150,6 @@ def check_membership_expiry():
             send_email(email, tmpl.subject, msg, html_body)
 
 
-@shared_task
 def check_payment_due():
     from datetime import timedelta
 
@@ -174,7 +169,7 @@ def check_payment_due():
     for days in check_days:
         target_date = now + timedelta(days=days)
         due_payments = Payment.objects.filter(
-            status="pending", created_at__date=target_date
+            status="pending", due_date=target_date
         ).select_related("member", "member__user")
 
         org_ids = set(p.organization_id for p in due_payments)
@@ -193,7 +188,7 @@ def check_payment_due():
                     name=member.user.first_name,
                     amount=payment.amount,
                     invoice=payment.invoice_number,
-                    due_date=payment.paid_at.date() if payment.paid_at else "",
+                    due_date=payment.due_date or "",
                 )
                 if msg is None:
                     continue
@@ -201,13 +196,12 @@ def check_payment_due():
                     "name": member.user.first_name,
                     "amount": payment.amount,
                     "invoice": payment.invoice_number,
-                    "due_date": payment.paid_at.date() if payment.paid_at else "",
+                    "due_date": payment.due_date or "",
                     "frontend_url": settings.FRONTEND_URL,
                 })
                 send_email(email, tmpl.subject, msg, html_body)
 
 
-@shared_task
 def check_pt_session_reminder():
     from datetime import timedelta
 

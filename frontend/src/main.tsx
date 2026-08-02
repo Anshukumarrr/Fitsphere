@@ -1,5 +1,3 @@
-import { ParticlesProvider } from "@tsparticles/react";
-import { loadSlim } from "@tsparticles/slim";
 import Box from "@mui/material/Box";
 import { ThemeProvider } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
@@ -10,7 +8,6 @@ import { createRoot } from "react-dom/client";
 import { AuthProvider } from "./features/auth/AuthProvider";
 import { routeTree } from "./routeTree";
 import gymTheme from "./theme/gymTheme";
-import AtmosphereLayer from "./components/AtmosphereLayer";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -22,6 +19,12 @@ const queryClient = new QueryClient({
 });
 
 const router = createRouter({ routeTree, context: { queryClient } });
+
+// Session expired (refresh token invalid) — navigate to /login without a
+// full page reload. AuthProvider clears the user state on the same event.
+window.addEventListener("auth:session-expired", () => {
+  router.navigate({ to: "/login" });
+});
 
 declare module "@tanstack/react-router" {
   interface Register {
@@ -35,14 +38,11 @@ createRoot(document.getElementById("root")!).render(
       <CssBaseline />
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <ParticlesProvider init={loadSlim}>
-            <AtmosphereLayer />
-            <Box sx={{ position: "relative", zIndex: 1 }}>
-              <Suspense fallback={<Box sx={{ p: 4, textAlign: "center" }}>Loading...</Box>}>
-                <RouterProvider router={router} />
-              </Suspense>
-            </Box>
-          </ParticlesProvider>
+          <Box sx={{ position: "relative", zIndex: 1 }}>
+            <Suspense fallback={<Box sx={{ p: 4, textAlign: "center" }}>Loading...</Box>}>
+              <RouterProvider router={router} />
+            </Suspense>
+          </Box>
         </AuthProvider>
       </QueryClientProvider>
     </ThemeProvider>

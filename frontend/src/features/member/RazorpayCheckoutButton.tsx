@@ -13,6 +13,29 @@ interface Props {
   onSuccess?: (paymentId: number) => void;
 }
 
+let sdkPromise: Promise<void> | null = null;
+
+/** Loads the Razorpay checkout SDK exactly once, on demand. */
+function loadRazorpaySdk(): Promise<void> {
+  if ((window as unknown as Record<string, unknown>).Razorpay) {
+    return Promise.resolve();
+  }
+  if (!sdkPromise) {
+    sdkPromise = new Promise<void>((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.async = true;
+      script.onload = () => resolve();
+      script.onerror = () => {
+        sdkPromise = null; // allow retry
+        reject(new Error("Failed to load payment SDK. Check your connection."));
+      };
+      document.head.appendChild(script);
+    });
+  }
+  return sdkPromise;
+}
+
 export default function RazorpayCheckoutButton({ purchaseType, itemId, amount, planId, label, disabled, onSuccess }: Props) {
   const [error, setError] = useState("");
   const createOrder = useCreateRazorpayOrder();
@@ -21,6 +44,8 @@ export default function RazorpayCheckoutButton({ purchaseType, itemId, amount, p
   const handleClick = async () => {
     setError("");
     try {
+      // Load the Razorpay SDK lazily — never block the landing/app load on it.
+      await loadRazorpaySdk();
       const order = await createOrder.mutateAsync({
         purchase_type: purchaseType,
         item_id: itemId,
@@ -59,7 +84,7 @@ export default function RazorpayCheckoutButton({ purchaseType, itemId, amount, p
   return (
     <>
       <Button variant="contained" onClick={handleClick} disabled={disabled || createOrder.isPending}>
-        {label ?? `Pay ₹${amount.toLocaleString()}`}
+        {createOrder.isPending ? "Processing..." : (label ?? `Pay ₹${amount.toLocaleString()}`)}
       </Button>
       {error && (
         <Snackbar

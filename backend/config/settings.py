@@ -6,8 +6,6 @@ from decouple import Csv, config
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-REDIS_URL = config("REDIS_URL", default="redis://localhost:6379")
-
 DEBUG = config("DJANGO_DEBUG", default=False, cast=bool)
 SECRET_KEY = config("DJANGO_SECRET_KEY") if not DEBUG else config("DJANGO_SECRET_KEY", default="insecure-dev-key-change-in-production")
 ALLOWED_HOSTS = config("DJANGO_ALLOWED_HOSTS", default="localhost,127.0.0.1,fitsphere-j65i.onrender.com", cast=Csv())
@@ -104,8 +102,7 @@ USE_TZ = True
 
 CACHES = {
     "default": {
-        "BACKEND": "django.core.cache.backends.redis.RedisCache",
-        "LOCATION": config("CACHE_REDIS_URL", default=f"{REDIS_URL}/0"),
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
     }
 }
 
@@ -194,44 +191,6 @@ RAZORPAY_KEY_ID = config("RAZORPAY_KEY_ID", default="")
 RAZORPAY_KEY_SECRET = config("RAZORPAY_KEY_SECRET", default="")
 RAZORPAY_WEBHOOK_SECRET = config("RAZORPAY_WEBHOOK_SECRET", default="")
 
-# Celery
-CELERY_BROKER_URL = config("CELERY_BROKER_URL", default=f"{REDIS_URL}/1")
-CELERY_RESULT_BACKEND = f"{REDIS_URL}/2"
-CELERY_TASK_IGNORE_RESULT = True
-CELERY_ACCEPT_CONTENT = ["json"]
-CELERY_TASK_SERIALIZER = "json"
-CELERY_RESULT_SERIALIZER = "json"
-CELERY_TIMEZONE = "UTC"
-CELERY_TASK_TRACK_STARTED = True
-CELERY_TASK_TIME_LIMIT = 30 * 60
-CELERY_TASK_ACKS_LATE = True
-CELERY_TASK_REJECT_ON_WORKER_LOST = True
-CELERY_TASK_ACKS_ON_FAILURE_OR_TIMEOUT = True
-
-from celery.schedules import crontab
-
-CELERY_BEAT_SCHEDULE = {
-    "deactivate-expired-memberships": {
-        "task": "fitsphere.memberships.tasks.deactivate_expired_memberships",
-        "schedule": crontab(hour=2, minute=0),
-    },
-    "send-membership-expiry-reminders": {
-        "task": "fitsphere.notifications.tasks.check_membership_expiry",
-        "schedule": crontab(hour=8, minute=0),
-    },
-    "send-payment-due-reminders": {
-        "task": "fitsphere.notifications.tasks.check_payment_due",
-        "schedule": crontab(hour=9, minute=0),
-    },
-    "send-pt-session-reminders": {
-        "task": "fitsphere.notifications.tasks.check_pt_session_reminder",
-        "schedule": crontab(hour=10, minute=0),
-    },
-    "generate-daily-attendance-report": {
-        "task": "fitsphere.attendance.tasks.generate_daily_attendance_report",
-        "schedule": crontab(hour=23, minute=59),
-    },
-}
 
 
 

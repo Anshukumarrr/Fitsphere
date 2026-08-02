@@ -46,6 +46,19 @@ export default function BranchMemberTable({ branchId }: BranchMemberTableProps) 
 
   const members = data?.results ?? [];
 
+  const handleConfirm = async () => {
+    if (!confirmTarget) return;
+    const id = confirmTarget.member.id;
+    if (confirmTarget.action === "delete") {
+      await hardDeleteMember.mutateAsync(id);
+    } else {
+      await deleteMember.mutateAsync(id);
+    }
+    setConfirmTarget(null);
+  };
+
+  const confirmPending = deleteMember.isPending || hardDeleteMember.isPending;
+
   return (
     <Box>
       <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2, px: 2, py: 1 }}>
@@ -166,18 +179,16 @@ export default function BranchMemberTable({ branchId }: BranchMemberTableProps) 
           <Button
             color={confirmTarget?.action === "delete" ? "error" : "warning"}
             variant="contained"
-            onClick={() => {
-              if (confirmTarget) {
-                if (confirmTarget.action === "delete") {
-                  hardDeleteMember.mutate(confirmTarget.member.id);
-                } else {
-                  deleteMember.mutate(confirmTarget.member.id);
-                }
-                setConfirmTarget(null);
-              }
-            }}
+            onClick={handleConfirm}
+            disabled={confirmPending}
           >
-            {confirmTarget?.action === "delete" ? "Permanently Delete" : "Deactivate"}
+            {confirmPending
+              ? confirmTarget?.action === "delete"
+                ? "Deleting..."
+                : "Deactivating..."
+              : confirmTarget?.action === "delete"
+                ? "Permanently Delete"
+                : "Deactivate"}
           </Button>
         </DialogActions>
       </Dialog>

@@ -95,8 +95,8 @@ export default function MembershipPlanListPage() {
               <MenuItem value="half_yearly">Half Yearly</MenuItem>
               <MenuItem value="yearly">Yearly</MenuItem>
             </TextField>
-            <Button type="submit" variant="contained" fullWidth sx={{ mt: 2 }}>
-              Create Plan
+            <Button type="submit" variant="contained" fullWidth sx={{ mt: 2 }} disabled={createPlan.isPending}>
+              {createPlan.isPending ? "Creating..." : "Create Plan"}
             </Button>
           </form>
         </DialogContent>

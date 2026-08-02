@@ -142,8 +142,8 @@ export default function PaymentListPage() {
               <MenuItem value="bank_transfer">Bank Transfer</MenuItem>
             </TextField>
             <TextField fullWidth label="Description" margin="normal" multiline rows={2} {...register("description")} />
-            <Button type="submit" variant="contained" fullWidth sx={{ mt: 2 }}>
-              Record Payment
+            <Button type="submit" variant="contained" fullWidth sx={{ mt: 2 }} disabled={createPayment.isPending}>
+              {createPayment.isPending ? "Recording..." : "Record Payment"}
             </Button>
           </form>
         </DialogContent>

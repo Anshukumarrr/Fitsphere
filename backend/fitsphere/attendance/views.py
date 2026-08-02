@@ -56,13 +56,26 @@ class AttendanceLogListView(generics.ListAPIView):
 @api_view(["POST"])
 @permission_classes([permissions.IsAuthenticated])
 def qr_check_in(request):
+    # C5: only staff/security roles may check a member in via QR. Any
+    # authenticated user could otherwise enumerate member ids.
+    if request.user.role not in (
+        "super_admin", "gym_owner", "receptionist", "trainer",
+        "manager", "instructor", "security",
+    ):
+        return Response({"error": "Not authorized"}, status=status.HTTP_403_FORBIDDEN)
+
     serializer = QRCheckInSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
 
+    qr_branch = serializer.validated_data["branch"]
+
     from ..members.models import Member
 
+    # C5: scope the member lookup to the QR's branch organization so a QR
+    # from one tenant can never check in a member of another tenant.
     member = Member.objects.filter(
-        id=serializer.validated_data["member_id"]
+        id=serializer.validated_data["member_id"],
+        organization=qr_branch.organization_id,
     ).first()
     if not member:
         return Response(
@@ -81,7 +94,7 @@ def qr_check_in(request):
 
     log = AttendanceLog.objects.create(
         member=member,
-        branch=serializer.validated_data["branch"],
+        branch=qr_branch,
         organization=member.organization,
         check_in_method="qr",
         marked_by=request.user,

@@ -127,8 +127,8 @@ export default function MemberCreateDialog({ open, branchId, onClose }: Props) {
             <TextField fullWidth label="Emergency Contact Phone" margin="normal" {...register("emergency_contact_phone")} error={!!errors.emergency_contact_phone} helperText={errors.emergency_contact_phone?.message} />
           </Box>
           <TextField fullWidth label="Health Notes" margin="normal" multiline rows={2} {...register("health_notes")} error={!!errors.health_notes} helperText={errors.health_notes?.message} />
-          <Button type="submit" variant="contained" fullWidth sx={{ mt: 2 }}>
-            Create Member
+          <Button type="submit" variant="contained" fullWidth sx={{ mt: 2 }} disabled={createMember.isPending}>
+            {createMember.isPending ? "Creating..." : "Create Member"}
           </Button>
         </form>
       </DialogContent>

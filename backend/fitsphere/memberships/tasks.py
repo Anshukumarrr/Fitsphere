@@ -1,12 +1,9 @@
 import logging
 from datetime import date
 
-from celery import shared_task
-
 logger = logging.getLogger(__name__)
 
 
-@shared_task
 def deactivate_expired_memberships():
     from .models import MemberMembership
 

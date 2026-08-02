@@ -23,7 +23,9 @@ function StaffCodePanel() {
   const generateCode = useGenerateCode();
   const code = activeCode && "code" in activeCode ? activeCode.code : null;
 
-  const handleGenerate = () => generateCode.mutateAsync({});
+  const handleGenerate = async () => {
+    await generateCode.mutateAsync({});
+  };
 
   return (
     <Card sx={{ p: 4, mb: 3, textAlign: "center" }}>

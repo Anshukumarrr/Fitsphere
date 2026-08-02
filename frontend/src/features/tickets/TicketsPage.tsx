@@ -154,8 +154,9 @@ export default function TicketsPage() {
                             size="small"
                             variant="outlined"
                             onClick={() => handleAssign(ticket.id)}
+                            disabled={updateTicket.isPending}
                           >
-                            Accept
+                            {updateTicket.isPending ? "Accepting..." : "Accept"}
                           </Button>
                         )}
                         {ticket.can_resolve && ticket.status !== "resolved" && ticket.status !== "closed" && (

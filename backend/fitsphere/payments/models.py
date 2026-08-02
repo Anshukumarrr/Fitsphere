@@ -48,6 +48,11 @@ class Payment(TenantAwareModel):
     status = models.CharField(
         max_length=20, choices=PaymentStatus.choices, default=PaymentStatus.COMPLETED
     )
+    due_date = models.DateField(
+        null=True,
+        blank=True,
+        help_text="Date the payment is due. Used by the payment-due reminder job.",
+    )
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     invoice_number = models.CharField(max_length=50, unique=True, blank=True)
     invoice_pdf = models.FileField(
@@ -80,10 +85,19 @@ class Payment(TenantAwareModel):
             models.Index(fields=["organization", "paid_at"]),
             models.Index(fields=["member", "payment_type"]),
             models.Index(fields=["status"]),
+            models.Index(fields=["status", "due_date"]),
         ]
         ordering = ["-paid_at"]
 
     def save(self, *args, **kwargs):
+        # Pending payments get a default due date (30 days out) so the
+        # payment-due reminder job has something to match against.
+        if (
+            not self.pk
+            and self.status == Payment.PaymentStatus.PENDING
+            and not self.due_date
+        ):
+            self.due_date = timezone.localdate() + timezone.timedelta(days=30)
         if not self.invoice_number:
             prefix = "INV"
             date_part = timezone.now().strftime("%Y%m%d")

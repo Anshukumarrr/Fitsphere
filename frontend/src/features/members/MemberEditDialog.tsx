@@ -103,8 +103,8 @@ export default function MemberEditDialog({ open, member, onClose }: Props) {
             <TextField fullWidth label="WhatsApp Number" margin="normal" {...register("whatsapp_number")} error={!!errors.whatsapp_number} helperText={errors.whatsapp_number?.message} />
           </Box>
           <TextField fullWidth label="Health Notes" margin="normal" multiline rows={2} {...register("health_notes")} error={!!errors.health_notes} helperText={errors.health_notes?.message} />
-          <Button type="submit" variant="contained" fullWidth sx={{ mt: 2 }}>
-            Save Changes
+          <Button type="submit" variant="contained" fullWidth sx={{ mt: 2 }} disabled={updateMember.isPending}>
+            {updateMember.isPending ? "Saving..." : "Save Changes"}
           </Button>
         </form>
       </DialogContent>
