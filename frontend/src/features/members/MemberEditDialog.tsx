@@ -65,7 +65,12 @@ export default function MemberEditDialog({ open, member, onClose }: Props) {
     if (!member) return;
     try {
       setSubmitError(null);
-      await updateMember.mutateAsync({ id: member.id, ...formData });
+      // Empty optional date inputs submit as "" — DRF rejects "" with 400,
+      // and sending null would deactivate the member's active membership row
+      // via the backend sync helper. Omit the field entirely when empty.
+      const payload: { id: number } & Record<string, unknown> = { id: member.id, ...formData };
+      if (!formData.membership_end_date) delete payload.membership_end_date;
+      await updateMember.mutateAsync(payload);
       reset();
       onClose();
     } catch (err) {

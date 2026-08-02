@@ -9,7 +9,7 @@ import openpyxl
 from django.contrib.auth import get_user_model
 from django.db import transaction, DatabaseError
 
-from ..memberships.models import MembershipPlan
+from ..memberships.models import MemberMembership, MembershipPlan
 from ..organizations.models import Branch
 from .models import Member
 
@@ -277,7 +277,7 @@ def _process_row(row, data, organization, created_by, default_branch,
             if matched_plan:
                 membership_end_date = datetime.date.fromordinal(today.toordinal() + matched_plan.duration_days)
 
-            Member.objects.create(
+            member = Member.objects.create(
                 user=user,
                 organization=organization,
                 branch=matched_branch,
@@ -291,6 +291,17 @@ def _process_row(row, data, organization, created_by, default_branch,
                 membership_start_date=membership_start_date,
                 membership_end_date=membership_end_date,
             )
+
+            if matched_plan:
+                MemberMembership.objects.create(
+                    member=member,
+                    organization=organization,
+                    plan=matched_plan,
+                    start_date=membership_start_date,
+                    end_date=membership_end_date,
+                    is_active=True,
+                    amount_paid=0,
+                )
     except DatabaseError as e:
         result.errors.append(RowError(row=row, field="", value="", message=f"Database error: {e}"))
         return

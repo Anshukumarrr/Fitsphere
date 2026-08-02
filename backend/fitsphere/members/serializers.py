@@ -52,6 +52,16 @@ class MemberSerializer(serializers.ModelSerializer):
             "updated_at",
         )
 
+    def update(self, instance, validated_data):
+        if "membership_end_date" in validated_data:
+            end_date = validated_data.pop("membership_end_date")
+            instance = super().update(instance, validated_data)
+            from ..memberships.models import sync_membership_end_date
+
+            sync_membership_end_date(instance, end_date)
+            return instance
+        return super().update(instance, validated_data)
+
 
 class MemberCreateSerializer(serializers.ModelSerializer):
     username = serializers.CharField(
@@ -122,6 +132,19 @@ class MemberCreateSerializer(serializers.ModelSerializer):
                 membership_end_date=membership_end_date,
                 **validated_data,
             )
+
+            if plan:
+                from ..memberships.models import MemberMembership
+
+                MemberMembership.objects.create(
+                    member=member,
+                    organization=self.context["organization"],
+                    plan=plan,
+                    start_date=membership_start_date,
+                    end_date=membership_end_date,
+                    is_active=True,
+                    amount_paid=0,
+                )
         return member
 
 

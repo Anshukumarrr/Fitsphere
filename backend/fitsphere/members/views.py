@@ -123,6 +123,10 @@ class MemberStatusChangeView(generics.UpdateAPIView):
         if "membership_end_date" in serializer.validated_data:
             member.membership_end_date = serializer.validated_data["membership_end_date"]
         member.save()
+        if "membership_end_date" in serializer.validated_data:
+            from ..memberships.models import sync_membership_end_date
+
+            sync_membership_end_date(member, serializer.validated_data["membership_end_date"])
         return Response(MemberSerializer(member).data)
 
 

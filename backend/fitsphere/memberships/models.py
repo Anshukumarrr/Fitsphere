@@ -1,3 +1,5 @@
+from datetime import date
+
 from django.conf import settings
 from django.db import models
 
@@ -90,3 +92,40 @@ class MembershipRenewal(models.Model):
 
     class Meta:
         db_table = "membership_renewals"
+
+
+def sync_membership_end_date(member, end_date):
+    """Keep member.membership_end_date and the active MemberMembership row in sync.
+
+    Single source of truth is member_memberships.end_date (the scheduler reads it).
+    This helper dual-writes so UI edits drive expiry emails while the legacy
+    members.membership_end_date column still exists (pre-drop Release 1).
+    Clearing the end date (None) deactivates the active row: with end_date NOT NULL
+    there is no row shape for "no expiry", and a stale date must not keep emailing.
+    """
+    member.membership_end_date = end_date
+    member.save(update_fields=["membership_end_date"])
+
+    active = (
+        member.memberships.filter(is_active=True)
+        .order_by("-end_date")
+        .first()
+    )
+    if end_date is None:
+        if active:
+            active.is_active = False
+            active.save(update_fields=["is_active"])
+        return
+    if active:
+        active.end_date = end_date
+        active.save(update_fields=["end_date"])
+    else:
+        MemberMembership.objects.create(
+            member=member,
+            organization=member.organization,
+            plan=None,
+            start_date=member.membership_start_date or date.today(),
+            end_date=end_date,
+            is_active=True,
+            amount_paid=0,
+        )
