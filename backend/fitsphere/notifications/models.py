@@ -1,5 +1,20 @@
+import re
+
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import models
+
+
+# Placeholders each scheduler-driven event's body_template may use. Mirrors the
+# render kwargs in notifications/tasks.py — a typo like {nmae} silently kills
+# the event (tasks._render returns None -> caller continues). Validated at
+# template save time (H4); keep in sync with tasks.py and predictor.py.
+EVENT_PLACEHOLDERS = {
+    "membership_expiry": {"name", "plan", "end_date", "days"},
+    "membership_expired": {"name", "plan", "end_date"},
+    "payment_due": {"name", "amount", "invoice", "due_date"},
+    "pt_session_reminder": {"name", "trainer", "date", "time"},
+}
 
 
 class NotificationTemplate(models.Model):
@@ -30,6 +45,27 @@ class NotificationTemplate(models.Model):
 
     def __str__(self):
         return f"{self.get_event_display()} ({self.get_channel_display()})"
+
+    def clean(self):
+        """Reject body placeholders that the scheduler can never render (H4).
+
+        A typo like {nmae} would make tasks._render return None and the whole
+        event silently stop emailing. Django admin ModelForms run full_clean(),
+        so template edits are validated on save.
+        """
+        super().clean()
+        allowed = EVENT_PLACEHOLDERS.get(self.event)
+        if allowed is None:
+            return  # non-scheduler events (announcement/staff_invite/welcome) not constrained
+        found = set(re.findall(r"\{(\w+)\}", self.body_template))
+        unknown = found - allowed
+        if unknown:
+            raise ValidationError({
+                "body_template": (
+                    f"Unknown placeholder(s): {', '.join(sorted(unknown))}. "
+                    f"Allowed for {self.event}: {', '.join(sorted(allowed))}"
+                )
+            })
 
 
 class EmailLog(models.Model):

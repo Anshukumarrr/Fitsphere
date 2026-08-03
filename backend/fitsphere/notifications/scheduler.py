@@ -5,7 +5,9 @@ from apscheduler.triggers.cron import CronTrigger
 
 logger = logging.getLogger(__name__)
 
-scheduler = BackgroundScheduler()
+# Jobs run on UTC wall-clock time (07:00/08:00/08:30 UTC = 12:30/13:30/14:00 IST).
+# Pinned explicitly (M2) so a machine with a non-UTC local tz can't shift them.
+scheduler = BackgroundScheduler(timezone="UTC")
 _started = False
 
 

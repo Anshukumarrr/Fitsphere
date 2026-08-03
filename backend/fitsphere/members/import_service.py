@@ -156,8 +156,11 @@ def _parse_xlsx(content: bytes) -> list[dict]:
 
 
 def _send_welcome_email_sync(email: str, first_name: str, username: str, password: str) -> bool:
-    from django.core.mail import send_mail, EmailMultiAlternatives, get_connection
     from django.conf import settings
+    from django.core.mail import EmailMultiAlternatives, get_connection
+
+    from fitsphere.notifications.models import EmailLog
+    from fitsphere.notifications.services import EmailService
 
     subject = "Welcome to FitSphere — Your Account is Ready"
     body = (
@@ -181,16 +184,17 @@ def _send_welcome_email_sync(email: str, first_name: str, username: str, passwor
         f"<p><a href='https://fitsphere.app/login' style='display:inline-block;background:#D4FF3F;color:#0B0D0C;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:700;'>Log In</a></p>"
         f"<p style='color:#6B6F6C;font-size:12px;'>Please change your password after logging in.</p>"
     )
+    # Route through EmailService so the H1 dedup guard + EmailLog apply:
+    # importing the same CSV twice can no longer send duplicate welcome emails,
+    # and these sends now show up in the Email Center history tab.
     try:
-        send_mail(
-            subject=subject,
-            message=body,
-            html_message=html_body,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[email],
-            fail_silently=False,
-        )
-        return True
+        log = EmailService().send(email, subject, body, html_body)
+        if log.status == EmailLog.Status.SENT:
+            return True
+        if not settings.DEBUG:
+            logger.error("Failed to send welcome email to %s (status=%s)", email, log.status)
+            return False
+        logger.warning("Email backend failed in dev mode, falling back to console for %s", email)
     except Exception:
         if not settings.DEBUG:
             logger.exception("Failed to send welcome email to %s", email)

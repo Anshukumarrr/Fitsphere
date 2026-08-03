@@ -1,6 +1,7 @@
 from datetime import timedelta
 from unittest.mock import patch
 
+from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.utils import timezone
 
@@ -226,3 +227,67 @@ class PredictorTests(TestCase):
         org_rows = self._predicted(self.org.id)  # owner: own org only
         self.assertTrue(org_rows)
         self.assertEqual({r["org_id"] for r in org_rows}, {self.org.id})
+
+
+class TemplateValidationTests(TestCase):
+    """H4: a placeholder typo in a scheduler template silently kills the event
+    (tasks._render returns None -> caller continues). Save-time validation."""
+
+    def test_typo_placeholder_raises(self):
+        template = NotificationTemplate(
+            name="Expiry", event="membership_expiry", channel="email",
+            subject="Expiring Soon",
+            body_template="Hi {nmae}, your membership ends on {end_date}.",
+            is_active=True,
+        )
+        with self.assertRaises(ValidationError):
+            template.full_clean()
+
+    def test_valid_placeholders_pass(self):
+        template = NotificationTemplate(
+            name="Expiry", event="membership_expiry", channel="email",
+            subject="Expiring Soon",
+            body_template="Hi {name}, {plan} ends {end_date} ({days} days left).",
+            is_active=True,
+        )
+        template.full_clean()  # must not raise
+
+    def test_non_scheduler_event_unconstrained(self):
+        template = NotificationTemplate(
+            name="Welcome", event="welcome", channel="email",
+            subject="Welcome", body_template="Hi {anything_goes}!", is_active=True,
+        )
+        template.full_clean()  # must not raise
+
+
+class ImportWelcomeDedupTests(TestCase):
+    """Bulk-import credential emails used raw send_mail (bypassing the H1
+    guard) — re-importing the same CSV sent duplicate welcome emails. Now
+    routed through EmailService: deduped + logged."""
+
+    @patch("fitsphere.notifications.services.send_mail")
+    def test_double_import_sends_once(self, mock_send_mail):
+        from fitsphere.members.import_service import _send_welcome_email_sync
+
+        ok1 = _send_welcome_email_sync("welcome-dup@example.com", "Test", "user1", "pass1")
+        ok2 = _send_welcome_email_sync("welcome-dup@example.com", "Test", "user1", "pass1")
+
+        self.assertTrue(ok1)
+        self.assertTrue(ok2)  # second call deduped but still reports success
+        self.assertEqual(mock_send_mail.call_count, 1)
+        self.assertEqual(
+            EmailLog.objects.filter(recipient="welcome-dup@example.com").count(), 1
+        )
+
+    @patch("fitsphere.notifications.services.send_mail")
+    def test_different_credentials_send_twice(self, mock_send_mail):
+        from fitsphere.members.import_service import _send_welcome_email_sync
+
+        _send_welcome_email_sync("welcome-dup@example.com", "Test", "user1", "pass1")
+        _send_welcome_email_sync("welcome-dup@example.com", "Test", "user2", "pass2")
+
+        # Body differs (credentials inside) -> legitimately different email
+        self.assertEqual(mock_send_mail.call_count, 2)
+        self.assertEqual(
+            EmailLog.objects.filter(recipient="welcome-dup@example.com").count(), 2
+        )
