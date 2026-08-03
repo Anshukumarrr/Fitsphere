@@ -376,3 +376,38 @@ export interface AuditLogEntry {
   ip_address: string | null;
   timestamp: string;
 }
+
+export interface EmailLogEntry {
+  id: number;
+  recipient: string;
+  subject: string;
+  body: string;
+  status: "pending" | "sent" | "failed";
+  error_message: string;
+  sent_at: string | null;
+  retry_count: number;
+  created_at: string;
+}
+
+export type UpcomingEmailStatus =
+  | "will_send"
+  | "blocked_template"
+  | "blocked_pref"
+  | "no_email"
+  | "render_error"
+  | "suppressed_dedup";
+
+export interface UpcomingEmail {
+  event: string;
+  event_label: string;
+  recipient: string;
+  member_name: string;
+  org_id: number | null;
+  org_name: string;
+  trigger_date: string | null;
+  days: number | null;
+  planned_date: string;
+  subject: string;
+  status: UpcomingEmailStatus;
+  reason: string;
+}
