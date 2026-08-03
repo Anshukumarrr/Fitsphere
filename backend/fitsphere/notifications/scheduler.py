@@ -5,9 +5,9 @@ from apscheduler.triggers.cron import CronTrigger
 
 logger = logging.getLogger(__name__)
 
-# Jobs run on UTC wall-clock time (07:00/08:00/08:30 UTC = 12:30/13:30/14:00 IST).
-# Pinned explicitly (M2) so a machine with a non-UTC local tz can't shift them.
-scheduler = BackgroundScheduler(timezone="UTC")
+# Jobs run on IST wall-clock time (12:30/13:30/14:00 IST = 07:00/08:00/08:30 UTC).
+# Pinned explicitly (M2) so a machine with a non-IST local tz can't shift them.
+scheduler = BackgroundScheduler(timezone="Asia/Kolkata")
 _started = False
 
 
@@ -25,10 +25,10 @@ def start():
     from .tasks import check_membership_expiry, check_payment_due, check_pt_session_reminder
 
     # ── Membership expiry reminders ──────────────────────────────────
-    # Runs daily at 8:00 AM — checks 7/3/1 day before expiry + 1 day after
+    # Runs daily at 1:30 PM IST — checks 7/3/1 day before expiry + 1 day after
     scheduler.add_job(
         check_membership_expiry,
-        CronTrigger(hour=8, minute=0),
+        CronTrigger(hour=13, minute=30),
         id="notifications_check_membership_expiry",
         replace_existing=True,
         misfire_grace_time=None,
@@ -37,10 +37,10 @@ def start():
     )
 
     # ── Payment due reminders ────────────────────────────────────────
-    # Runs daily at 8:30 AM — checks 7/3/1 day before payment due
+    # Runs daily at 2:00 PM IST — checks 7/3/1 day before payment due
     scheduler.add_job(
         check_payment_due,
-        CronTrigger(hour=8, minute=30),
+        CronTrigger(hour=14, minute=0),
         id="notifications_check_payment_due",
         replace_existing=True,
         misfire_grace_time=None,
@@ -49,10 +49,10 @@ def start():
     )
 
     # ── PT session reminders ─────────────────────────────────────────
-    # Runs daily at 7:00 AM — reminds about PT sessions scheduled today
+    # Runs daily at 12:30 PM IST — reminds about PT sessions scheduled today
     scheduler.add_job(
         check_pt_session_reminder,
-        CronTrigger(hour=7, minute=0),
+        CronTrigger(hour=12, minute=30),
         id="notifications_check_pt_session_reminder",
         replace_existing=True,
         misfire_grace_time=None,
@@ -62,6 +62,6 @@ def start():
 
     scheduler.start()
     logger.info(
-        "APScheduler started — jobs: pt_session_reminder(07:00), "
-        "membership_expiry(08:00), payment_due(08:30)"
+        "APScheduler started — jobs: pt_session_reminder(12:30 IST), "
+        "membership_expiry(13:30 IST), payment_due(14:00 IST)"
     )
