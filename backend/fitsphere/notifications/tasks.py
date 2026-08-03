@@ -14,7 +14,7 @@ def _prefs_by_org(org_ids: set, event: str) -> dict:
     if not org_ids:
         return {}
     prefs = NotificationPreference.objects.filter(
-        organization_id__in=org_ids, event=event, enabled=True
+        organization_id__in=org_ids, event=event, channel="email", enabled=True
     ).values_list("organization_id", flat=True)
     return {oid: True for oid in prefs}
 
