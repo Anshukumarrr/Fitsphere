@@ -35,29 +35,33 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "../../hooks/useAuth";
 import UserAvatar from "../UserAvatar";
+import { roleLandingPath } from "../../utils/roleLanding";
 
 const drawerWidth = 250;
 
 const navItems = [
-  { label: "Dashboard", icon: <Dashboard />, path: "/dashboard", roles: ["gym_owner", "super_admin", "receptionist", "trainer", "manager", "instructor"] },
-  { label: "Members", icon: <People />, path: "/members", roles: ["gym_owner", "super_admin", "receptionist", "trainer", "manager", "instructor"] },
-  { label: "Import Members", icon: <FileUpload />, path: "/members/import", roles: ["gym_owner", "super_admin", "manager"] },
-  { label: "Staff", icon: <Group />, path: "/staff", roles: ["gym_owner", "super_admin", "manager"] },
-  { label: "Payments", icon: <MonetizationOn />, path: "/payments", roles: ["gym_owner", "super_admin", "receptionist", "manager"] },
-  { label: "PT Sessions", icon: <Group />, path: "/pt-sessions", roles: ["gym_owner", "super_admin", "trainer", "manager"] },
-  { label: "Attendance", icon: <CalendarMonth />, path: "/attendance", roles: ["gym_owner", "super_admin", "receptionist", "trainer", "manager", "instructor"] },
-  { label: "Analytics", icon: <Assessment />, path: "/analytics", roles: ["gym_owner", "super_admin", "manager"] },
+  // Dashboard: org analytics — backend /analytics/dashboard/ is
+  // IsGymOwnerOrAdmin (gym_owner, super_admin, manager) only.
+  { label: "Dashboard", icon: <Dashboard />, path: "/dashboard", roles: ["gym_owner", "super_admin", "manager"] },
+  // Members: IsStaffOrReadOnlyInstructor — instructor is read-only.
+  { label: "Members", icon: <People />, path: "/members", roles: ["gym_owner", "receptionist", "trainer", "manager", "instructor"] },
+  { label: "Import Members", icon: <FileUpload />, path: "/members/import", roles: ["gym_owner", "manager"] },
+  { label: "Staff", icon: <Group />, path: "/staff", roles: ["gym_owner", "manager"] },
+  { label: "Payments", icon: <MonetizationOn />, path: "/payments", roles: ["gym_owner", "receptionist", "manager"] },
+  { label: "PT Sessions", icon: <Group />, path: "/pt-sessions", roles: ["gym_owner", "receptionist", "trainer", "manager"] },
+  { label: "Attendance", icon: <CalendarMonth />, path: "/attendance", roles: ["gym_owner", "receptionist", "trainer", "manager", "instructor"] },
+  { label: "Analytics", icon: <Assessment />, path: "/analytics", roles: ["gym_owner", "manager"] },
   { label: "Exercises", icon: <FitnessCenter />, path: "/exercises", roles: ["trainer", "member"] },
   { label: "Tickets", icon: <BugReport />, path: "/tickets", roles: ["gym_owner", "super_admin", "trainer", "member", "manager", "instructor", "security", "cleaner", "maintenance"] },
-  { label: "Notifications", icon: <Notifications />, path: "/notifications", roles: ["gym_owner", "super_admin", "manager"] },
+  { label: "Notifications", icon: <Notifications />, path: "/notifications", roles: ["gym_owner", "manager"] },
   { label: "Email Center", icon: <Email />, path: "/email-center", roles: ["gym_owner", "super_admin", "manager"] },
   { label: "Billing", icon: <Receipt />, path: "/billing", roles: ["super_admin"] },
-  { label: "Audit Logs", icon: <Receipt />, path: "/audit", roles: ["gym_owner", "super_admin"] },
+  { label: "Audit Logs", icon: <Receipt />, path: "/audit", roles: ["gym_owner", "super_admin", "manager"] },
   { label: "My Dashboard", icon: <Dashboard />, path: "/dashboard", roles: ["member"] },
-  { label: "My Attendance", icon: <CalendarMonth />, path: "/my-attendance", roles: ["member", "security", "cleaner", "maintenance"] },
+  { label: "My Attendance", icon: <CalendarMonth />, path: "/my-attendance", roles: ["member"] },
   { label: "My Sessions", icon: <Group />, path: "/my-sessions", roles: ["member"] },
   { label: "My Payments", icon: <MonetizationOn />, path: "/my-payments", roles: ["member"] },
-  { label: "My Profile", icon: <People />, path: "/profile", roles: ["member", "trainer", "receptionist", "cleaner", "manager", "security", "instructor", "maintenance", "gym_owner", "super_admin"] },
+  { label: "My Profile", icon: <People />, path: "/profile", roles: ["gym_owner", "super_admin", "receptionist", "trainer", "manager", "instructor", "security", "cleaner", "maintenance", "member"] },
 ];
 
 export default function DashboardLayout() {
@@ -86,7 +90,7 @@ export default function DashboardLayout() {
   const drawer = (
     <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
       <Toolbar sx={{ display: "flex", alignItems: "center", gap: 1.5, px: 2.5 }}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, cursor: "pointer" }} onClick={() => navigate({ to: "/dashboard" })}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, cursor: "pointer" }} onClick={() => navigate({ to: roleLandingPath(user?.role) })}>
           <FitnessCenter sx={{ color: "#E8E3D8", fontSize: 26 }} />
           <Box>
             <Typography
@@ -121,7 +125,7 @@ export default function DashboardLayout() {
         {filteredNav.map((item) => {
           const isActive = location.pathname.startsWith(item.path);
           return (
-            <ListItem key={item.path} disablePadding sx={{ mb: 0.15 }}>
+            <ListItem key={`${item.label}-${item.path}`} disablePadding sx={{ mb: 0.15 }}>
               <ListItemButton
                 component={Link}
                 to={item.path}

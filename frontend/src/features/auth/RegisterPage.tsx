@@ -14,6 +14,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
 import { useAuth } from "../../hooks/useAuth";
 import { setApiErrors } from "../../hooks/setApiErrors";
+import { roleLandingPath } from "../../utils/roleLanding";
 
 const registerSchema = z
   .object({
@@ -38,7 +39,7 @@ const registerSchema = z
 type RegisterForm = z.infer<typeof registerSchema>;
 
 export default function RegisterPage() {
-  const { register: registerUser, isAuthenticated, isLoading } = useAuth();
+  const { register: registerUser, user, isAuthenticated, isLoading } = useAuth();
   const navigate = useNavigate();
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
@@ -47,9 +48,9 @@ export default function RegisterPage() {
   // Already logged in? Skip the signup form once auth resolves.
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
-      navigate({ to: "/dashboard", replace: true });
+      navigate({ to: roleLandingPath(user?.role), replace: true });
     }
-  }, [isAuthenticated, isLoading, navigate]);
+  }, [isAuthenticated, isLoading, user?.role, navigate]);
   const {
     register,
     handleSubmit,

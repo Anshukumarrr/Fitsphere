@@ -85,7 +85,8 @@ export default function AttendanceListPage() {
       </Typography>
 
       {user?.role === "member" && <MemberCheckInPanel />}
-      {user?.role && ["gym_owner", "super_admin", "receptionist"].includes(user.role) && <StaffCodePanel />}
+      {/* Matches backend generate_code roles (gym_owner, super_admin, receptionist, manager) */}
+      {user?.role && ["gym_owner", "super_admin", "receptionist", "manager"].includes(user.role) && <StaffCodePanel />}
 
       <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
         Attendance Logs

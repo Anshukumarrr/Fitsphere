@@ -13,6 +13,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
 import { useAuth } from "../../hooks/useAuth";
 import { setApiErrors } from "../../hooks/setApiErrors";
+import { roleLandingPath } from "../../utils/roleLanding";
 
 const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
@@ -28,7 +29,7 @@ const VERIFIED_MESSAGES: Record<string, { text: string; severity: "success" | "e
 };
 
 export default function LoginPage() {
-  const { login, isAuthenticated, isLoading } = useAuth();
+  const { login, user, isAuthenticated, isLoading } = useAuth();
   const navigate = useNavigate();
   const verified = new URLSearchParams(window.location.search).get("verified") || undefined;
   const verifiedMsg = verified ? VERIFIED_MESSAGES[verified] : null;
@@ -37,9 +38,9 @@ export default function LoginPage() {
   // Already logged in? Skip the login form once auth resolves.
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
-      navigate({ to: "/dashboard", replace: true });
+      navigate({ to: roleLandingPath(user?.role), replace: true });
     }
-  }, [isAuthenticated, isLoading, navigate]);
+  }, [isAuthenticated, isLoading, user?.role, navigate]);
   const {
     register,
     handleSubmit,
@@ -52,8 +53,8 @@ export default function LoginPage() {
   const onSubmit = async (data: LoginForm) => {
     try {
       setError("");
-      await login(data.username, data.password);
-      navigate({ to: "/dashboard" });
+      const loggedIn = await login(data.username, data.password);
+      navigate({ to: roleLandingPath(loggedIn?.role) });
     } catch (err) {
       const apiError = setApiErrors(err, setFieldError);
       if (apiError) setError(apiError);

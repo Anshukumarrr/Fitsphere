@@ -71,6 +71,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (data.user?.organization) {
       localStorage.setItem("organization_id", String(data.user.organization));
     }
+    // Return the fresh user so callers can navigate role-aware without
+    // waiting for this component's state to re-render.
+    return data.user;
   }, []);
 
   const register = useCallback(
