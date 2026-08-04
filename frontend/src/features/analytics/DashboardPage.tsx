@@ -11,6 +11,7 @@ import { useDashboard } from "../../hooks/useApi";
 import PlateGauge from "../../components/PlateGauge";
 import MechanicalCounter from "../../components/MechanicalCounter";
 import SpecularHover from "../../components/SpecularHover";
+import InviteCodeCard from "../../components/InviteCodeCard";
 import MemberDashboardPage from "../member/MemberDashboardPage";
 
 function StatCard({
@@ -147,6 +148,9 @@ export default function DashboardPage() {
       <Typography variant="h5" sx={{ mb: 3 }}>
         Dashboard
       </Typography>
+
+      <InviteCodeCard kind="staff" />
+      <InviteCodeCard kind="member" />
 
       <Grid container spacing={3}>
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>

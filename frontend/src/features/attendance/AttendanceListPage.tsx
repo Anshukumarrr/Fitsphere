@@ -15,6 +15,7 @@ import {
 import { Refresh } from "@mui/icons-material";
 import { useAttendanceLogs, useActiveCode, useGenerateCode } from "../../hooks/useApi";
 import { useAuth } from "../../hooks/useAuth";
+import InviteCodeCard from "../../components/InviteCodeCard";
 import MemberCheckInPanel from "./MemberCheckInPanel";
 import PaginationBar from "../../components/common/PaginationBar";
 
@@ -87,6 +88,8 @@ export default function AttendanceListPage() {
       {user?.role === "member" && <MemberCheckInPanel />}
       {/* Matches backend generate_code roles (gym_owner, super_admin, receptionist, manager) */}
       {user?.role && ["gym_owner", "super_admin", "receptionist", "manager"].includes(user.role) && <StaffCodePanel />}
+      {/* Member invite code — visible to trainer/receptionist/manager (self-guards) */}
+      <InviteCodeCard kind="member" />
 
       <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
         Attendance Logs

@@ -12,6 +12,7 @@ import {
   Typography,
 } from "@mui/material";
 import { usePTSessions } from "../../hooks/useApi";
+import InviteCodeCard from "../../components/InviteCodeCard";
 import PaginationBar from "../../components/common/PaginationBar";
 
 export default function PTSessionListPage() {
@@ -40,6 +41,8 @@ export default function PTSessionListPage() {
       <Typography variant="h5" sx={{ fontWeight: 600, mb: 3 }}>
         PT Sessions
       </Typography>
+
+      <InviteCodeCard kind="member" />
 
       <Card>
         <TableContainer>

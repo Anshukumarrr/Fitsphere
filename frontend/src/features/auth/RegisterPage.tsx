@@ -1,46 +1,55 @@
-import { zodResolver } from "@hookform/resolvers/zod";
 import FitnessCenterIcon from "@mui/icons-material/FitnessCenter";
+import GroupsIcon from "@mui/icons-material/Groups";
+import StorefrontIcon from "@mui/icons-material/Storefront";
+import BadgeIcon from "@mui/icons-material/Badge";
 import {
   Alert,
   Box,
-  Button,
+  Card,
+  CardActionArea,
   Divider,
-  TextField,
   Typography,
 } from "@mui/material";
-import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useEffect, useState, type ReactNode } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { z } from "zod";
 import { useAuth } from "../../hooks/useAuth";
-import { setApiErrors } from "../../hooks/setApiErrors";
 import { roleLandingPath } from "../../utils/roleLanding";
+import MemberRegisterForm from "./MemberRegisterForm";
+import OwnerRegisterForm from "./OwnerRegisterForm";
+import StaffRegisterForm from "./StaffRegisterForm";
 
-const registerSchema = z
-  .object({
-    username: z.string().min(3, "Username must be at least 3 characters"),
-    email: z.string().email("Invalid email address"),
-    first_name: z.string().min(1, "First name is required"),
-    last_name: z.string().min(1, "Last name is required"),
-    password: z.string().min(8, "Password must be at least 8 characters"),
-    confirm_password: z.string().min(1, "Please confirm your password"),
-    gym_name: z.string().min(1, "Gym name is required"),
-    gym_city: z.string().optional(),
-    gym_state: z.string().optional(),
-    gym_address: z.string().optional(),
-    branch_name: z.string().min(1, "Branch name is required"),
-    branch_city: z.string().optional(),
-  })
-  .refine((data) => data.password === data.confirm_password, {
-    message: "Passwords do not match",
-    path: ["confirm_password"],
-  });
+type AccountType = "owner" | "staff" | "member";
 
-type RegisterForm = z.infer<typeof registerSchema>;
+const ACCOUNT_OPTIONS: {
+  type: AccountType;
+  icon: ReactNode;
+  title: string;
+  description: string;
+}[] = [
+  {
+    type: "owner",
+    icon: <StorefrontIcon sx={{ fontSize: 32 }} />,
+    title: "Gym Owner",
+    description: "Create your gym and branch, then invite staff with a code",
+  },
+  {
+    type: "staff",
+    icon: <BadgeIcon sx={{ fontSize: 32 }} />,
+    title: "Staff",
+    description: "Trainer, receptionist, manager, instructor & more — join with your gym's code",
+  },
+  {
+    type: "member",
+    icon: <GroupsIcon sx={{ fontSize: 32 }} />,
+    title: "Member",
+    description: "Members, customers & users — join with a code from a staff member",
+  },
+];
 
 export default function RegisterPage() {
-  const { register: registerUser, user, isAuthenticated, isLoading } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuth();
   const navigate = useNavigate();
+  const [accountType, setAccountType] = useState<AccountType | null>(null);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState("");
@@ -51,37 +60,10 @@ export default function RegisterPage() {
       navigate({ to: roleLandingPath(user?.role), replace: true });
     }
   }, [isAuthenticated, isLoading, user?.role, navigate]);
-  const {
-    register,
-    handleSubmit,
-    setError: setFieldError,
-    formState: { errors, isSubmitting },
-  } = useForm<RegisterForm>({
-    resolver: zodResolver(registerSchema),
-  });
 
-  const onSubmit = async (data: RegisterForm) => {
-    try {
-      setError("");
-      const result = await registerUser({
-        username: data.username,
-        email: data.email,
-        first_name: data.first_name,
-        last_name: data.last_name,
-        password: data.password,
-        gym_name: data.gym_name,
-        gym_city: data.gym_city || "",
-        gym_state: data.gym_state || "",
-        gym_address: data.gym_address || "",
-        branch_name: data.branch_name,
-        branch_city: data.branch_city || "",
-      });
-      setRegisteredEmail(result?.email || data.email);
-      setSuccess(true);
-    } catch (err) {
-      const apiError = setApiErrors(err, setFieldError);
-      if (apiError) setError(apiError);
-    }
+  const handleSuccess = (email: string) => {
+    setRegisteredEmail(email);
+    setSuccess(true);
   };
 
   if (success) {
@@ -140,16 +122,20 @@ export default function RegisterPage() {
             >
               Click the link in the email to activate your account. The link expires in 24 hours.
             </Typography>
-            <Button
-              fullWidth
-              variant="contained"
-              color="primary"
-              size="large"
-              onClick={() => navigate({ to: "/login" })}
-              sx={{ py: 1.5 }}
-            >
-              Go to Login
-            </Button>
+            <Box sx={{ textAlign: "center" }}>
+              <Typography
+                component="span"
+                onClick={() => navigate({ to: "/login" })}
+                sx={{
+                  color: "#D4FF3F",
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  "&:hover": { textDecoration: "underline" },
+                }}
+              >
+                Go to Login
+              </Typography>
+            </Box>
           </Box>
         </Box>
       </Box>
@@ -193,15 +179,15 @@ export default function RegisterPage() {
           </Typography>
         </Box>
 
-          <Box
-            sx={{
-              p: 4,
-              borderRadius: 2,
-              border: "1px solid #2A2D2B",
-              bgcolor: "#1A1D1B",
-            }}
-          >
-            {error && (
+        <Box
+          sx={{
+            p: 4,
+            borderRadius: 2,
+            border: "1px solid #2A2D2B",
+            bgcolor: "#1A1D1B",
+          }}
+        >
+          {error && (
             <Alert
               severity="error"
               sx={{ mb: 2, backgroundColor: "rgba(255,75,62,0.1)", border: "1px solid rgba(255,75,62,0.3)", color: "#FF4B3E" }}
@@ -210,137 +196,55 @@ export default function RegisterPage() {
             </Alert>
           )}
 
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <TextField
-              fullWidth
-              label="Username"
-              margin="normal"
-              {...register("username")}
-              error={!!errors.username}
-              helperText={errors.username?.message}
-            />
-            <TextField
-              fullWidth
-              label="Email"
-              type="email"
-              margin="normal"
-              {...register("email")}
-              error={!!errors.email}
-              helperText={errors.email?.message}
-            />
-            <Box sx={{ display: "flex", gap: 2 }}>
-              <TextField
-                fullWidth
-                label="First Name"
-                margin="normal"
-                {...register("first_name")}
-                error={!!errors.first_name}
-                helperText={errors.first_name?.message}
-              />
-              <TextField
-                fullWidth
-                label="Last Name"
-                margin="normal"
-                {...register("last_name")}
-                error={!!errors.last_name}
-                helperText={errors.last_name?.message}
-              />
-            </Box>
-            <TextField
-              fullWidth
-              label="Password"
-              type="password"
-              margin="normal"
-              {...register("password")}
-              error={!!errors.password}
-              helperText={errors.password?.message}
-            />
-            <TextField
-              fullWidth
-              label="Confirm Password"
-              type="password"
-              margin="normal"
-              {...register("confirm_password")}
-              error={!!errors.confirm_password}
-              helperText={errors.confirm_password?.message}
-            />
+          {accountType === null ? (
+            <>
+              <Typography
+                variant="subtitle2"
+                sx={{ color: "#E8E3D8", mb: 2, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", fontSize: "0.75rem" }}
+              >
+                Create your account
+              </Typography>
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+                {ACCOUNT_OPTIONS.map((opt) => (
+                  <Card
+                    key={opt.type}
+                    sx={{
+                      bgcolor: "transparent",
+                      border: "1px solid #2A2D2B",
+                      borderRadius: 2,
+                      "&:hover": { borderColor: "#D4FF3F", bgcolor: "rgba(212,255,63,0.04)" },
+                    }}
+                  >
+                    <CardActionArea
+                      onClick={() => {
+                        setError("");
+                        setAccountType(opt.type);
+                      }}
+                      sx={{ display: "flex", alignItems: "center", gap: 2, p: 2 }}
+                    >
+                      <Box sx={{ color: "#D4FF3F", display: "flex" }}>{opt.icon}</Box>
+                      <Box>
+                        <Typography sx={{ color: "#E8E3D8", fontWeight: 700, fontFamily: '"Inter", sans-serif' }}>
+                          {opt.title}
+                        </Typography>
+                        <Typography variant="body2" sx={{ color: "#8A8F8C", fontFamily: '"Inter", sans-serif' }}>
+                          {opt.description}
+                        </Typography>
+                      </Box>
+                    </CardActionArea>
+                  </Card>
+                ))}
+              </Box>
+            </>
+          ) : accountType === "owner" ? (
+            <OwnerRegisterForm onError={setError} onSuccess={handleSuccess} />
+          ) : accountType === "staff" ? (
+            <StaffRegisterForm onError={setError} onSuccess={handleSuccess} onBack={() => setAccountType(null)} />
+          ) : (
+            <MemberRegisterForm onError={setError} onSuccess={handleSuccess} onBack={() => setAccountType(null)} />
+          )}
 
-            <Divider sx={{ my: 3, borderColor: "#2A2D2B" }} />
-
-            <Typography variant="subtitle2" sx={{ color: "#E8E3D8", mb: 1, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", fontSize: "0.75rem" }}>
-              Gym Details
-            </Typography>
-            <TextField
-              fullWidth
-              label="Gym Name *"
-              margin="normal"
-              {...register("gym_name")}
-              error={!!errors.gym_name}
-              helperText={errors.gym_name?.message}
-            />
-            <Box sx={{ display: "flex", gap: 2 }}>
-              <TextField
-                fullWidth
-                label="City"
-                margin="normal"
-                {...register("gym_city")}
-                error={!!errors.gym_city}
-                helperText={errors.gym_city?.message}
-              />
-              <TextField
-                fullWidth
-                label="State"
-                margin="normal"
-                {...register("gym_state")}
-                error={!!errors.gym_state}
-                helperText={errors.gym_state?.message}
-              />
-            </Box>
-            <TextField
-              fullWidth
-              label="Address"
-              margin="normal"
-              {...register("gym_address")}
-              error={!!errors.gym_address}
-              helperText={errors.gym_address?.message}
-            />
-
-            <Divider sx={{ my: 3, borderColor: "#2A2D2B" }} />
-
-            <Typography variant="subtitle2" sx={{ color: "#E8E3D8", mb: 1, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", fontSize: "0.75rem" }}>
-              First Branch
-            </Typography>
-            <Box sx={{ display: "flex", gap: 2 }}>
-              <TextField
-                fullWidth
-                label="Branch Name *"
-                margin="normal"
-                {...register("branch_name")}
-                error={!!errors.branch_name}
-                helperText={errors.branch_name?.message}
-              />
-              <TextField
-                fullWidth
-                label="City"
-                margin="normal"
-                {...register("branch_city")}
-                error={!!errors.branch_city}
-                helperText={errors.branch_city?.message}
-              />
-            </Box>
-
-            <Button
-              fullWidth
-              type="submit"
-              variant="contained"
-              color="primary"
-              size="large"
-              disabled={isSubmitting}
-              sx={{ mt: 3, mb: 2, py: 1.5 }}
-            >
-              {isSubmitting ? "CREATING ACCOUNT..." : "JOIN NOW"}
-            </Button>
-          </form>
+          <Divider sx={{ my: 3, borderColor: "#2A2D2B" }} />
 
           <Typography variant="body2" sx={{ textAlign: "center", color: "#8A8F8C" }}>
             Already have an account?{" "}

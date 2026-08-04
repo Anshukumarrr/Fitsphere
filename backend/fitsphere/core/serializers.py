@@ -380,3 +380,153 @@ class StaffCreateSerializer(serializers.Serializer):
             )
 
         return profile
+
+
+class StaffRegisterSerializer(serializers.Serializer):
+    """Anonymous self-registration for staff, gated by the gym owner's
+    daily-rotating invite code. The code resolves org + branch; the chosen
+    role decides which staff profile is created."""
+
+    role = serializers.ChoiceField(
+        choices=["trainer", "receptionist", "cleaner", "manager", "security", "instructor", "maintenance"]
+    )
+    username = serializers.CharField(
+        validators=[UniqueValidator(queryset=User.objects.all())],
+    )
+    email = serializers.EmailField(
+        validators=[UniqueValidator(queryset=User.objects.all())],
+    )
+    password = serializers.CharField(write_only=True, min_length=8)
+    first_name = serializers.CharField()
+    last_name = serializers.CharField()
+    phone = serializers.CharField(required=False, allow_blank=True)
+    invite_code = serializers.CharField(max_length=6, write_only=True)
+
+    def validate_invite_code(self, value):
+        from ..organizations.models import InviteCode
+
+        invite = (
+            InviteCode.objects.filter(
+                code=value.strip().upper(), valid_for=InviteCode.today_ist(), kind="staff"
+            )
+            .select_related("organization", "branch")
+            .first()
+        )
+        if invite is None:
+            raise serializers.ValidationError(
+                "Invalid or expired invite code. Ask the gym owner for today's code."
+            )
+        self._invite = invite
+        return value
+
+    def create(self, validated_data):
+        from .models import (
+            CleanerProfile,
+            InstructorProfile,
+            MaintenanceProfile,
+            ManagerProfile,
+            ReceptionistProfile,
+            SecurityProfile,
+        )
+        from ..trainers.models import Trainer
+
+        invite = self._invite
+        role = validated_data.pop("role")
+        validated_data.pop("invite_code", None)
+
+        with transaction.atomic():
+            user = User.objects.create_user(
+                username=validated_data.pop("username"),
+                email=validated_data.pop("email"),
+                password=validated_data.pop("password"),
+                first_name=validated_data.pop("first_name"),
+                last_name=validated_data.pop("last_name"),
+                phone=validated_data.pop("phone", ""),
+            )
+            user.role = role
+            user.organization = invite.organization
+            user.is_active = False  # email verification required, same as owners
+            user.save()
+
+            profile_map = {
+                "trainer": (Trainer, {"organization": invite.organization}),
+                "receptionist": (ReceptionistProfile, {}),
+                "cleaner": (CleanerProfile, {}),
+                "manager": (ManagerProfile, {}),
+                "security": (SecurityProfile, {}),
+                "instructor": (InstructorProfile, {}),
+                "maintenance": (MaintenanceProfile, {}),
+            }
+            model_class, extra_fields = profile_map[role]
+            model_class.objects.create(
+                user=user,
+                branch=invite.branch,
+                created_by=None,  # self-service signup
+                **extra_fields,
+            )
+
+        return user
+
+
+class MemberRegisterSerializer(serializers.Serializer):
+    """Anonymous self-registration for members, gated by the member invite
+    code shown on trainer/receptionist/manager dashboards. Creates the user
+    plus a Member profile (no membership plan — staff assigns one later)."""
+
+    username = serializers.CharField(
+        validators=[UniqueValidator(queryset=User.objects.all())],
+    )
+    email = serializers.EmailField(
+        validators=[UniqueValidator(queryset=User.objects.all())],
+    )
+    password = serializers.CharField(write_only=True, min_length=8)
+    first_name = serializers.CharField()
+    last_name = serializers.CharField()
+    phone = serializers.CharField(required=False, allow_blank=True)
+    invite_code = serializers.CharField(max_length=6, write_only=True)
+
+    def validate_invite_code(self, value):
+        from ..organizations.models import InviteCode
+
+        invite = (
+            InviteCode.objects.filter(
+                code=value.strip().upper(), valid_for=InviteCode.today_ist(), kind="member"
+            )
+            .select_related("organization", "branch")
+            .first()
+        )
+        if invite is None:
+            raise serializers.ValidationError(
+                "Invalid or expired invite code. Ask a staff member for today's code."
+            )
+        self._invite = invite
+        return value
+
+    def create(self, validated_data):
+        from ..members.models import Member
+
+        invite = self._invite
+        validated_data.pop("invite_code", None)
+
+        with transaction.atomic():
+            user = User.objects.create_user(
+                username=validated_data.pop("username"),
+                email=validated_data.pop("email"),
+                password=validated_data.pop("password"),
+                first_name=validated_data.pop("first_name"),
+                last_name=validated_data.pop("last_name"),
+                phone=validated_data.pop("phone", ""),
+            )
+            user.role = "member"
+            user.organization = invite.organization
+            user.is_active = False  # email verification required, same as owners
+            user.save()
+
+            Member.objects.create(
+                user=user,
+                branch=invite.branch,
+                membership_status=Member.MembershipStatus.ACTIVE,
+                created_by=None,  # self-service signup
+            )
+
+        return user

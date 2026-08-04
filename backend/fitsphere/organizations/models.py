@@ -1,4 +1,7 @@
+import secrets
 import uuid
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 from django.conf import settings
 from django.db import models
@@ -107,3 +110,94 @@ class StaffInvite(models.Model):
 
     def __str__(self):
         return f"Invite {self.email} -> {self.role} at {self.organization.name}"
+
+
+class InviteCode(models.Model):
+    """Daily-rotating signup code, scoped to an organization + branch.
+
+    Staff self-register with the gym owner's code; members self-register with
+    the code shown on trainer/receptionist/manager dashboards. Codes are valid
+    for one IST calendar day and rotate at 00:01 IST — generated lazily on
+    fetch (``get_current``) and pre-created daily by the scheduler
+    (``rotate_all``) so a missed tick can never serve yesterday's code.
+    """
+
+    class Kind(models.TextChoices):
+        STAFF = "staff", "Staff"
+        MEMBER = "member", "Member"
+
+    # No 0/O/1/I/L — codes are dictated verbally at the front desk.
+    CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"
+    CODE_LENGTH = 6
+
+    organization = models.ForeignKey(
+        GymOrganization, on_delete=models.CASCADE, related_name="invite_codes"
+    )
+    branch = models.ForeignKey(
+        Branch, on_delete=models.CASCADE, related_name="invite_codes"
+    )
+    kind = models.CharField(max_length=10, choices=Kind.choices)
+    code = models.CharField(max_length=CODE_LENGTH, unique=True)
+    valid_for = models.DateField(help_text="IST calendar date this code works on")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "invite_codes"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["organization", "branch", "kind", "valid_for"],
+                name="uniq_invite_code_per_branch_kind_day",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.kind} code {self.code} ({self.organization.name} / {self.branch.name})"
+
+    @staticmethod
+    def today_ist():
+        return datetime.now(ZoneInfo("Asia/Kolkata")).date()
+
+    @classmethod
+    def _generate_code(cls):
+        alphabet = cls.CODE_ALPHABET
+        while True:
+            candidate = "".join(
+                secrets.choice(alphabet) for _ in range(cls.CODE_LENGTH)
+            )
+            if not cls.objects.filter(code=candidate).exists():
+                return candidate
+
+    @classmethod
+    def get_current(cls, organization, branch, kind, for_date=None):
+        """Return the code valid today for (org, branch, kind), generating it if missing."""
+        day = for_date or cls.today_ist()
+        code, _ = cls.objects.get_or_create(
+            organization=organization,
+            branch=branch,
+            kind=kind,
+            valid_for=day,
+            defaults={"code": cls._generate_code()},
+        )
+        return code
+
+    @classmethod
+    def rotate_all(cls):
+        """Ensure every active org/branch/kind combo has a code for today.
+
+        Called by the daily 00:01 IST scheduler job; ``get_current`` is the
+        lazy fallback when the job misses a tick (Render free tier).
+        """
+        day = cls.today_ist()
+        created = 0
+        for org in GymOrganization.objects.filter(is_active=True):
+            for branch in org.branches.filter(is_active=True):
+                for kind in cls.Kind.values:
+                    _, was_created = cls.objects.get_or_create(
+                        organization=org,
+                        branch=branch,
+                        kind=kind,
+                        valid_for=day,
+                        defaults={"code": cls._generate_code()},
+                    )
+                    created += int(was_created)
+        return created

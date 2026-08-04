@@ -2,7 +2,7 @@ from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 
 from ..core.permissions import IsGymOwnerOrAdmin, IsSuperAdmin
-from .models import Branch, GymOrganization, StaffInvite
+from .models import Branch, GymOrganization, InviteCode, StaffInvite
 from .serializers import (
     BranchSerializer,
     GymOrganizationSerializer,
@@ -90,3 +90,95 @@ class StaffInviteListCreateView(generics.ListCreateAPIView):
         if org:
             return StaffInvite.objects.filter(organization=org)
         return StaffInvite.objects.none()
+
+
+class InviteCodeView(generics.GenericAPIView):
+    """Return the current daily signup code(s) for the caller's organization.
+
+    - ``kind=staff``  → gym owner only; one code per active branch.
+    - ``kind=member`` → trainer/receptionist/manager; the caller's branch code.
+    Codes rotate daily at 00:01 IST; this view lazy-generates today's code
+    when the scheduler hasn't run yet.
+    """
+
+    permission_classes = (permissions.IsAuthenticated,)
+
+    # Roles allowed to see each code kind
+    STAFF_KIND_ROLES = ("gym_owner",)
+    MEMBER_KIND_ROLES = ("trainer", "receptionist", "manager")
+
+    def get(self, request):
+        kind = request.query_params.get("kind", "member")
+        if kind not in ("staff", "member"):
+            return Response(
+                {"detail": "Invalid kind. Use 'staff' or 'member'."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        user = request.user
+        org = user.organization
+        if org is None:
+            return Response(
+                {"detail": "Your account is not linked to a gym."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        from datetime import datetime, timedelta
+        from zoneinfo import ZoneInfo
+
+        rotates_at = (
+            datetime.now(ZoneInfo("Asia/Kolkata")) + timedelta(days=1)
+        ).replace(hour=0, minute=1, second=0, microsecond=0).isoformat()
+
+        if kind == "staff":
+            if user.role not in self.STAFF_KIND_ROLES:
+                return Response(
+                    {"detail": "Only gym owners can view the staff invite code."},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+            codes = []
+            for branch in org.branches.filter(is_active=True).order_by("name"):
+                invite = InviteCode.get_current(org, branch, InviteCode.Kind.STAFF)
+                codes.append(
+                    {"branch": branch.id, "branch_name": branch.name, "code": invite.code}
+                )
+            return Response(
+                {"kind": "staff", "codes": codes, "rotates_at": rotates_at}
+            )
+
+        # kind == "member"
+        if user.role not in self.MEMBER_KIND_ROLES:
+            return Response(
+                {"detail": "You are not allowed to view the member invite code."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        branch = self._get_caller_branch(user)
+        if branch is None:
+            return Response(
+                {"detail": "No branch is assigned to your account. Ask your gym owner."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        invite = InviteCode.get_current(org, branch, InviteCode.Kind.MEMBER)
+        return Response(
+            {
+                "kind": "member",
+                "branch": branch.id,
+                "branch_name": branch.name,
+                "code": invite.code,
+                "rotates_at": rotates_at,
+            }
+        )
+
+    @staticmethod
+    def _get_caller_branch(user):
+        """Resolve the caller's branch from their role profile."""
+        accessors = {
+            "trainer": "trainer_profile",
+            "receptionist": "receptionist_profile",
+            "manager": "manager_profile",
+        }
+        accessor = accessors.get(user.role)
+        if not accessor:
+            return None
+        profile = getattr(user, accessor, None)
+        return getattr(profile, "branch", None) if profile else None

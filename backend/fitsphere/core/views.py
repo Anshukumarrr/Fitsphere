@@ -18,14 +18,51 @@ from .models import EmailVerificationToken, PasswordResetToken
 
 from .serializers import (
     LoginSerializer,
+    MemberRegisterSerializer,
     ReceptionistCreateSerializer,
     RegisterSerializer,
+    StaffRegisterSerializer,
     UserSerializer,
 )
 from .permissions import IsGymOwnerOrAdmin, IsGymOwnerOrManager, IsSuperAdmin
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
+
+
+def send_verification_email(request, user):
+    """Create an email-verification token for ``user`` and email the link.
+
+    Shared by the gym-owner, staff, and member registration flows.
+    """
+    token = secrets.token_urlsafe(32)
+    EmailVerificationToken.objects.update_or_create(
+        user=user, defaults={"token": token}
+    )
+
+    verify_url = request.build_absolute_uri(
+        f"/api/v1/auth/verify-email/?token={token}&uid={user.id}"
+    )
+
+    try:
+        html_body = render_to_string("emails/verify_email.html", {
+            "name": user.first_name or user.username,
+            "verify_url": verify_url,
+        })
+        text_body = render_to_string("emails/verify_email.txt", {
+            "name": user.first_name or user.username,
+            "verify_url": verify_url,
+        })
+        msg = EmailMultiAlternatives(
+            subject="Verify your FitSphere email address",
+            body=text_body,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=[user.email],
+        )
+        msg.attach_alternative(html_body, "text/html")
+        msg.send(fail_silently=False)
+    except Exception:
+        logger.exception("Failed to send verification email")
 
 
 class RegisterThrottle(AnonRateThrottle):
@@ -51,34 +88,55 @@ class RegisterView(generics.CreateAPIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
 
-        token = secrets.token_urlsafe(32)
-        EmailVerificationToken.objects.update_or_create(
-            user=user, defaults={"token": token}
+        send_verification_email(request, user)
+
+        return Response(
+            {
+                "detail": "Account created. Check your email to verify your account.",
+                "email": user.email,
+            },
+            status=status.HTTP_201_CREATED,
         )
 
-        verify_url = request.build_absolute_uri(
-            f"/api/v1/auth/verify-email/?token={token}&uid={user.id}"
+
+class StaffRegisterView(generics.CreateAPIView):
+    """Self-registration for staff using the gym owner's daily invite code."""
+
+    queryset = User.objects.all()
+    permission_classes = (permissions.AllowAny,)
+    serializer_class = StaffRegisterSerializer
+    throttle_classes = [RegisterThrottle]
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+
+        send_verification_email(request, user)
+
+        return Response(
+            {
+                "detail": "Account created. Check your email to verify your account.",
+                "email": user.email,
+            },
+            status=status.HTTP_201_CREATED,
         )
 
-        try:
-            html_body = render_to_string("emails/verify_email.html", {
-                "name": user.first_name or user.username,
-                "verify_url": verify_url,
-            })
-            text_body = render_to_string("emails/verify_email.txt", {
-                "name": user.first_name or user.username,
-                "verify_url": verify_url,
-            })
-            msg = EmailMultiAlternatives(
-                subject="Verify your FitSphere email address",
-                body=text_body,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                to=[user.email],
-            )
-            msg.attach_alternative(html_body, "text/html")
-            msg.send(fail_silently=False)
-        except Exception:
-            logger.exception("Failed to send verification email")
+
+class MemberRegisterView(generics.CreateAPIView):
+    """Self-registration for members using the staff-shared daily invite code."""
+
+    queryset = User.objects.all()
+    permission_classes = (permissions.AllowAny,)
+    serializer_class = MemberRegisterSerializer
+    throttle_classes = [RegisterThrottle]
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+
+        send_verification_email(request, user)
 
         return Response(
             {

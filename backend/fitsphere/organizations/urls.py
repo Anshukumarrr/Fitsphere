@@ -17,4 +17,5 @@ urlpatterns = [
         name="branch-detail",
     ),
     path("invites/", views.StaffInviteListCreateView.as_view(), name="invite-list"),
+    path("invite-code/", views.InviteCodeView.as_view(), name="invite-code"),
 ]

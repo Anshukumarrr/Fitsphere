@@ -39,6 +39,32 @@ export function useDashboard(enabled = true) {
   });
 }
 
+export interface InviteCodeInfo {
+  branch: number;
+  branch_name: string;
+  code: string;
+}
+
+export interface InviteCodesResponse {
+  kind: "staff" | "member";
+  codes?: InviteCodeInfo[];
+  code?: string;
+  branch?: number;
+  branch_name?: string;
+  rotates_at?: string;
+}
+
+export function useInviteCodes(kind: "staff" | "member", enabled = true) {
+  return useQuery<InviteCodesResponse>({
+    queryKey: ["invite-codes", kind],
+    queryFn: async () => {
+      const { data } = await apiClient.get(`/organizations/invite-code/?kind=${kind}`);
+      return data;
+    },
+    enabled,
+  });
+}
+
 export function useMembers(params?: Record<string, string>, options?: { enabled?: boolean }) {
   return useQuery<PaginatedResponse<Member>>({
     queryKey: ["members", params],

@@ -23,6 +23,7 @@ def start():
     _started = True
 
     from .tasks import check_membership_expiry, check_payment_due, check_pt_session_reminder
+    from ..organizations.tasks import rotate_invite_codes
 
     # ── Membership expiry reminders ──────────────────────────────────
     # Runs daily at 1:30 PM IST — checks 7/3/1 day before expiry + 1 day after
@@ -60,8 +61,22 @@ def start():
         name="PT session reminders",
     )
 
+    # ── Daily invite-code rotation ───────────────────────────────────
+    # Runs daily at 00:01 IST — pre-creates fresh staff/member signup codes.
+    # get_current() is the lazy fallback if this job misses a tick.
+    scheduler.add_job(
+        rotate_invite_codes,
+        CronTrigger(hour=0, minute=1),
+        id="organizations_rotate_invite_codes",
+        replace_existing=True,
+        misfire_grace_time=None,
+        coalesce=True,
+        name="Daily invite-code rotation",
+    )
+
     scheduler.start()
     logger.info(
         "APScheduler started — jobs: pt_session_reminder(12:30 IST), "
-        "membership_expiry(13:30 IST), payment_due(14:00 IST)"
+        "membership_expiry(13:30 IST), payment_due(14:00 IST), "
+        "invite_code_rotation(00:01 IST)"
     )
