@@ -7,7 +7,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
@@ -28,11 +28,18 @@ const VERIFIED_MESSAGES: Record<string, { text: string; severity: "success" | "e
 };
 
 export default function LoginPage() {
-  const { login } = useAuth();
+  const { login, isAuthenticated, isLoading } = useAuth();
   const navigate = useNavigate();
   const verified = new URLSearchParams(window.location.search).get("verified") || undefined;
   const verifiedMsg = verified ? VERIFIED_MESSAGES[verified] : null;
   const [error, setError] = useState("");
+
+  // Already logged in? Skip the login form once auth resolves.
+  useEffect(() => {
+    if (!isLoading && isAuthenticated) {
+      navigate({ to: "/dashboard", replace: true });
+    }
+  }, [isAuthenticated, isLoading, navigate]);
   const {
     register,
     handleSubmit,

@@ -8,7 +8,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
@@ -38,11 +38,18 @@ const registerSchema = z
 type RegisterForm = z.infer<typeof registerSchema>;
 
 export default function RegisterPage() {
-  const { register: registerUser } = useAuth();
+  const { register: registerUser, isAuthenticated, isLoading } = useAuth();
   const navigate = useNavigate();
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState("");
+
+  // Already logged in? Skip the signup form once auth resolves.
+  useEffect(() => {
+    if (!isLoading && isAuthenticated) {
+      navigate({ to: "/dashboard", replace: true });
+    }
+  }, [isAuthenticated, isLoading, navigate]);
   const {
     register,
     handleSubmit,
