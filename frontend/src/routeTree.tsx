@@ -14,6 +14,7 @@ const BulkImportPage = lazy(() => import("./features/members/BulkImportPage"));
 const StaffPage = lazy(() => import("./features/staff/StaffPage"));
 const AttendanceListPage = lazy(() => import("./features/attendance/AttendanceListPage"));
 const AttendanceCalendarPage = lazy(() => import("./features/attendance/AttendanceCalendarPage"));
+const AttendanceGeneratePage = lazy(() => import("./features/attendance/AttendanceGeneratePage"));
 const TicketsPage = lazy(() => import("./features/tickets/TicketsPage"));
 const PaymentListPage = lazy(() => import("./features/payments/PaymentListPage"));
 const PTSessionListPage = lazy(() => import("./features/personal-training/PTSessionListPage"));
@@ -107,6 +108,12 @@ const attendanceRoute = new Route({
   getParentRoute: () => dashboardLayoutRoute,
   path: "/attendance",
   component: AttendanceListPage,
+});
+
+const attendanceGenerateRoute = new Route({
+  getParentRoute: () => dashboardLayoutRoute,
+  path: "/attendance/generate",
+  component: AttendanceGeneratePage,
 });
 
 const ticketsRoute = new Route({
@@ -212,6 +219,7 @@ const routeTree = rootRoute.addChildren([
     staffRoute,
     ptSessionsRoute,
     attendanceRoute,
+    attendanceGenerateRoute,
     ticketsRoute,
     attendanceCalendarRoute,
     paymentsRoute,

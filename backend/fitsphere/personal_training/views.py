@@ -159,15 +159,15 @@ class BookSessionView(generics.CreateAPIView):
 
         pt_membership = serializer.validated_data.get("pt_membership")
         if not pt_membership:
+            # Ad-hoc booking: link the member's active PT package when they
+            # have one; otherwise book without one (PTSession.pt_membership
+            # is nullable). Members who self-register have no PT membership
+            # yet — blocking booking entirely made the feature unusable.
             pt_membership = PTMembership.objects.filter(
                 member=member,
                 is_active=True,
                 sessions_remaining__gt=0,
             ).first()
-            if not pt_membership:
-                raise serializers.ValidationError(
-                    {"pt_membership": "No active PT membership with remaining sessions."}
-                )
 
         serializer.save(
             member=member,

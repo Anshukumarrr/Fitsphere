@@ -1,5 +1,6 @@
 import { useState } from "react";
 import {
+  Alert,
   Box,
   Button,
   Card,
@@ -18,6 +19,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useAuth } from "../../hooks/useAuth";
+import { setApiErrors } from "../../hooks/setApiErrors";
 import { useMySessions, useBookSession, useAvailableTrainers } from "../../hooks/useApi";
 import PaginationBar from "../../components/common/PaginationBar";
 
@@ -32,6 +34,7 @@ export default function MySessionsPage() {
   const [trainerId, setTrainerId] = useState("");
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
+  const [bookError, setBookError] = useState("");
 
   const memberBranchId = user?.member_branch_id ?? null;
 
@@ -39,15 +42,20 @@ export default function MySessionsPage() {
 
   const handleBook = async () => {
     if (!trainerId || !date || !time) return;
-    await bookSession.mutateAsync({
-      trainer: Number(trainerId),
-      scheduled_date: date,
-      scheduled_time: time,
-    });
-    setOpen(false);
-    setTrainerId("");
-    setDate("");
-    setTime("");
+    try {
+      setBookError("");
+      await bookSession.mutateAsync({
+        trainer: Number(trainerId),
+        scheduled_date: date,
+        scheduled_time: time,
+      });
+      setOpen(false);
+      setTrainerId("");
+      setDate("");
+      setTime("");
+    } catch (err) {
+      setBookError(setApiErrors(err, () => {}) ?? "Couldn't book the session. Please try again.");
+    }
   };
 
   const statusColor = (status: string) => {
@@ -123,6 +131,14 @@ export default function MySessionsPage() {
         <DialogTitle>Book a PT Session</DialogTitle>
         <DialogContent>
           <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
+            {bookError && (
+              <Alert
+                severity="error"
+                sx={{ backgroundColor: "rgba(255,75,62,0.1)", border: "1px solid rgba(255,75,62,0.3)", color: "#FF4B3E" }}
+              >
+                {bookError}
+              </Alert>
+            )}
             <TextField
               select
               fullWidth
