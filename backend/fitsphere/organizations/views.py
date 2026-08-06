@@ -105,7 +105,7 @@ class InviteCodeView(generics.GenericAPIView):
 
     # Roles allowed to see each code kind
     STAFF_KIND_ROLES = ("gym_owner",)
-    MEMBER_KIND_ROLES = ("trainer", "receptionist", "manager")
+    MEMBER_KIND_ROLES = ("gym_owner", "trainer", "receptionist", "manager")
 
     def get(self, request):
         kind = request.query_params.get("kind", "member")
@@ -153,6 +153,9 @@ class InviteCodeView(generics.GenericAPIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
         branch = self._get_caller_branch(user)
+        # Gym owners aren't bound to one branch — show the org's first branch.
+        if branch is None and user.role == "gym_owner":
+            branch = org.branches.filter(is_active=True).order_by("id").first()
         if branch is None:
             return Response(
                 {"detail": "No branch is assigned to your account. Ask your gym owner."},

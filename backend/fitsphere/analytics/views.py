@@ -183,6 +183,64 @@ def member_dashboard(request):
 
 
 @api_view(["GET"])
+@permission_classes([permissions.IsAuthenticated])
+def trainer_dashboard(request):
+    if request.user.role != "trainer":
+        return Response({"error": "Not authorized"}, status=status.HTTP_403_FORBIDDEN)
+    from ..trainers.models import Trainer
+
+    try:
+        trainer = request.user.trainer_profile
+    except Trainer.DoesNotExist:
+        return Response(
+            {"error": "Trainer profile not found."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    today = date.today()
+    week_ago = today - timedelta(days=6)
+    branch = trainer.branch
+
+    sessions_today = PTSession.objects.filter(trainer=trainer, scheduled_date=today)
+    upcoming = list(
+        PTSession.objects.filter(
+            trainer=trainer, scheduled_date__gte=today, status="scheduled"
+        )
+        .order_by("scheduled_date", "scheduled_time")
+        .select_related("member__user")[:5]
+    )
+    completed_this_week = PTSession.objects.filter(
+        trainer=trainer,
+        scheduled_date__gte=week_ago,
+        scheduled_date__lte=today,
+        status="completed",
+    ).count()
+    total_members = Member.objects.filter(
+        branch=branch, organization=request.user.organization
+    ).count()
+
+    return Response(
+        {
+            "sessions_today": sessions_today.count(),
+            "completed_this_week": completed_this_week,
+            "total_members": total_members,
+            "upcoming_sessions": [
+                {
+                    "id": s.id,
+                    "member_name": (
+                        f"{s.member.user.first_name} {s.member.user.last_name}".strip()
+                        or s.member.user.username
+                    ),
+                    "scheduled_date": s.scheduled_date,
+                    "scheduled_time": str(s.scheduled_time),
+                    "duration_minutes": s.duration_minutes,
+                }
+                for s in upcoming
+            ],
+        }
+    )
+
+
+@api_view(["GET"])
 @permission_classes([IsGymOwnerOrAdmin])
 def attendance_report(request):
     org_filter = _org_filter(request)

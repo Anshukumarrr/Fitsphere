@@ -281,6 +281,19 @@ export interface MemberDashboardData {
   }[];
 }
 
+export interface TrainerDashboardData {
+  sessions_today: number;
+  completed_this_week: number;
+  total_members: number;
+  upcoming_sessions: {
+    id: number;
+    member_name: string;
+    scheduled_date: string;
+    scheduled_time: string;
+    duration_minutes: number;
+  }[];
+}
+
 export interface PaginatedResponse<T> {
   count: number;
   next: string | null;

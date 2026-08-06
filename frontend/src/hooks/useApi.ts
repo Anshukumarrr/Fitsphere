@@ -20,6 +20,7 @@ import type {
   SubscriptionPlan,
   Ticket,
   Trainer,
+  TrainerDashboardData,
   User,
 } from "../types";
 
@@ -419,6 +420,16 @@ export function useMemberDashboard() {
     queryKey: ["member-dashboard"],
     queryFn: async () => {
       const { data } = await apiClient.get("/analytics/member-dashboard/");
+      return data;
+    },
+  });
+}
+
+export function useTrainerDashboard() {
+  return useQuery<TrainerDashboardData>({
+    queryKey: ["trainer-dashboard"],
+    queryFn: async () => {
+      const { data } = await apiClient.get("/analytics/trainer-dashboard/");
       return data;
     },
   });

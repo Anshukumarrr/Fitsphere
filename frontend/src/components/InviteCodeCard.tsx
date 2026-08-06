@@ -17,7 +17,7 @@ import { useInviteCodes, type InviteCodeInfo } from "../hooks/useApi";
  * Daily-rotating invite code card.
  *
  * kind="staff"  → visible to gym owners only; shows every branch's code.
- * kind="member" → visible to trainer/receptionist/manager; shows their branch's code.
+ * kind="member" → visible to owner/trainer/receptionist/manager; shows their branch's code.
  *
  * The backend enforces the same role gates (403 otherwise); this component
  * also renders nothing for roles that can't use the code.
@@ -28,7 +28,7 @@ export default function InviteCodeCard({ kind }: { kind: "staff" | "member" }) {
   const allowed =
     kind === "staff"
       ? role === "gym_owner"
-      : ["trainer", "receptionist", "manager"].includes(role);
+      : ["gym_owner", "trainer", "receptionist", "manager"].includes(role);
 
   const { data, isLoading, isError } = useInviteCodes(kind, allowed);
   const [selectedBranch, setSelectedBranch] = useState<number | "">("");

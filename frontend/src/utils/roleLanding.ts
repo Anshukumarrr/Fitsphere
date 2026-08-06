@@ -1,9 +1,11 @@
 // Role → post-login landing page.
 //
-// Roles WITHOUT organization-dashboard access must never land on /dashboard:
-// the backend gates GET /analytics/dashboard/ behind IsGymOwnerOrAdmin
-// (gym_owner, super_admin, manager) — every other role would hit an empty
-// "—" page. Mirrors the most useful nav item per role.
+// Roles WITHOUT a dashboard must never land on /dashboard blindly: the
+// backend gates org analytics GET /analytics/dashboard/ behind IsGymOwnerOrAdmin
+// (gym_owner, super_admin, manager). Member and trainer have their own
+// dashboard endpoints/pages (member-dashboard, trainer-dashboard) served from
+// the same /dashboard route via role switch in DashboardPage. Every remaining
+// role lands on its most useful nav item.
 export type LandingPath = "/dashboard" | "/attendance" | "/pt-sessions" | "/tickets";
 
 const LANDING_BY_ROLE: Record<string, LandingPath> = {
@@ -11,7 +13,7 @@ const LANDING_BY_ROLE: Record<string, LandingPath> = {
   gym_owner: "/dashboard",
   manager: "/dashboard",
   receptionist: "/attendance",
-  trainer: "/pt-sessions",
+  trainer: "/dashboard",
   instructor: "/attendance",
   security: "/tickets",
   cleaner: "/tickets",

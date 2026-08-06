@@ -12,7 +12,9 @@ import PlateGauge from "../../components/PlateGauge";
 import MechanicalCounter from "../../components/MechanicalCounter";
 import SpecularHover from "../../components/SpecularHover";
 import InviteCodeCard from "../../components/InviteCodeCard";
+import AttendanceCodePanel from "../attendance/AttendanceCodePanel";
 import MemberDashboardPage from "../member/MemberDashboardPage";
+import TrainerDashboardPage from "../trainers/TrainerDashboardPage";
 
 function StatCard({
   label,
@@ -123,6 +125,10 @@ export default function DashboardPage() {
     return <MemberDashboardPage />;
   }
 
+  if (user?.role === "trainer") {
+    return <TrainerDashboardPage />;
+  }
+
   if (isLoading) {
     return (
       <Grid container spacing={3}>
@@ -151,6 +157,8 @@ export default function DashboardPage() {
 
       <InviteCodeCard kind="staff" />
       <InviteCodeCard kind="member" />
+
+      {user?.role === "gym_owner" && <AttendanceCodePanel />}
 
       <Grid container spacing={3}>
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>

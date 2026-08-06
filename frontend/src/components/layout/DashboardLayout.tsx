@@ -42,9 +42,8 @@ import { roleLandingPath } from "../../utils/roleLanding";
 const drawerWidth = 250;
 
 const navItems = [
-  // Dashboard: org analytics — backend /analytics/dashboard/ is
-  // IsGymOwnerOrAdmin (gym_owner, super_admin, manager) only.
-  { label: "Dashboard", icon: <Dashboard />, path: "/dashboard", roles: ["gym_owner", "super_admin", "manager"] },
+  // Dashboard: org analytics for owner/admin/manager; trainer gets its own dashboard.
+  { label: "Dashboard", icon: <Dashboard />, path: "/dashboard", roles: ["gym_owner", "super_admin", "manager", "trainer"] },
   // Members: IsStaffOrReadOnlyInstructor — instructor is read-only.
   { label: "Members", icon: <People />, path: "/members", roles: ["gym_owner", "receptionist", "trainer", "manager", "instructor"] },
   { label: "Import Members", icon: <FileUpload />, path: "/members/import", roles: ["gym_owner", "manager"] },
