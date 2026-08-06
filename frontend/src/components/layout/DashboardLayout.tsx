@@ -29,7 +29,6 @@ import {
   Notifications,
   People,
   Person,
-  PlaylistAdd,
   Receipt,
   VpnKey,
 } from "@mui/icons-material";
@@ -50,8 +49,6 @@ const navItems = [
   { label: "Staff", icon: <Group />, path: "/staff", roles: ["gym_owner", "manager"] },
   { label: "Payments", icon: <MonetizationOn />, path: "/payments", roles: ["gym_owner", "receptionist", "manager"] },
   { label: "PT Sessions", icon: <Group />, path: "/pt-sessions", roles: ["gym_owner", "receptionist", "trainer", "manager"] },
-  // Create PT session — PT sessions page is staff-only; matches IsStaff create.
-  { label: "Create Session", icon: <PlaylistAdd />, path: "/pt-sessions/create", roles: ["gym_owner", "receptionist", "trainer", "manager"] },
   { label: "Attendance", icon: <CalendarMonth />, path: "/attendance", roles: ["gym_owner", "receptionist", "trainer", "manager", "instructor"] },
   // Attendance-code generation — matches backend generate_code roles.
   { label: "Generate Code", icon: <VpnKey />, path: "/attendance/generate", roles: ["gym_owner", "super_admin", "receptionist", "manager", "trainer"] },

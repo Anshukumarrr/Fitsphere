@@ -18,7 +18,6 @@ const AttendanceGeneratePage = lazy(() => import("./features/attendance/Attendan
 const TicketsPage = lazy(() => import("./features/tickets/TicketsPage"));
 const PaymentListPage = lazy(() => import("./features/payments/PaymentListPage"));
 const PTSessionListPage = lazy(() => import("./features/personal-training/PTSessionListPage"));
-const PTCreateSessionPage = lazy(() => import("./features/personal-training/PTCreateSessionPage"));
 const BillingPlansPage = lazy(() => import("./features/billing/BillingPlansPage"));
 const NotificationSettingsPage = lazy(() => import("./features/notifications/NotificationSettingsPage"));
 const EmailCenterPage = lazy(() => import("./features/emails/EmailCenterPage"));
@@ -141,12 +140,6 @@ const ptSessionsRoute = new Route({
   component: PTSessionListPage,
 });
 
-const ptCreateSessionRoute = new Route({
-  getParentRoute: () => dashboardLayoutRoute,
-  path: "/pt-sessions/create",
-  component: PTCreateSessionPage,
-});
-
 const analyticsRoute = new Route({
   getParentRoute: () => dashboardLayoutRoute,
   path: "/analytics",
@@ -225,7 +218,6 @@ const routeTree = rootRoute.addChildren([
     memberImportRoute,
     staffRoute,
     ptSessionsRoute,
-    ptCreateSessionRoute,
     attendanceRoute,
     attendanceGenerateRoute,
     ticketsRoute,

@@ -19,7 +19,7 @@ urlpatterns = [
         views.PTMembershipDetailView.as_view(),
         name="pt-membership-detail",
     ),
-    path("sessions/", views.PTSessionListCreateView.as_view(), name="pt-session-list"),
+    path("sessions/", views.PTSessionListView.as_view(), name="pt-session-list"),
     path("sessions/book/", views.BookSessionView.as_view(), name="pt-session-book"),
     path(
         "sessions/<int:pk>/",

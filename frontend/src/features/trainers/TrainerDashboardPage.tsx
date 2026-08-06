@@ -119,13 +119,6 @@ export default function TrainerDashboardPage() {
             Your training dashboard
           </Typography>
         </Box>
-        <Button
-          variant="outlined"
-          size="small"
-          onClick={() => navigate({ to: "/pt-sessions/create" })}
-        >
-          + Create Session
-        </Button>
       </Box>
 
       <Grid container spacing={3} sx={{ mb: 4 }}>

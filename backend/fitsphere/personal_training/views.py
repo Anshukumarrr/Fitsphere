@@ -83,15 +83,11 @@ class PTMembershipDetailView(generics.RetrieveUpdateDestroyAPIView):
         return qs
 
 
-class PTSessionListCreateView(generics.ListCreateAPIView):
+class PTSessionListView(generics.ListAPIView):
     permission_classes = (IsStaff | IsMember,)
+    serializer_class = PTSessionSerializer
     filterset_fields = ("trainer", "member", "status", "scheduled_date")
     ordering_fields = ("scheduled_date", "scheduled_time")
-
-    def get_serializer_class(self):
-        if self.request.method == "POST":
-            return PTSessionCreateSerializer
-        return PTSessionSerializer
 
     def get_queryset(self):
         user = self.request.user
@@ -124,9 +120,6 @@ class PTSessionListCreateView(generics.ListCreateAPIView):
             if branch:
                 qs = qs.filter(trainer__branch=branch)
         return qs
-
-    def perform_create(self, serializer):
-        serializer.save(organization=self.request.user.organization)
 
 
 class PTSessionDetailView(generics.RetrieveUpdateDestroyAPIView):
