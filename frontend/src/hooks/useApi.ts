@@ -9,7 +9,6 @@ import type {
   GymOrganization,
   Member,
   MemberDashboardData,
-  MemberMembership,
   MembershipPlan,
   PaginatedResponse,
   Payment,
@@ -151,17 +150,6 @@ export function useBulkImportMembers() {
       qc.invalidateQueries({ queryKey: ["members"] });
       window.__chalkBurst?.();
     },
-  });
-}
-
-export function useMyMembership(id?: number) {
-  return useQuery<MemberMembership>({
-    queryKey: ["my-membership", id],
-    queryFn: async () => {
-      const { data } = await apiClient.get(`/memberships/my-memberships/${id}/`);
-      return data;
-    },
-    enabled: !!id,
   });
 }
 
@@ -446,6 +434,41 @@ export function useBookSession() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["my-sessions"] });
       window.__chalkBurst?.();
+    },
+  });
+}
+
+export function useUpdatePTSession() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: number;
+      data: Partial<Pick<PTSession, "status" | "progress_notes" | "rating">>;
+    }) => {
+      const { data: res } = await apiClient.patch(`/personal-training/sessions/${id}/`, data);
+      return res;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["pt-sessions"] });
+      qc.invalidateQueries({ queryKey: ["trainer-dashboard"] });
+    },
+  });
+}
+
+export function useCancelPTSession() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const { data } = await apiClient.patch(`/personal-training/sessions/${id}/cancel/`, {});
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["my-sessions"] });
+      qc.invalidateQueries({ queryKey: ["pt-sessions"] });
+      qc.invalidateQueries({ queryKey: ["trainer-dashboard"] });
     },
   });
 }

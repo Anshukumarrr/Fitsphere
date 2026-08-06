@@ -1,4 +1,4 @@
-from rest_framework import generics, permissions, serializers
+from rest_framework import generics, permissions, serializers, status
 from rest_framework.response import Response
 
 from ..core.permissions import IsGymOwnerOrAdmin, IsMember, IsStaff, get_staff_branch
@@ -136,6 +136,50 @@ class PTSessionDetailView(generics.RetrieveUpdateDestroyAPIView):
             if branch:
                 qs = qs.filter(trainer__branch=branch)
         return qs
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        new_status = request.data.get("status")
+        # Terminal states are immutable: flipping a completed session back to
+        # scheduled would leave PTMembership.sessions_used incremented forever.
+        if new_status and new_status != instance.status and instance.status in (
+            PTSession.Status.COMPLETED,
+            PTSession.Status.MISSED,
+        ):
+            return Response(
+                {"error": "Completed or missed sessions cannot be changed."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        return super().update(request, *args, **kwargs)
+
+
+class MemberCancelSessionView(generics.UpdateAPIView):
+    """Member-facing cancellation of their own scheduled PT session."""
+
+    permission_classes = (IsMember,)
+    serializer_class = PTSessionSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        try:
+            member = user.member_profile
+        except Member.DoesNotExist:
+            return PTSession.objects.none()
+        return PTSession.objects.filter(
+            member=member,
+            organization=user.organization,
+        )
+
+    def update(self, request, *args, **kwargs):
+        session = self.get_object()
+        if session.status != PTSession.Status.SCHEDULED:
+            return Response(
+                {"error": "Only scheduled sessions can be cancelled."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        session.status = PTSession.Status.CANCELLED
+        session.save(update_fields=["status", "updated_at"])
+        return Response(PTSessionSerializer(session).data)
 
 
 class BookSessionView(generics.CreateAPIView):

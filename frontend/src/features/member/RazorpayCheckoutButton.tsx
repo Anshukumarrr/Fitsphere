@@ -4,10 +4,9 @@ import Snackbar from "@mui/material/Snackbar";
 import { useCreateRazorpayOrder, useVerifyRazorpayPayment } from "../../hooks/useApi";
 
 interface Props {
-  purchaseType: "membership_plan" | "pt_package" | "renewal";
+  purchaseType: "membership_plan" | "pt_package";
   itemId: number;
   amount: number;
-  planId?: number;
   label?: string;
   disabled?: boolean;
   onSuccess?: (paymentId: number) => void;
@@ -36,7 +35,7 @@ function loadRazorpaySdk(): Promise<void> {
   return sdkPromise;
 }
 
-export default function RazorpayCheckoutButton({ purchaseType, itemId, amount, planId, label, disabled, onSuccess }: Props) {
+export default function RazorpayCheckoutButton({ purchaseType, itemId, amount, label, disabled, onSuccess }: Props) {
   const [error, setError] = useState("");
   const createOrder = useCreateRazorpayOrder();
   const verifyPayment = useVerifyRazorpayPayment();
@@ -49,7 +48,6 @@ export default function RazorpayCheckoutButton({ purchaseType, itemId, amount, p
       const order = await createOrder.mutateAsync({
         purchase_type: purchaseType,
         item_id: itemId,
-        ...(purchaseType === "renewal" && planId ? { plan_id: planId } : {}),
       });
       const options = {
         key: order.key,

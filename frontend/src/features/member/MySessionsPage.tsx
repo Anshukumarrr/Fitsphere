@@ -20,7 +20,7 @@ import {
 } from "@mui/material";
 import { useAuth } from "../../hooks/useAuth";
 import { setApiErrors } from "../../hooks/setApiErrors";
-import { useMySessions, useBookSession, useAvailableTrainers } from "../../hooks/useApi";
+import { useMySessions, useBookSession, useAvailableTrainers, useCancelPTSession } from "../../hooks/useApi";
 import PaginationBar from "../../components/common/PaginationBar";
 
 export default function MySessionsPage() {
@@ -30,11 +30,13 @@ export default function MySessionsPage() {
   if (page > 1) params.page = String(page);
   const { data, isLoading } = useMySessions(params);
   const bookSession = useBookSession();
+  const cancelSession = useCancelPTSession();
   const [open, setOpen] = useState(false);
   const [trainerId, setTrainerId] = useState("");
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [bookError, setBookError] = useState("");
+  const [cancelError, setCancelError] = useState("");
 
   const memberBranchId = user?.member_branch_id ?? null;
 
@@ -58,6 +60,17 @@ export default function MySessionsPage() {
     }
   };
 
+  const handleCancel = async (id: number) => {
+    setCancelError("");
+    try {
+      await cancelSession.mutateAsync(id);
+    } catch (err) {
+      setCancelError(
+        setApiErrors(err, () => {}) ?? "Couldn't cancel the session. Please try again."
+      );
+    }
+  };
+
   const statusColor = (status: string) => {
     switch (status) {
       case "scheduled": return "success";
@@ -78,6 +91,11 @@ export default function MySessionsPage() {
       </Box>
 
       <Card>
+        {cancelError && (
+          <Alert severity="error" sx={{ m: 2 }}>
+            {cancelError}
+          </Alert>
+        )}
         <TableContainer>
           <Table>
             <TableHead>
@@ -113,7 +131,20 @@ export default function MySessionsPage() {
                     </TableCell>
                     <TableCell>{session.trainer_name}</TableCell>
                     <TableCell>
-                      <Chip label={session.status} color={statusColor(session.status) as "success" | "default" | "error" | "warning"} size="small" />
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                        <Chip label={session.status} color={statusColor(session.status) as "success" | "default" | "error" | "warning"} size="small" />
+                        {session.status === "scheduled" && (
+                          <Button
+                            size="small"
+                            color="warning"
+                            variant="text"
+                            disabled={cancelSession.isPending}
+                            onClick={() => handleCancel(session.id)}
+                          >
+                            Cancel
+                          </Button>
+                        )}
+                      </Box>
                     </TableCell>
                     <TableCell sx={{ maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                       {session.progress_notes || "—"}
@@ -145,6 +176,11 @@ export default function MySessionsPage() {
               label="Trainer"
               value={trainerId}
               onChange={(e) => setTrainerId(e.target.value)}
+              helperText={
+                (trainers?.results?.length ?? 0) === 0
+                  ? "No trainers available in your branch yet."
+                  : ""
+              }
             >
               {(trainers?.results ?? []).map((t) => (
                 <MenuItem key={t.id} value={t.id}>

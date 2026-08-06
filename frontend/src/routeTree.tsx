@@ -27,7 +27,6 @@ const ProfilePage = lazy(() => import("./features/profile/ProfilePage"));
 const MySessionsPage = lazy(() => import("./features/member/MySessionsPage"));
 const MyPaymentsPage = lazy(() => import("./features/member/MyPaymentsPage"));
 const PaymentReceiptPage = lazy(() => import("./features/member/PaymentReceiptPage"));
-const RenewMembershipPage = lazy(() => import("./features/member/RenewMembershipPage"));
 
 const rootRoute = new RootRoute();
 
@@ -200,12 +199,6 @@ const exercisesRoute = new Route({
   component: ExerciseExplorerPage,
 });
 
-const renewRoute = new Route({
-  getParentRoute: () => dashboardLayoutRoute,
-  path: "/renew/$membershipId",
-  component: RenewMembershipPage,
-});
-
 const routeTree = rootRoute.addChildren([
   indexRoute,
   loginRoute,
@@ -233,7 +226,6 @@ const routeTree = rootRoute.addChildren([
     paymentReceiptRoute,
     auditRoute,
     exercisesRoute,
-    renewRoute,
   ]),
 ]);
 

@@ -20,6 +20,7 @@ import {
 } from "@mui/material";
 import { Block, DeleteForever, Edit, PersonAdd } from "@mui/icons-material";
 import { useDeleteMember, useHardDeleteMember, useMembers } from "../../hooks/useApi";
+import { useAuth } from "../../hooks/useAuth";
 import PaginationBar from "../../components/common/PaginationBar";
 import SearchInput from "../../components/common/SearchInput";
 import MemberCreateDialog from "./MemberCreateDialog";
@@ -31,6 +32,14 @@ interface BranchMemberTableProps {
 }
 
 export default function BranchMemberTable({ branchId }: BranchMemberTableProps) {
+  const { user } = useAuth();
+  // The backend gates these mutations behind IsStaffOrReadOnlyInstructor — the
+  // instructor role is read-only here, so every action button would 403 for
+  // them. Hide all member-management actions for read-only roles.
+  const canManage =
+    !!user?.role &&
+    ["gym_owner", "super_admin", "receptionist", "trainer", "manager"].includes(user.role);
+
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [dialogBranch, setDialogBranch] = useState<number | null>(null);
@@ -63,9 +72,11 @@ export default function BranchMemberTable({ branchId }: BranchMemberTableProps) 
     <Box>
       <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2, px: 2, py: 1 }}>
         <SearchInput value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder="Search members..." />
-        <Button variant="contained" size="small" startIcon={<PersonAdd />} onClick={() => setDialogBranch(branchId)}>
-          Add Member
-        </Button>
+        {canManage && (
+          <Button variant="contained" size="small" startIcon={<PersonAdd />} onClick={() => setDialogBranch(branchId)}>
+            Add Member
+          </Button>
+        )}
       </Box>
 
       {members.length === 0 && !isLoading ? (
@@ -87,7 +98,7 @@ export default function BranchMemberTable({ branchId }: BranchMemberTableProps) 
                   <TableCell sx={{ fontWeight: 600 }}>Status</TableCell>
                   <TableCell sx={{ fontWeight: 600 }}>End Date</TableCell>
                   <TableCell sx={{ fontWeight: 600 }}>Emergency Contact</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>Actions</TableCell>
+                  {canManage && <TableCell sx={{ fontWeight: 600 }}>Actions</TableCell>}
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -125,23 +136,25 @@ export default function BranchMemberTable({ branchId }: BranchMemberTableProps) 
                           </>
                         ) : "-"}
                       </TableCell>
-                      <TableCell sx={{ whiteSpace: "nowrap" }}>
-                        <Tooltip title="Edit">
-                          <IconButton size="small" onClick={() => setEditMember(m)}>
-                            <Edit fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Deactivate">
-                          <IconButton size="small" color="warning" onClick={() => setConfirmTarget({ member: m, action: "deactivate" })}>
-                            <Block fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Delete permanently">
-                          <IconButton size="small" color="error" onClick={() => setConfirmTarget({ member: m, action: "delete" })}>
-                            <DeleteForever fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                      </TableCell>
+                      {canManage && (
+                        <TableCell sx={{ whiteSpace: "nowrap" }}>
+                          <Tooltip title="Edit">
+                            <IconButton size="small" onClick={() => setEditMember(m)}>
+                              <Edit fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Deactivate">
+                            <IconButton size="small" color="warning" onClick={() => setConfirmTarget({ member: m, action: "deactivate" })}>
+                              <Block fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Delete permanently">
+                            <IconButton size="small" color="error" onClick={() => setConfirmTarget({ member: m, action: "delete" })}>
+                              <DeleteForever fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        </TableCell>
+                      )}
                     </TableRow>
                   ))
                 )}

@@ -1,15 +1,29 @@
-import { Box, Button, Card, CardContent, TextField, Typography } from "@mui/material";
+import { Alert, Box, Button, Card, CardContent, TextField, Typography } from "@mui/material";
 import { useState } from "react";
 import { useCodeCheckIn } from "../../hooks/useApi";
 
 export default function MemberCheckInPanel() {
   const [code, setCode] = useState("");
+  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const checkIn = useCodeCheckIn();
 
   const handleCheckIn = async () => {
     if (!code.trim()) return;
-    await checkIn.mutateAsync({ code: code.trim() });
-    setCode("");
+    setMessage(null);
+    try {
+      await checkIn.mutateAsync({ code: code.trim() });
+      setCode("");
+      setMessage({ type: "success", text: "Checked in! Let's get to work." });
+    } catch (err: any) {
+      setMessage({
+        type: "error",
+        text:
+          err?.response?.data?.error ||
+          err?.response?.data?.detail ||
+          err?.message ||
+          "Check-in failed. Try again.",
+      });
+    }
   };
 
   return (
@@ -23,7 +37,7 @@ export default function MemberCheckInPanel() {
             size="small"
             placeholder="Enter your check-in code"
             value={code}
-            onChange={(e) => setCode(e.target.value.toUpperCase())}
+            onChange={(e) => { setCode(e.target.value.toUpperCase()); setMessage(null); }}
             onKeyDown={(e) => { if (e.key === "Enter") handleCheckIn(); }}
             sx={{ flex: 1, maxWidth: 320 }}
           />
@@ -36,15 +50,13 @@ export default function MemberCheckInPanel() {
             {checkIn.isPending ? "Checking..." : "Check In"}
           </Button>
         </Box>
-        {checkIn.isError && (
-          <Typography variant="caption" sx={{ color: "#FF4B3E", mt: 1, display: "block" }}>
-            {(checkIn.error as Error)?.message || "Check-in failed. Try again."}
-          </Typography>
-        )}
-        {checkIn.isSuccess && (
-          <Typography variant="caption" sx={{ color: "#D4FF3F", mt: 1, display: "block" }}>
-            Checked in! Let&apos;s get to work.
-          </Typography>
+        {message && (
+          <Alert
+            severity={message.type}
+            sx={{ mt: 1.5 }}
+          >
+            {message.text}
+          </Alert>
         )}
       </CardContent>
     </Card>

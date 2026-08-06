@@ -1,19 +1,31 @@
-import { Button, Card, Typography } from "@mui/material";
+import { useState } from "react";
+import { Alert, Button, Card, Typography } from "@mui/material";
 import { Refresh } from "@mui/icons-material";
 import { useActiveCode, useGenerateCode } from "../../hooks/useApi";
 
 /**
  * Daily attendance check-in code panel.
- * Roles allowed to generate: gym_owner, super_admin, receptionist, manager
- * (matches the backend generate_code permission set).
+ * Roles shown the generate button match the backend generate_code set
+ * (gym_owner, super_admin, receptionist, manager, trainer).
  */
 export default function AttendanceCodePanel() {
   const { data: activeCode, isLoading: codeLoading } = useActiveCode();
   const generateCode = useGenerateCode();
+  const [error, setError] = useState("");
   const code = activeCode && "code" in activeCode ? activeCode.code : null;
 
   const handleGenerate = async () => {
-    await generateCode.mutateAsync({});
+    setError("");
+    try {
+      await generateCode.mutateAsync({});
+    } catch (err: any) {
+      setError(
+        err?.response?.data?.error ||
+          err?.response?.data?.detail ||
+          err?.message ||
+          "Couldn't generate the code. Try again."
+      );
+    }
   };
 
   return (
@@ -55,6 +67,11 @@ export default function AttendanceCodePanel() {
             {generateCode.isPending ? "Generating..." : "Generate New Code"}
           </Button>
         </>
+      )}
+      {error && (
+        <Alert severity="error" sx={{ mt: 2 }}>
+          {error}
+        </Alert>
       )}
     </Card>
   );

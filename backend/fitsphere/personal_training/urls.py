@@ -22,6 +22,11 @@ urlpatterns = [
     path("sessions/", views.PTSessionListView.as_view(), name="pt-session-list"),
     path("sessions/book/", views.BookSessionView.as_view(), name="pt-session-book"),
     path(
+        "sessions/<int:pk>/cancel/",
+        views.MemberCancelSessionView.as_view(),
+        name="pt-session-cancel",
+    ),
+    path(
         "sessions/<int:pk>/",
         views.PTSessionDetailView.as_view(),
         name="pt-session-detail",

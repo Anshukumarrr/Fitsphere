@@ -139,7 +139,7 @@ export default function TrainerDashboardPage() {
       {!data?.upcoming_sessions?.length ? (
         <Card sx={{ p: 4, textAlign: "center" }}>
           <Typography variant="body2" sx={{ color: "#8A8F8C" }}>
-            No upcoming sessions — schedule one to get started.
+            No upcoming sessions yet. When members book a session with you it will show up here.
           </Typography>
         </Card>
       ) : (

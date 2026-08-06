@@ -43,8 +43,8 @@ const drawerWidth = 250;
 const navItems = [
   // Dashboard: org analytics for owner/admin/manager; trainer gets its own dashboard.
   { label: "Dashboard", icon: <Dashboard />, path: "/dashboard", roles: ["gym_owner", "super_admin", "manager", "trainer"] },
-  // Members: IsStaffOrReadOnlyInstructor — instructor is read-only.
-  { label: "Members", icon: <People />, path: "/members", roles: ["gym_owner", "receptionist", "trainer", "manager", "instructor"] },
+  // Members: IsStaffOrReadOnlyInstructor — instructor is read-only. super_admin gets the platform-wide overview.
+  { label: "Members", icon: <People />, path: "/members", roles: ["gym_owner", "super_admin", "receptionist", "trainer", "manager", "instructor"] },
   { label: "Import Members", icon: <FileUpload />, path: "/members/import", roles: ["gym_owner", "manager"] },
   { label: "Staff", icon: <Group />, path: "/staff", roles: ["gym_owner", "manager"] },
   { label: "Payments", icon: <MonetizationOn />, path: "/payments", roles: ["gym_owner", "receptionist", "manager"] },
