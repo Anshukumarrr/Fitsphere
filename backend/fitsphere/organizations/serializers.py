@@ -1,9 +1,70 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
+from .cloudinary_utils import avatar_url, banner_url
 from .models import Branch, GymOrganization, StaffInvite
 
 User = get_user_model()
+
+
+class PublicGymSerializer(serializers.ModelSerializer):
+    """Public storefront listing for the landing page (AllowAny)."""
+
+    banner_image_url = serializers.SerializerMethodField()
+    picture_image_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = GymOrganization
+        fields = (
+            "id",
+            "name",
+            "slug",
+            "owner_name",
+            "description",
+            "banner_image_url",
+            "picture_image_url",
+        )
+
+    def get_banner_image_url(self, obj):
+        return banner_url(obj.banner_public_id)
+
+    def get_picture_image_url(self, obj):
+        return avatar_url(obj.picture_public_id)
+
+
+class GymProfileSerializer(serializers.ModelSerializer):
+    """Editable gym profile (owner/receptionist) plus read-only image URLs."""
+
+    banner_image_url = serializers.SerializerMethodField()
+    picture_image_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = GymOrganization
+        fields = (
+            "id",
+            "name",
+            "slug",
+            "owner_name",
+            "description",
+            "banner_image_url",
+            "picture_image_url",
+            "contact_email",
+            "contact_phone",
+            "address_line1",
+            "address_line2",
+            "city",
+            "state",
+            "postal_code",
+            "country",
+            "is_active",
+        )
+        read_only_fields = ("id", "slug", "banner_image_url", "picture_image_url", "is_active")
+
+    def get_banner_image_url(self, obj):
+        return banner_url(obj.banner_public_id)
+
+    def get_picture_image_url(self, obj):
+        return avatar_url(obj.picture_public_id)
 
 
 class BranchSerializer(serializers.ModelSerializer):

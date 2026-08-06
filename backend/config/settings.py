@@ -180,6 +180,13 @@ if config("AWS_ACCESS_KEY_ID", default=None):
     AWS_S3_REGION_NAME = config("AWS_S3_REGION_NAME", default="us-east-1")
     AWS_DEFAULT_ACL = "private"
 
+# Cloudinary (free tier) — gym profile images. Config is env-loaded so the
+# API secret never lives in the repo; organizations/cloudinary_utils.py
+# configures the SDK and builds optimized delivery URLs.
+CLOUDINARY_CLOUD_NAME = config("CLOUDINARY_CLOUD_NAME", default="")
+CLOUDINARY_API_KEY = config("CLOUDINARY_API_KEY", default="")
+CLOUDINARY_API_SECRET = config("CLOUDINARY_API_SECRET", default="")
+
 EMAIL_BACKEND = "anymail.backends.brevo.EmailBackend"
 ANYMAIL = {"BREVO_API_KEY": config("BREVO_API_KEY", default="")}
 DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="FitSphere <noreply@fitsphere.app>")

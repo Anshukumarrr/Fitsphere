@@ -1,11 +1,15 @@
 from rest_framework import generics, permissions, status
+from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 
 from ..core.permissions import IsGymOwnerOrAdmin, IsSuperAdmin
+from .cloudinary_utils import upload_image
 from .models import Branch, GymOrganization, InviteCode, StaffInvite
 from .serializers import (
     BranchSerializer,
     GymOrganizationSerializer,
+    GymProfileSerializer,
+    PublicGymSerializer,
     StaffInviteCreateSerializer,
     StaffInviteSerializer,
 )
@@ -185,3 +189,61 @@ class InviteCodeView(generics.GenericAPIView):
             return None
         profile = getattr(user, accessor, None)
         return getattr(profile, "branch", None) if profile else None
+
+
+class PublicGymListView(generics.ListAPIView):
+    """Public storefront listing for the landing page (no auth required).
+
+    Returns only active gyms; unpaginated plain array so the landing page can
+    render it directly.
+    """
+
+    serializer_class = PublicGymSerializer
+    permission_classes = (permissions.AllowAny,)
+    pagination_class = None
+
+    def get_queryset(self):
+        return GymOrganization.objects.filter(is_active=True).order_by("name")
+
+
+class GymProfileView(generics.RetrieveUpdateAPIView):
+    """Gym public-profile read/edit.
+
+    GET: any authenticated member of the org may read.
+    PATCH: gated to gym_owner + receptionist. Accepts multipart form data with
+    optional `banner_image` / `profile_image` file fields alongside the text
+    fields (name, owner_name, description, contact/address).
+    """
+
+    serializer_class = GymProfileSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    http_method_names = ("get", "patch", "head", "options")
+
+    def get_object(self):
+        org = self.request.user.organization
+        if org is None:
+            raise NotFound("No organization is associated with this account.")
+        return org
+
+    def update(self, request, *args, **kwargs):
+        role = getattr(request.user, "role", "")
+        if role not in ("gym_owner", "receptionist"):
+            return Response(
+                {"detail": "Only the gym owner or receptionist can edit the gym profile."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        org = self.get_object()
+
+        banner = request.FILES.get("banner_image")
+        picture = request.FILES.get("profile_image")
+        if banner:
+            org.banner_public_id = upload_image(banner, folder="gym_banners")
+        if picture:
+            org.picture_public_id = upload_image(picture, folder="gym_avatars")
+
+        serializer = self.get_serializer(org, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        return Response(self.get_serializer(org).data)
