@@ -55,7 +55,7 @@ const navItems = [
   { label: "Create Session", icon: <PlaylistAdd />, path: "/pt-sessions/create", roles: ["gym_owner", "receptionist", "trainer", "manager"] },
   { label: "Attendance", icon: <CalendarMonth />, path: "/attendance", roles: ["gym_owner", "receptionist", "trainer", "manager", "instructor"] },
   // Attendance-code generation — matches backend generate_code roles.
-  { label: "Generate Code", icon: <VpnKey />, path: "/attendance/generate", roles: ["gym_owner", "super_admin", "receptionist", "manager"] },
+  { label: "Generate Code", icon: <VpnKey />, path: "/attendance/generate", roles: ["gym_owner", "super_admin", "receptionist", "manager", "trainer"] },
   { label: "Analytics", icon: <Assessment />, path: "/analytics", roles: ["gym_owner", "manager"] },
   { label: "Exercises", icon: <FitnessCenter />, path: "/exercises", roles: ["trainer", "member"] },
   { label: "Tickets", icon: <BugReport />, path: "/tickets", roles: ["gym_owner", "super_admin", "trainer", "member", "manager", "instructor", "security", "cleaner", "maintenance"] },
