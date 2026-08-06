@@ -153,7 +153,7 @@ def _get_org_id(request):
 @api_view(["POST"])
 @permission_classes([permissions.IsAuthenticated])
 def generate_code(request):
-    if request.user.role not in ("gym_owner", "receptionist", "super_admin", "manager", "trainer"):
+    if request.user.role not in ("gym_owner", "receptionist", "super_admin", "manager"):
         return Response({"error": "Not authorized"}, status=status.HTTP_403_FORBIDDEN)
     org_id = _get_org_id(request)
     if not org_id:
@@ -165,12 +165,6 @@ def generate_code(request):
         try:
             branch = request.user.receptionist_profile.branch
         except ReceptionistProfile.DoesNotExist:
-            pass
-    elif request.user.role == "trainer":
-        from ..trainers.models import Trainer
-        try:
-            branch = request.user.trainer_profile.branch
-        except Trainer.DoesNotExist:
             pass
     elif branch_id:
         from ..organizations.models import Branch

@@ -262,6 +262,20 @@ export function usePTSessions(params?: Record<string, string>) {
   });
 }
 
+export function useCreatePTSession() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload: Record<string, unknown>) => {
+      const { data } = await apiClient.post("/personal-training/sessions/", payload);
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["pt-sessions"] });
+      qc.invalidateQueries({ queryKey: ["my-sessions"] });
+    },
+  });
+}
+
 export function usePayments(params?: Record<string, string>) {
   return useQuery<PaginatedResponse<Payment>>({
     queryKey: ["payments", params],

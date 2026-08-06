@@ -12,6 +12,7 @@ import { ExpandMore, FitnessCenter, Store } from "@mui/icons-material";
 import { useGyms, useOrganization } from "../../hooks/useApi";
 import { useAuth } from "../../hooks/useAuth";
 import BranchMemberTable from "./BranchMemberTable";
+import InviteCodeCard from "../../components/InviteCodeCard";
 
 export default function AllMembersPage() {
   const { user } = useAuth();
@@ -34,6 +35,9 @@ export default function AllMembersPage() {
           Overview of all gyms, branches, and their members across the platform
         </Typography>
       )}
+
+      {/* Member invite code — for staff enrolling members by hand (self-guards by role) */}
+      <InviteCodeCard kind="member" />
 
       {isLoading ? (
         <Typography>Loading...</Typography>
