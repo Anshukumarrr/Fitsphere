@@ -7,6 +7,7 @@ import type {
   BulkImportResult,
   DashboardData,
   GymOrganization,
+  GymProfile,
   Member,
   MemberDashboardData,
   MembershipPlan,
@@ -15,6 +16,7 @@ import type {
   PlatformGymAnalytics,
   PTPackage,
   PTSession,
+  PublicGym,
   Staff,
   SubscriptionPlan,
   Ticket,
@@ -314,6 +316,45 @@ export function useSubscriptionPlans(params?: Record<string, string>) {
     queryFn: async () => {
       const { data } = await apiClient.get("/billing/plans/", { params });
       return data;
+    },
+  });
+}
+
+// --- Gym public-profile hooks (Cloudinary-backed) ---
+
+export function usePublicGyms() {
+  return useQuery<PublicGym[]>({
+    queryKey: ["public-gyms"],
+    queryFn: async () => {
+      const { data } = await apiClient.get("/organizations/public/");
+      return data;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function useGymProfile(options?: { enabled?: boolean }) {
+  return useQuery<GymProfile>({
+    queryKey: ["gym-profile"],
+    queryFn: async () => {
+      const { data } = await apiClient.get("/organizations/profile/");
+      return data;
+    },
+    enabled: !!orgId(),
+    ...options,
+  });
+}
+
+export function useUpdateGymProfile() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (formData: FormData) => {
+      const { data } = await apiClient.patch("/organizations/profile/", formData);
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["gym-profile"] });
+      qc.invalidateQueries({ queryKey: ["public-gyms"] });
     },
   });
 }

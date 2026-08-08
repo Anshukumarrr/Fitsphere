@@ -71,6 +71,35 @@ export interface GymOrganization {
   updated_at: string;
 }
 
+export interface GymProfile {
+  id: number;
+  name: string;
+  slug: string;
+  owner_name: string;
+  description: string;
+  banner_image_url: string;
+  picture_image_url: string;
+  contact_email: string;
+  contact_phone: string;
+  address_line1: string;
+  address_line2: string;
+  city: string;
+  state: string;
+  postal_code: string;
+  country: string;
+  is_active: boolean;
+}
+
+export interface PublicGym {
+  id: number;
+  name: string;
+  slug: string;
+  owner_name: string;
+  description: string;
+  banner_image_url: string;
+  picture_image_url: string;
+}
+
 export interface Branch {
   id: number;
   organization: number;

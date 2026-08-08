@@ -30,6 +30,7 @@ import {
   People,
   Person,
   Receipt,
+  Storefront,
   VpnKey,
 } from "@mui/icons-material";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -59,6 +60,7 @@ const navItems = [
   { label: "Email Center", icon: <Email />, path: "/email-center", roles: ["gym_owner", "super_admin", "manager"] },
   { label: "Billing", icon: <Receipt />, path: "/billing", roles: ["super_admin"] },
   { label: "Audit Logs", icon: <Receipt />, path: "/audit", roles: ["gym_owner", "super_admin", "manager"] },
+  { label: "Gym Profile", icon: <Storefront />, path: "/gym-profile", roles: ["gym_owner", "receptionist"] },
   { label: "My Dashboard", icon: <Dashboard />, path: "/dashboard", roles: ["member"] },
   { label: "My Attendance", icon: <CalendarMonth />, path: "/my-attendance", roles: ["member"] },
   { label: "My Sessions", icon: <Group />, path: "/my-sessions", roles: ["member"] },

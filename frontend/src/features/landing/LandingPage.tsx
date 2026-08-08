@@ -8,6 +8,7 @@ import AtmosphereLayer from "../../components/AtmosphereLayer";
 import LandingNavbar from "../../components/landing/LandingNavbar";
 import LandingHero from "../../components/landing/LandingHero";
 import FeaturesSection from "../../components/landing/FeaturesSection";
+import GymShowcaseSection from "../../components/landing/GymShowcaseSection";
 import PricingSection from "../../components/landing/PricingSection";
 import CtaSection from "../../components/landing/CtaSection";
 import LandingFooter from "../../components/landing/LandingFooter";
@@ -31,6 +32,7 @@ export default function LandingPage() {
         <LandingNavbar />
         <LandingHero />
         <FeaturesSection />
+        <GymShowcaseSection />
         <PricingSection />
         <CtaSection />
         <LandingFooter />
