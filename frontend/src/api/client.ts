@@ -21,6 +21,12 @@ apiClient.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  // Never force application/json onto FormData payloads — axios v1 JSON-serializes
+  // a FormData when Content-Type is pre-set, silently dropping File parts
+  // (gym-profile images, bulk-import CSV). Let the browser set multipart + boundary.
+  if (config.data instanceof FormData) {
+    config.headers.delete("Content-Type");
+  }
   return config;
 });
 
