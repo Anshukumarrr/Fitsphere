@@ -90,7 +90,10 @@ function has24x7(branches: Branch[]): boolean {
     const close = toMinutes(b.closing_time);
     if (open === null || close === null) return false;
     // 24x7: opens at midnight with close at/after 23:30.
-    return open === 0 && close >= 23 * 60 + 30;
+    if (open === 0 && close >= 23 * 60 + 30) return true;
+    // 24x7: same open and close time = convention for always-open.
+    if (open === close && open !== 0) return true;
+    return false;
   });
 }
 
