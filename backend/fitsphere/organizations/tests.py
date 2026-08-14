@@ -4,6 +4,8 @@ Covers the public storefront listing, the owner/receptionist edit gate on
 GymProfileView, and image upload. Cloudinary is mocked so these run with no
 credentials and never hit the live network.
 """
+from datetime import time
+
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
@@ -11,7 +13,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from fitsphere.organizations.models import GymOrganization
+from fitsphere.organizations.models import Branch, GymOrganization
 
 User = get_user_model()
 
@@ -138,3 +140,82 @@ class GymProfileAPITests(APITestCase):
             format="multipart",
         )
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+
+
+class GymActiveAndBranchHoursTests(APITestCase):
+    """is_active toggle (owner-only) + branch hours editing / branch gates."""
+
+    def setUp(self):
+        self.org = GymOrganization.objects.create(name="Verity Gym", slug="verity-gym-2")
+        self.owner = User.objects.create_user(
+            username="verity-owner-2", email="vo2@a.com", password="x",
+            role="gym_owner", organization=self.org,
+        )
+        self.receptionist = User.objects.create_user(
+            username="verity-recep-2", email="vr2@a.com", password="x",
+            role="receptionist", organization=self.org,
+        )
+        self.trainer = User.objects.create_user(
+            username="verity-trainer-2", email="vt2@a.com", password="x",
+            role="trainer", organization=self.org,
+        )
+        self.branch = Branch.objects.create(
+            organization=self.org,
+            name="Main Branch",
+            opening_time=time(6, 0),
+            closing_time=time(22, 0),
+        )
+
+    def test_owner_toggles_is_active(self):
+        self.client.force_authenticate(self.owner)
+        resp = self.client.patch(
+            "/api/v1/organizations/profile/",
+            {"is_active": False},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.org.refresh_from_db()
+        self.assertFalse(self.org.is_active)
+        public = self.client.get("/api/v1/organizations/public/")
+        self.assertEqual(len(public.data), 0)
+
+    def test_receptionist_cannot_toggle_is_active(self):
+        self.client.force_authenticate(self.receptionist)
+        resp = self.client.patch(
+            "/api/v1/organizations/profile/",
+            {"is_active": False},
+            format="json",
+        )
+        # Receptionist's PATCH is accepted (200) but is_active is stripped
+        # server-side — the response payload and DB row must both stay True.
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertTrue(resp.data["is_active"])
+        self.org.refresh_from_db()
+        self.assertTrue(self.org.is_active)
+
+    def test_owner_updates_branch_hours(self):
+        self.client.force_authenticate(self.owner)
+        resp = self.client.patch(
+            f"/api/v1/organizations/branches/{self.branch.id}/",
+            {"opening_time": "05:30:00", "closing_time": "23:00:00"},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.branch.refresh_from_db()
+        self.assertEqual(str(self.branch.opening_time), "05:30:00")
+        self.assertEqual(str(self.branch.closing_time), "23:00:00")
+
+    def test_trainer_cannot_update_branch(self):
+        self.client.force_authenticate(self.trainer)
+        resp = self.client.patch(
+            f"/api/v1/organizations/branches/{self.branch.id}/",
+            {"opening_time": "05:30:00"},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_trainer_cannot_delete_branch(self):
+        self.client.force_authenticate(self.trainer)
+        resp = self.client.delete(f"/api/v1/organizations/branches/{self.branch.id}/")
+        self.assertEqual(resp.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertTrue(Branch.objects.filter(id=self.branch.id).exists())

@@ -1,5 +1,22 @@
 import type { UseFormSetError } from "react-hook-form";
 
+/**
+ * Generic fallback error message for non-form API failures (e.g. dialog save).
+ * Kept here alongside setApiErrors so all error-shape handling lives in one
+ * module that is not a "component file" (fast-refresh rule).
+ */
+export function getError(err: unknown): string {
+  const data = (err as { response?: { data?: unknown } })?.response?.data;
+  if (data && typeof data === "object") {
+    const detail = (data as Record<string, unknown>).detail;
+    if (typeof detail === "string") return detail;
+    const first = Object.values(data as Record<string, unknown>)[0];
+    if (Array.isArray(first)) return String(first[0]);
+    if (typeof first === "string") return first;
+  }
+  return "Something went wrong. Please try again.";
+}
+
 export function setApiErrors(
   err: unknown,
   setError: UseFormSetError<any>,

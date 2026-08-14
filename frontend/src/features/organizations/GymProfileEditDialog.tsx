@@ -8,27 +8,18 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  FormControlLabel,
+  Switch,
   TextField,
   Typography,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import IconButton from "@mui/material/IconButton";
 import { useUpdateGymProfile } from "../../hooks/useApi";
+import { getError } from "../../hooks/setApiErrors";
 import type { GymProfile } from "../../types";
 
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
-
-function getError(err: unknown): string {
-  const data = (err as { response?: { data?: unknown } })?.response?.data;
-  if (data && typeof data === "object") {
-    const detail = (data as Record<string, unknown>).detail;
-    if (typeof detail === "string") return detail;
-    const first = Object.values(data as Record<string, unknown>)[0];
-    if (Array.isArray(first)) return String(first[0]);
-    if (typeof first === "string") return first;
-  }
-  return "Something went wrong. Please try again.";
-}
 
 interface ImageFieldProps {
   label: string;
@@ -77,6 +68,8 @@ interface GymProfileEditDialogProps {
   profile: GymProfile | undefined;
   onClose: () => void;
   onSaved: () => void;
+  /** Show the "gym is active" toggle — gym_owner only (backend ignores it otherwise). */
+  showActiveSwitch?: boolean;
 }
 
 export default function GymProfileEditDialog({
@@ -84,10 +77,11 @@ export default function GymProfileEditDialog({
   profile,
   onClose,
   onSaved,
+  showActiveSwitch = false,
 }: GymProfileEditDialogProps) {
   const update = useUpdateGymProfile();
 
-  const [form, setForm] = useState({ name: "", owner_name: "", description: "" });
+  const [form, setForm] = useState({ name: "", owner_name: "", description: "", is_active: true });
   const [initDone, setInitDone] = useState(false);
   const [bannerFile, setBannerFile] = useState<File | null>(null);
   const [pictureFile, setPictureFile] = useState<File | null>(null);
@@ -102,6 +96,7 @@ export default function GymProfileEditDialog({
         name: profile.name ?? "",
         owner_name: profile.owner_name ?? "",
         description: profile.description ?? "",
+        is_active: profile.is_active ?? true,
       });
       setBannerPreview(profile.banner_image_url || null);
       setPicturePreview(profile.picture_image_url || null);
@@ -135,6 +130,7 @@ export default function GymProfileEditDialog({
     fd.append("name", form.name);
     fd.append("owner_name", form.owner_name);
     fd.append("description", form.description);
+    fd.append("is_active", String(form.is_active));
     if (bannerFile) fd.append("banner_image", bannerFile);
     if (pictureFile) fd.append("profile_image", pictureFile);
 
@@ -190,6 +186,18 @@ export default function GymProfileEditDialog({
             fullWidth
             helperText="Shown on the public landing page."
           />
+
+          {showActiveSwitch && (
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={form.is_active}
+                  onChange={(e) => setForm((f) => ({ ...f, is_active: e.target.checked }))}
+                />
+              }
+              label="Gym is active — visible on the public landing page"
+            />
+          )}
 
           {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
         </Box>

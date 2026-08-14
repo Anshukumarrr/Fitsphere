@@ -58,7 +58,12 @@ class GymProfileSerializer(serializers.ModelSerializer):
             "country",
             "is_active",
         )
-        read_only_fields = ("id", "slug", "banner_image_url", "picture_image_url", "is_active")
+        read_only_fields = (
+            "id",
+            "slug",
+            "banner_image_url",
+            "picture_image_url",
+        )
 
     def get_banner_image_url(self, obj):
         return banner_url(obj.banner_public_id)

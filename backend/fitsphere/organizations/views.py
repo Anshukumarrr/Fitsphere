@@ -69,6 +69,24 @@ class BranchDetailView(generics.RetrieveUpdateDestroyAPIView):
             return Branch.objects.filter(organization=org)
         return Branch.objects.none()
 
+    def update(self, request, *args, **kwargs):
+        # Branch hours/contact editing is part of the gym-profile surface.
+        if getattr(request.user, "role", "") not in ("gym_owner", "receptionist"):
+            return Response(
+                {"detail": "Only the gym owner or receptionist can edit branch details."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        return super().update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        # Deleting a branch is tenant-destructive — owner or super admin only.
+        if getattr(request.user, "role", "") not in ("gym_owner", "super_admin"):
+            return Response(
+                {"detail": "Only the gym owner or a super admin can delete a branch."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        return super().destroy(request, *args, **kwargs)
+
 
 class StaffInviteListCreateView(generics.ListCreateAPIView):
     serializer_class = StaffInviteSerializer
@@ -242,7 +260,13 @@ class GymProfileView(generics.RetrieveUpdateAPIView):
         if picture:
             org.picture_public_id = upload_image(picture, folder="gym_avatars")
 
-        serializer = self.get_serializer(org, data=request.data, partial=True)
+        # Only the gym owner may flip is_active (hides/shows the gym on the
+        # public landing); a receptionist PATCH must not affect it.
+        data = request.data.copy()
+        if role != "gym_owner":
+            data.pop("is_active", None)
+
+        serializer = self.get_serializer(org, data=data, partial=True)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
 

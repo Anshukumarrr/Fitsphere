@@ -310,6 +310,23 @@ export function useBranches() {
   });
 }
 
+export function useUpdateBranch() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      id,
+      payload,
+    }: {
+      id: number;
+      payload: Partial<GymOrganization["branches"][0]>;
+    }) => {
+      const { data } = await apiClient.patch(`/organizations/branches/${id}/`, payload);
+      return data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["branches", orgId()] }),
+  });
+}
+
 export function useSubscriptionPlans(params?: Record<string, string>) {
   return useQuery<PaginatedResponse<SubscriptionPlan>>({
     queryKey: ["subscription-plans", params],

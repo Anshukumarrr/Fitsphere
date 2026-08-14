@@ -36,6 +36,7 @@ import {
 import { useAuth } from "../../hooks/useAuth";
 import type { Branch, GymProfile } from "../../types";
 import GymProfileEditDialog from "./GymProfileEditDialog";
+import BranchHoursDialog from "./BranchHoursDialog";
 
 /* ------------------------------------------------------------------ */
 /* Small helpers                                                       */
@@ -168,11 +169,13 @@ function SectionCard({
   icon,
   title,
   subtitle,
+  action,
   children,
 }: {
   icon: React.ReactNode;
   title: string;
   subtitle?: string;
+  action?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
@@ -190,40 +193,51 @@ function SectionCard({
         },
       }}
     >
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2.5 }}>
-        <Box
-          sx={{
-            width: 34,
-            height: 34,
-            borderRadius: 2,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            bgcolor: "rgba(212,255,63,0.1)",
-            color: "#D4FF3F",
-            flexShrink: 0,
-          }}
-        >
-          {icon}
-        </Box>
-        <Box sx={{ minWidth: 0 }}>
-          <Typography
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 1.5,
+          mb: 2.5,
+        }}
+      >
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, minWidth: 0 }}>
+          <Box
             sx={{
-              fontFamily: '"Anton", sans-serif',
-              fontSize: 14,
-              letterSpacing: 1.8,
-              color: "#E8E3D8",
-              lineHeight: 1.2,
+              width: 34,
+              height: 34,
+              borderRadius: 2,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              bgcolor: "rgba(212,255,63,0.1)",
+              color: "#D4FF3F",
+              flexShrink: 0,
             }}
           >
-            {title.toUpperCase()}
-          </Typography>
-          {subtitle && (
-            <Typography variant="caption" color="text.secondary" sx={{ fontSize: 12 }}>
-              {subtitle}
+            {icon}
+          </Box>
+          <Box sx={{ minWidth: 0 }}>
+            <Typography
+              sx={{
+                fontFamily: '"Anton", sans-serif',
+                fontSize: 14,
+                letterSpacing: 1.8,
+                color: "#E8E3D8",
+                lineHeight: 1.2,
+              }}
+            >
+              {title.toUpperCase()}
             </Typography>
-          )}
+            {subtitle && (
+              <Typography variant="caption" color="text.secondary" sx={{ fontSize: 12 }}>
+                {subtitle}
+              </Typography>
+            )}
+          </Box>
         </Box>
+        {action}
       </Box>
       {children}
     </Box>
@@ -305,6 +319,7 @@ export default function GymProfilePage() {
   const { data: plansRes } = useMembershipPlans({ page_size: "100" });
 
   const [editOpen, setEditOpen] = useState(false);
+  const [hoursOpen, setHoursOpen] = useState(false);
   const [flash, setFlash] = useState(false);
 
   const branches = branchesRes?.results ?? [];
@@ -612,28 +627,50 @@ export default function GymProfilePage() {
       )}
 
       {/* Operating hours */}
-      {branches.filter((b) => b.opening_time || b.closing_time).length > 0 && (
-        <SectionCard icon={<ScheduleIcon sx={{ fontSize: 18 }} />} title="Operating hours">
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 1.25 }}>
-            {branches
-              .filter((b) => b.opening_time || b.closing_time)
-              .map((b) => (
-                <Box key={b.id} sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 2 }}>
-                  <Typography variant="body2" sx={{ color: "#E8E3D8", fontWeight: 600 }}>
-                    {b.name}
-                  </Typography>
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    sx={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 13 }}
-                  >
-                    {fmtTime(b.opening_time)} – {fmtTime(b.closing_time)}
-                  </Typography>
-                </Box>
-              ))}
-          </Box>
-        </SectionCard>
-      )}
+      <SectionCard
+        icon={<ScheduleIcon sx={{ fontSize: 18 }} />}
+        title="Operating hours"
+        action={
+          <Button
+            size="small"
+            startIcon={<EditIcon sx={{ fontSize: 15 }} />}
+            onClick={() => setHoursOpen(true)}
+            sx={{
+              color: "#D4FF3F",
+              borderColor: "rgba(212,255,63,0.35)",
+              textTransform: "none",
+              fontWeight: 600,
+              "&:hover": { borderColor: "#D4FF3F", bgcolor: "rgba(212,255,63,0.08)" },
+            }}
+            variant="outlined"
+          >
+            Edit
+          </Button>
+        }
+      >
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 1.25 }}>
+          {branches.map((b) => (
+            <Box key={b.id} sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 2 }}>
+              <Typography variant="body2" sx={{ color: "#E8E3D8", fontWeight: 600 }}>
+                {b.name}
+              </Typography>
+              {b.opening_time && b.closing_time ? (
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 13 }}
+                >
+                  {fmtTime(b.opening_time)} – {fmtTime(b.closing_time)}
+                </Typography>
+              ) : (
+                <Typography variant="body2" sx={{ color: "#6B6F6C", fontStyle: "italic", fontSize: 13 }}>
+                  Not set
+                </Typography>
+              )}
+            </Box>
+          ))}
+        </Box>
+      </SectionCard>
     </Box>
   );
 
@@ -750,6 +787,13 @@ export default function GymProfilePage() {
         open={editOpen}
         profile={profile}
         onClose={() => setEditOpen(false)}
+        onSaved={() => setFlash(true)}
+        showActiveSwitch={user?.role === "gym_owner"}
+      />
+      <BranchHoursDialog
+        open={hoursOpen}
+        branches={branches}
+        onClose={() => setHoursOpen(false)}
         onSaved={() => setFlash(true)}
       />
       <Snackbar
