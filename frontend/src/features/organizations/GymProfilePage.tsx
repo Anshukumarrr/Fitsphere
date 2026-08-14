@@ -77,6 +77,8 @@ function isOpenNow(branches: Branch[]): boolean {
     const open = toMinutes(b.opening_time);
     const close = toMinutes(b.closing_time);
     if (open === null || close === null) return false;
+    // True 24x7 range (00:00 → 23:59): open all day.
+    if (open === 0 && close >= 23 * 60 + 59) return true;
     if (close <= open) return now >= open || now < close; // overnight (9PM -> 6AM)
     return now >= open && now < close;
   });
@@ -86,7 +88,9 @@ function has24x7(branches: Branch[]): boolean {
   return branches.some((b) => {
     const open = toMinutes(b.opening_time);
     const close = toMinutes(b.closing_time);
-    return open === 0 && close !== null && close >= 23 * 60 + 30;
+    if (open === null || close === null) return false;
+    // 24x7: opens at midnight with close at/after 23:30.
+    return open === 0 && close >= 23 * 60 + 30;
   });
 }
 
@@ -511,7 +515,9 @@ export default function GymProfilePage() {
               justifyContent: { xs: "center", md: "flex-start" },
             }}
           >
-            {branches.length > 0 && <StatusPill tone={openNow ? "accent" : "muted"}>{openNow ? "OPEN NOW" : "CLOSED"}</StatusPill>}
+            {branches.length > 0 && !is24x7 && (
+              <StatusPill tone={openNow ? "accent" : "muted"}>{openNow ? "OPEN NOW" : "CLOSED"}</StatusPill>
+            )}
             {is24x7 && <StatusPill tone="accent">24x7</StatusPill>}
             {profile.is_active && <StatusPill tone="muted">ACTIVE</StatusPill>}
             <StatusPill tone="muted">
