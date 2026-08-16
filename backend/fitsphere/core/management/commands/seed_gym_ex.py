@@ -385,7 +385,7 @@ class Command(BaseCommand):
         for i, ptm in enumerate(ptm_records):
             mem = ptm.member
             trainer = ptm.trainer
-            branch = branches[ptm.branch_id]["branch"]
+            branch = mem.branch
             for d in range(2):
                 sd = today - timedelta(days=18 - d * 5)
                 session_data.append((
