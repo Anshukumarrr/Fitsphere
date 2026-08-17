@@ -52,11 +52,7 @@ const navItems = [
   { label: "PT Sessions", icon: <Group />, path: "/pt-sessions", roles: ["gym_owner", "receptionist", "trainer", "manager"] },
   { label: "Attendance", icon: <CalendarMonth />, path: "/attendance", roles: ["gym_owner", "receptionist", "trainer", "manager", "instructor"] },
   // Attendance-code generation — matches backend generate_code roles.
-    { label: "Generate Code", icon: <VpnKey />, path: "/attendance/generate", roles: ["gym_owner", "super_admin", "receptionist", "manager", "trainer"] },
-    // Operating hours — per-branch opening/closing times and 24x7 toggle.
-    { label: "Operating hours", icon: <ScheduleIcon />, path: "/gym-profile", roles: ["gym_owner", "receptionist"] },
-    // Branch details — name, contact, address, active status per branch.
-    { label: "Branch details", icon: <Group />, path: "/gym-profile", roles: ["gym_owner", "receptionist"] },
+  { label: "Generate Code", icon: <VpnKey />, path: "/attendance/generate", roles: ["gym_owner", "super_admin", "receptionist", "manager", "trainer"] },
   { label: "Analytics", icon: <Assessment />, path: "/analytics", roles: ["gym_owner", "manager"] },
   { label: "Exercises", icon: <FitnessCenter />, path: "/exercises", roles: ["trainer", "member"] },
   { label: "Tickets", icon: <BugReport />, path: "/tickets", roles: ["gym_owner", "super_admin", "trainer", "member", "manager", "instructor", "security", "cleaner", "maintenance"] },
