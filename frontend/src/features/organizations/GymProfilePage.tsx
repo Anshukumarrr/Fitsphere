@@ -37,6 +37,7 @@ import { useAuth } from "../../hooks/useAuth";
 import type { Branch, GymProfile } from "../../types";
 import GymProfileEditDialog from "./GymProfileEditDialog";
 import BranchHoursDialog from "./BranchHoursDialog";
+import BranchEditDialog from "./BranchEditDialog";
 
 /* ------------------------------------------------------------------ */
 /* Small helpers                                                       */
@@ -327,6 +328,7 @@ export default function GymProfilePage() {
 
   const [editOpen, setEditOpen] = useState(false);
   const [hoursOpen, setHoursOpen] = useState(false);
+  const [branchEditOpen, setBranchEditOpen] = useState(false);
   const [flash, setFlash] = useState(false);
 
   const branches = branchesRes?.results ?? [];
@@ -681,6 +683,7 @@ export default function GymProfilePage() {
         </Box>
       </SectionCard>
     </Box>
+  );
 
   /* ------------------------------------------- branch details ---- */
   const branchDetails = (
@@ -693,7 +696,7 @@ export default function GymProfilePage() {
           size="small"
           startIcon={<EditIcon sx={{ fontSize: 15 }} />}
           onClick={() => setBranchEditOpen(true)}
-          sx={{color: "#D4FF3F", borderColor: "rgba(212,255,63,0.35)", textTransform: "none", fontWeight: 600, "&:hover": { borderColor: "#D4FF3F", bgcolor: "rgba(212,255,63,0.08)" }}}
+          sx={{ color: "#D4FF3F", borderColor: "rgba(212,255,63,0.35)", textTransform: "none", fontWeight: 600, "&:hover": { borderColor: "#D4FF3F", bgcolor: "rgba(212,255,63,0.08)" } }}
           variant="outlined"
         >
           Edit
@@ -885,6 +888,12 @@ export default function GymProfilePage() {
         open={hoursOpen}
         branches={branches}
         onClose={() => setHoursOpen(false)}
+        onSaved={() => setFlash(true)}
+      />
+      <BranchEditDialog
+        open={branchEditOpen}
+        branches={branches}
+        onClose={() => setBranchEditOpen(false)}
         onSaved={() => setFlash(true)}
       />
       <Snackbar
