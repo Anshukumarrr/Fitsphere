@@ -681,6 +681,87 @@ export default function GymProfilePage() {
         </Box>
       </SectionCard>
     </Box>
+
+  /* ------------------------------------------- branch details ---- */
+  const branchDetails = (
+    <SectionCard
+      icon={<GroupIcon sx={{ fontSize: 18 }} />}
+      title="Branch details"
+      subtitle={canEdit ? "Click Edit to modify branch information" : "View only"}
+      action={canEdit && (
+        <Button
+          size="small"
+          startIcon={<EditIcon sx={{ fontSize: 15 }} />}
+          onClick={() => setBranchEditOpen(true)}
+          sx={{color: "#D4FF3F", borderColor: "rgba(212,255,63,0.35)", textTransform: "none", fontWeight: 600, "&:hover": { borderColor: "#D4FF3F", bgcolor: "rgba(212,255,63,0.08)" }}}
+          variant="outlined"
+        >
+          Edit
+        </Button>
+      )}
+    >
+      {canEdit && branches.length > 0 && (
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5, pt: 1 }}>
+          {branches.map((b) => (
+            <Box key={b.id} sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+              <Typography variant="body2" sx={{ color: "#E8E3D8", fontWeight: 600, mb: 0.5 }}>
+                {b.name}
+              </Typography>
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+                {b.contact_email && (
+                  <Typography variant="caption" color="text.secondary" noWrap>
+                    Email: {b.contact_email}
+                  </Typography>
+                )}
+                {b.contact_phone && (
+                  <Typography variant="caption" color="text.secondary" noWrap>
+                    Phone: {b.contact_phone}
+                  </Typography>
+                )}
+                {b.address_line1 && (
+                  <Typography variant="caption" color="text.secondary" noWrap>
+                    Address: {b.address_line1}
+                  </Typography>
+                )}
+                {b.city && b.state && (
+                  <Typography variant="caption" color="text.secondary" noWrap>
+                    {[b.city, b.state].filter(Boolean).join(", ")}
+                  </Typography>
+                )}
+                {b.postal_code && (
+                  <Typography variant="caption" color="text.secondary" noWrap>
+                    Postal code: {b.postal_code}
+                  </Typography>
+                )}
+                {b.country && (
+                  <Typography variant="caption" color="text.secondary" noWrap>
+                    Country: {b.country}
+                  </Typography>
+                )}
+                {b.is_active !== undefined && (
+                  <Typography variant="caption" color="text.secondary" noWrap>
+                    Status: {(b.is_active ? "Active" : "Inactive")}
+                  </Typography>
+                )}
+              </Box>
+            </Box>
+          ))}
+        </Box>
+      )}{!canEdit && branches.length > 0 && (
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5, pt: 1 }}>
+          {branches.map((b) => (
+            <Box key={b.id} sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+              <Typography variant="body2" sx={{ color: "#E8E3D8", fontWeight: 600, mb: 0.5 }}>
+                {b.name}
+              </Typography>
+              <Typography variant="caption" color="text.secondary" noWrap>
+                {b.contact_email || b.contact_phone || b.address_line1 || "--"}
+              </Typography>
+            </Box>
+          ))}
+        </Box>
+      )}
+    </SectionCard>
   );
 
   /* ------------------------------------------- right sidebar ---- */
@@ -787,6 +868,7 @@ export default function GymProfilePage() {
   return (
     <Container maxWidth="lg" sx={{ py: { xs: 2, md: 3 } }}>
       {hero}
+      {branchDetails}
       <Grid container spacing={3} sx={{ mt: { xs: 0, md: 1 } }}>
         <Grid size={{ xs: 12, md: 8 }}>{left}</Grid>
         <Grid size={{ xs: 12, md: 4 }}>{right}</Grid>
