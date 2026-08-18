@@ -113,14 +113,13 @@ export default function BranchEditDialog({
         </IconButton>
       </DialogTitle>
       <DialogContent>
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5, pt: 1 }}>
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 3, pt: 1 }}>
           <TextField
             select
             label="Branch"
             value={branchId}
             onChange={(e) => handleBranchChange(Number(e.target.value))}
             fullWidth
-            size="small"
           >
             {branches.map((b) => (
               <MenuItem key={b.id} value={b.id}>
@@ -134,70 +133,55 @@ export default function BranchEditDialog({
             value={form.name}
             onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
             fullWidth
-            size="small"
           />
-          <Box sx={{ display: "flex", gap: 2 }}>
-            <TextField
-              label="Contact email"
-              value={form.contact_email}
-              onChange={(e) => setForm((f) => ({ ...f, contact_email: e.target.value }))}
-              fullWidth
-              size="small"
-            />
-            <TextField
-              label="Contact phone"
-              value={form.contact_phone}
-              onChange={(e) => setForm((f) => ({ ...f, contact_phone: e.target.value }))}
-              fullWidth
-              size="small"
-            />
-          </Box>
+          <TextField
+            label="Contact email"
+            value={form.contact_email}
+            onChange={(e) => setForm((f) => ({ ...f, contact_email: e.target.value }))}
+            fullWidth
+          />
+          <TextField
+            label="Contact phone"
+            value={form.contact_phone}
+            onChange={(e) => setForm((f) => ({ ...f, contact_phone: e.target.value }))}
+            fullWidth
+          />
           <TextField
             label="Address line 1"
             value={form.address_line1}
             onChange={(e) => setForm((f) => ({ ...f, address_line1: e.target.value }))}
             fullWidth
-            size="small"
           />
           <TextField
             label="Address line 2"
             value={form.address_line2}
             onChange={(e) => setForm((f) => ({ ...f, address_line2: e.target.value }))}
             fullWidth
-            size="small"
           />
-          <Box sx={{ display: "flex", gap: 2 }}>
-            <TextField
-              label="City"
-              value={form.city}
-              onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))}
-              fullWidth
-              size="small"
-            />
-            <TextField
-              label="State"
-              value={form.state}
-              onChange={(e) => setForm((f) => ({ ...f, state: e.target.value }))}
-              fullWidth
-              size="small"
-            />
-          </Box>
-          <Box sx={{ display: "flex", gap: 2 }}>
-            <TextField
-              label="Postal code"
-              value={form.postal_code}
-              onChange={(e) => setForm((f) => ({ ...f, postal_code: e.target.value }))}
-              fullWidth
-              size="small"
-            />
-            <TextField
-              label="Country"
-              value={form.country}
-              onChange={(e) => setForm((f) => ({ ...f, country: e.target.value }))}
-              fullWidth
-              size="small"
-            />
-          </Box>
+          <TextField
+            label="City"
+            value={form.city}
+            onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))}
+            fullWidth
+          />
+          <TextField
+            label="State"
+            value={form.state}
+            onChange={(e) => setForm((f) => ({ ...f, state: e.target.value }))}
+            fullWidth
+          />
+          <TextField
+            label="Postal code"
+            value={form.postal_code}
+            onChange={(e) => setForm((f) => ({ ...f, postal_code: e.target.value }))}
+            fullWidth
+          />
+          <TextField
+            label="Country"
+            value={form.country}
+            onChange={(e) => setForm((f) => ({ ...f, country: e.target.value }))}
+            fullWidth
+          />
 
           <FormControlLabel
             control={
