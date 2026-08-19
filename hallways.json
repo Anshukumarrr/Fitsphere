@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "hallways": [
+    {
+      "id": "hallway_god_Dwight_Jim_d8e12ffb",
+      "wing": "god",
+      "entity_a": "Dwight",
+      "entity_b": "Jim",
+      "co_occurrence_count": 3,
+      "rooms": [
+        "general"
+      ],
+      "label": "Dwight ↔ Jim (co-occur in 3 drawers across 1 room: general)",
+      "created_at": "2026-08-19T00:08:30.131635+00:00",
+      "created_by": "auto",
+      "strength": 1.0,
+      "stability": 1.0,
+      "last_activated": "2026-08-18T22:55:48.439071+00:00",
+      "access_count": 0
+    },
+    {
+      "id": "hallway_god_Dwight_Pam_39c26813",
+      "wing": "god",
+      "entity_a": "Dwight",
+      "entity_b": "Pam",
+      "co_occurrence_count": 4,
+      "rooms": [
+        "general"
+      ],
+      "label": "Dwight ↔ Pam (co-occur in 4 drawers across 1 room: general)",
+      "created_at": "2026-08-19T00:08:30.131635+00:00",
+      "created_by": "auto",
+      "strength": 1.0,
+      "stability": 1.0,
+      "last_activated": "2026-08-18T22:55:48.439071+00:00",
+      "access_count": 0
+    },
+    {
+      "id": "hallway_god_Jim_Pam_37c20ae2",
+      "wing": "god",
+      "entity_a": "Jim",
+      "entity_b": "Pam",
+      "co_occurrence_count": 3,
+      "rooms": [
+        "general"
+      ],
+      "label": "Jim ↔ Pam (co-occur in 3 drawers across 1 room: general)",
+      "created_at": "2026-08-19T00:08:30.131635+00:00",
+      "created_by": "auto",
+      "strength": 1.0,
+      "stability": 1.0,
+      "last_activated": "2026-08-18T22:55:48.439071+00:00",
+      "access_count": 0
+    },
+    {
+      "id": "hallway_god_Pam_Suspense_789ad7b3",
+      "wing": "god",
+      "entity_a": "Pam",
+      "entity_b": "Suspense",
+      "co_occurrence_count": 2,
+      "rooms": [
+        "general"
+      ],
+      "label": "Pam ↔ Suspense (co-occur in 2 drawers across 1 room: general)",
+      "created_at": "2026-08-19T00:08:30.131635+00:00",
+      "created_by": "auto",
+      "strength": 1.0,
+      "stability": 1.0,
+      "last_activated": "2026-08-19T00:08:30.131635+00:00",
+      "access_count": 0
+    }
+  ]
+}

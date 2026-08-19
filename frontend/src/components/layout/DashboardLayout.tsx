@@ -1,6 +1,7 @@
 import {
   AppBar,
   Box,
+  CircularProgress,
   Divider,
   Drawer,
   IconButton,
@@ -33,7 +34,7 @@ import {
   Storefront,
   VpnKey,
 } from "@mui/icons-material";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "../../hooks/useAuth";
 import UserAvatar from "../UserAvatar";
@@ -301,7 +302,15 @@ export default function DashboardLayout() {
         }}
       >
         <Toolbar />
-        <Outlet />
+        <Suspense
+          fallback={
+            <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
+              <CircularProgress size={28} sx={{ color: "#8A8F8C" }} />
+            </Box>
+          }
+        >
+          <Outlet />
+        </Suspense>
       </Box>
     </Box>
   );

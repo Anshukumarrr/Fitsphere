@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "savedAt": "2026-08-18T21:45:11.655Z",
+  "agents": [
+    {
+      "id": "god",
+      "name": "Michael",
+      "character": "michael",
+      "accent": "lemon",
+      "description": "on standby",
+      "project": "hive",
+      "tmuxTarget": "",
+      "cwd": "C:\\Users\\Anshu\\OneDrive\\Documents\\fitsphere",
+      "status": "idle",
+      "action": "awaiting",
+      "progress": 0,
+      "currentStation": "desk",
+      "ptyId": "pty-god",
+      "command": "opencode --model claude-opus-4-8",
+      "provider": "opencode",
+      "model": "claude-opus-4-8",
+      "isGod": true
+    }
+  ],
+  "archived": [
+    {
+      "id": "jim-msz1c8nn",
+      "name": "Jim",
+      "character": "jim",
+      "accent": "sky",
+      "description": "on standby",
+      "project": "C:\\Users\\Anshu\\OneDrive\\Documents\\fitsphere cloe",
+      "tmuxTarget": "",
+      "cwd": "C:\\Users\\Anshu\\OneDrive\\Documents\\fitsphere cloe",
+      "status": "idle",
+      "action": "archived",
+      "progress": 0,
+      "command": "claude --model claude-fable-5 --permission-mode bypassPermissions",
+      "provider": "claude",
+      "model": "claude-fable-5",
+      "lastPrompt": "11hi jim",
+      "archived": true
+    }
+  ],
+  "restorable": [],
+  "queues": {},
+  "selectedId": "god"
+}
